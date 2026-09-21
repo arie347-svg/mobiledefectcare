@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>MDC Mobile - PDI Man Dealer</title>
+    <meta name="description" content="Frontend Mobile PWA Mobile Defect Care (MDC) Honda" />
+    <meta property="og:title" content="MDC Mobile - PDI Man Dealer" />
+    <meta property="og:description" content="Frontend Mobile PWA Mobile Defect Care (MDC) Honda" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Mobile Standalone & Web App Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MDC Mobile" />
+    <meta name="theme-color" content="#cc0000" />
+
+    <!-- Google Font: Inter (UI Digital Interface) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- PWA Service Worker Registration & Early Prompt Capture -->
+    <script>
+      window.deferredInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        console.log('[MDC PWA] Event beforeinstallprompt berhasil ditangkap');
+        window.deferredInstallPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa-prompt-ready', { detail: e }));
+      });
+
+      window.addEventListener('appinstalled', function() {
+        console.log('[MDC PWA] Aplikasi berhasil terpasang ke perangkat');
+        window.deferredInstallPrompt = null;
+        window.dispatchEvent(new CustomEvent('pwa-installed'));
+      });
+
+      if ('serviceWorker' in navigator) {
+        var registerMdcSW = function() {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(function(reg) {
+              console.log('[MDC PWA] Service Worker aktif:', reg.scope);
+            })
+            .catch(function(err) {
+              console.warn('[MDC PWA] Registrasi Service Worker gagal:', err);
+            });
+        };
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          registerMdcSW();
+        } else {
+          window.addEventListener('DOMContentLoaded', registerMdcSW);
+        }
+      }
+    </script>
+
+    <!-- ZXing Barcode Scanning Library -->
+    <script src="https://unpkg.com/@zxing/library@0.23.0"></script>
+
+    <!-- jsPDF & AutoTable for LKUAT Document Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

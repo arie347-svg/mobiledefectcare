@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@keyframes smoothGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.45), 0 0 25px rgba(220, 38, 38, 0.2);
+    filter: brightness(1.03);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(220, 38, 38, 0.8), 0 0 35px rgba(239, 68, 68, 0.35);
+    filter: brightness(1.12);
+  }
+}
+
+.animate-smooth-glow {
+  animation: smoothGlow 1.8s ease-in-out infinite;
+}

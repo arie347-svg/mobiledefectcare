@@ -1,0 +1,4559 @@
+{
+  "spreadsheetId": "1Xy9095taEr4EQC7dWqOj_nPjaIDNsxyf6k6eN7Tb3Mc",
+  "lastUpdated": "2026-09-21T04:01:39.108Z",
+  "masterDealer": [],
+  "userMobile": [],
+  "klaimHeader": [],
+  "klaimDetail": [],
+  "masterTransporter": [
+    {
+      "transporter": "TM",
+      "nopol": "B 9806 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9994 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9943 UWV",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9811 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9809 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "V 9981 UWV",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9826 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9895 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9030 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9024 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9323 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9913 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9927 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9013 UVZ",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9011 UVZ",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9010 UVZ",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9103 UVZ",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9012 UVZ",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9961 UVZ",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9963 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9812 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9987 UWV",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9825 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9986 UWV",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9105 UVZ",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9056 UVZ",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9926 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9026 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9083 UVZ",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9996 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9995 UVY",
+      "kontak": ""
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9851 UIO",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9964 UIO",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9968 UIO",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9019 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9023 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9021 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9028 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9133 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9134 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9147 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9239 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9240 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9243 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9242 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9263 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9264 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9266 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9265 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9301 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9302 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9303 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9304 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9305 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9321 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9324 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9325 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9322 UIP",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9985 UWV",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9801 UVY",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9854 UVY",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9989 UWY",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9929 UVY",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "TM",
+      "nopol": "B 9104 UVZ",
+      "kontak": "6285212171442"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "B 9790 YE",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "B 9347 BYX",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "B 9348 BYX",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "B 9072 VQO",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "B 9836 YV",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "B 9826 OL",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "B 9641 QB",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9128 DF",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9877 DF",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9579 DH",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9751 DH",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9752 DH",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9753 DH",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9754 DH",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9755 DH",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9472 DI",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9473 DI",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9475 DI",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "WSS",
+      "nopol": "T 9476 DI",
+      "kontak": "62811171897"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9101 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9278 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9204 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9285 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9167 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9289 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9288 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9892 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9277 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9276 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9102 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9279 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9991 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9200 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9280 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9975 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9287 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9934 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9973 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9170 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9103 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9286 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9880 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9971 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9969 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9939 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9994 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9977 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9098 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9007 UU",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9294 UVV",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9181 UYU",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9349 UVV",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9390 UO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9370 UVV",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9362 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9152 UIP",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9853 UIO",
+      "kontak": ""
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9196 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9099 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9933 UIO",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9100 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9937 UIO",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9198 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9935 UIO",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9199 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9197 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9993 UIO",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9936 UIO",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9246 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9033 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9186 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9104 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9202 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9883 UIO",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9035 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9126 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9974 UIO",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9995 UIO",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9842 UVW",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9203 UIP",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "RJTM",
+      "nopol": "B 9840 UVW",
+      "kontak": "6282213212668"
+    },
+    {
+      "transporter": "SBR",
+      "nopol": "D 9365 UD",
+      "kontak": ""
+    },
+    {
+      "transporter": "SBR",
+      "nopol": "D 9227 UD",
+      "kontak": ""
+    },
+    {
+      "transporter": "SBR",
+      "nopol": "D 9157 AD",
+      "kontak": ""
+    },
+    {
+      "transporter": "SBR",
+      "nopol": "D 9655 UB",
+      "kontak": ""
+    },
+    {
+      "transporter": "SBR",
+      "nopol": "D 9570 XA",
+      "kontak": ""
+    }
+  ],
+  "masterMotor": [
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150R STreetfire Special Edition",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150R STreetfire Special Edition",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150R STreetfire Special Edition",
+      "warna": "SV",
+      "namaWarna": "Silver"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150R STreetfire",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150R STreetfire",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Super Cub C 125",
+      "warna": "GR",
+      "namaWarna": "Grey"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Super Cub C 125",
+      "warna": "BP",
+      "namaWarna": "Biru Putih"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Super Cub C 125",
+      "warna": "MP",
+      "namaWarna": "Merah Putih"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Super Cub C125",
+      "warna": "GR",
+      "namaWarna": "Grey"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Super Cub C125",
+      "warna": "AP",
+      "namaWarna": "Abu-Abu Putih"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Super Cub C125",
+      "warna": "MP",
+      "namaWarna": "Merah Putih"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Genio CBS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Genio CBS",
+      "warna": "HM",
+      "namaWarna": "Hitam Merah"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Genio CBS",
+      "warna": "HS",
+      "namaWarna": "Hitam Silver"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Genio CBS ISS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Genio CBS ISS",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Genio CBS ISS",
+      "warna": "BW",
+      "namaWarna": "Brown"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Genio CBS ISS",
+      "warna": "GN",
+      "namaWarna": "Green"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CB500X",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CB500X",
+      "warna": "GH",
+      "namaWarna": "Hijau Hitam"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CB500X",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CB650Ram In M/T",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CB650Ram In M/T",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CB650",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CB650",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 1000",
+      "warna": "PC",
+      "namaWarna": "Putih Biru Merah"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR1000RR-R",
+      "warna": "MN",
+      "namaWarna": "Merah Biru Putih"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Rebel 1100",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Cmx500 Rebel",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Cmx500 Rebel",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Cmx500 Rebel",
+      "warna": "GR",
+      "namaWarna": "Grey"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Cmx500 Rebel",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CRF1100L",
+      "warna": "PC",
+      "namaWarna": "Putih Biru Merah"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CRF1100L Africa Twin",
+      "warna": "PC",
+      "namaWarna": "Putih Biru Merah"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CRF250L",
+      "warna": "HN",
+      "namaWarna": "Hitam Merah Putih"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CRF250Rally",
+      "warna": "HN",
+      "namaWarna": "Hitam Merah Putih"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CT125",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy Energetic",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy Energetic",
+      "warna": "SH",
+      "namaWarna": "Silver Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy FaSHion",
+      "warna": "BP",
+      "namaWarna": "Biru Putih"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy FaSHion",
+      "warna": "CW",
+      "namaWarna": "Coklat Putih"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy PreSTige",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy PreSTige",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy STyliSH",
+      "warna": "GN",
+      "namaWarna": "Green"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy STyliSH",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Cub",
+      "tipeMotor": "Supra X 125 SW",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Cub",
+      "tipeMotor": "Supra X 125 CW",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Cub",
+      "tipeMotor": "Supra X 125 CW",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Gold Wing",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty CBS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty CBS",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty CBS",
+      "warna": "PH",
+      "namaWarna": "Putih Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty CBS ISS Deluxe",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty CBS ISS Deluxe",
+      "warna": "SV",
+      "namaWarna": "Silver"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty Dlx Smart Key",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty Dlx Smart Key",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty Dlx Smart Key",
+      "warna": "GN",
+      "namaWarna": "Green"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat STreet",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat STreet",
+      "warna": "BW",
+      "namaWarna": "Brown"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 CBS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 CBS",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 CBS ISS Sp",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 CBS ISS Sp",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 CBS ISS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 CBS ISS",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 CBS ISS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 160 ABS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 160 ABS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 160 ABS",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 CBS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 CBS",
+      "warna": "CR",
+      "namaWarna": "Cream"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 CBS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 ABS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 ABS",
+      "warna": "GN",
+      "namaWarna": "Green"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 ABS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 ABS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 ABS",
+      "warna": "BW",
+      "namaWarna": "Brown"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 ABS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 ABS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 CBS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 CBS",
+      "warna": "GR",
+      "namaWarna": "Grey"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 CBS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 CBS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Forza",
+      "warna": "AH",
+      "namaWarna": "Abu2 Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Forza",
+      "warna": "BH",
+      "namaWarna": "Biru Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Forza",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Forza",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 150R STd",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 150R STd",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 150R STd",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 150R ABS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 150R ABS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Cub",
+      "tipeMotor": "Revo Fit",
+      "warna": "BB",
+      "namaWarna": "Black Blue"
+    },
+    {
+      "jenisMotor": "Cub",
+      "tipeMotor": "Revo Fit",
+      "warna": "BR",
+      "namaWarna": "Black Red"
+    },
+    {
+      "jenisMotor": "Cub",
+      "tipeMotor": "Revo X",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Cub",
+      "tipeMotor": "Revo X",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 250RR ABS",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 250RR STd",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "warna": "AR",
+      "namaWarna": "Abu-Abu Merah"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "warna": "MP",
+      "namaWarna": "Merah Putih"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "SH 150",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "SH 150",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "SH 150",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "ST125",
+      "warna": "GR",
+      "namaWarna": "Grey"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "ST125",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "ST125 Dax",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "ST125 Dax",
+      "warna": "GR",
+      "namaWarna": "Grey"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CRF150L",
+      "warna": "MP",
+      "namaWarna": "Merah Putih"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CRF150L",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CRF150L",
+      "warna": "GH",
+      "namaWarna": "Hijau Hitam"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CRF150L",
+      "warna": "PH",
+      "namaWarna": "Putih Hitam"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150X STd",
+      "warna": "CS",
+      "namaWarna": "Coklat - Silver"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150X STd",
+      "warna": "GC",
+      "namaWarna": "Hijau Silver"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150X STd",
+      "warna": "MS",
+      "namaWarna": "Merah Silver"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150X Se",
+      "warna": "HS",
+      "namaWarna": "Hitam Silver"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Em1 E:",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CUV E:",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CUV E:",
+      "warna": "SV",
+      "namaWarna": "Silver"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CUV E:",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CUV E: Roadsync Duo",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CUV E: Roadsync Duo",
+      "warna": "SV",
+      "namaWarna": "Silver"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CUV E: Roadsync Duo",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Icon E:",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Icon E:",
+      "warna": "GN",
+      "namaWarna": "Green"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Icon E:",
+      "warna": "OR",
+      "namaWarna": "Orange"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Icon E:",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Icon E:",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX 160 CBS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX 160 CBS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX 160 CBS",
+      "warna": "SV",
+      "namaWarna": "Silver"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX 160 CBS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX 160 ABS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX 160 ABS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX 160 ABS",
+      "warna": "SV",
+      "namaWarna": "Silver"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX 160 ABS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 Roadsync",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 Roadsync",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 160 CBS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 160 CBS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 160 CBS",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 160 CBS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "Sonic 150R",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "Sonic 150R",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "Sonic 150R HRR",
+      "warna": "MP",
+      "namaWarna": "Merah Putih"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "Sonic 150R Matte Black",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Monkey Z125",
+      "warna": "HS",
+      "namaWarna": "Hitam Silver"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Monkey Z125",
+      "warna": "KS",
+      "namaWarna": "Kuning Silver"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Monkey Z125",
+      "warna": "MS",
+      "namaWarna": "Merah Silver"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150 Verza SW",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150 Verza CW",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CB150 Verza CW",
+      "warna": "MH",
+      "namaWarna": "Merah Hitam"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Monkey 125",
+      "warna": "PA",
+      "namaWarna": "Putih Abu-Abu"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Monkey 125",
+      "warna": "PM",
+      "namaWarna": "Putih Merah"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Monkey 125",
+      "warna": "SK",
+      "namaWarna": "Silver Kuning"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Xl750 Transalp",
+      "warna": "PB",
+      "namaWarna": "Putih Biru"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Xl750 Transalp",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CB650R",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "CB650R",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty CBS ISS Deluxe",
+      "warna": "GN",
+      "namaWarna": "Green"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty Dlx Smart Key",
+      "warna": "BW",
+      "namaWarna": "Brown"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat STreet",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Sport",
+      "tipeMotor": "CRF150L",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "CBU",
+      "tipeMotor": "Rebel 1100",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Forza",
+      "warna": "PH",
+      "namaWarna": "Putih Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 ABS",
+      "warna": "GN",
+      "namaWarna": "Green"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "ADV160 Roadsync",
+      "warna": "BW",
+      "namaWarna": "Brown"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Genio CBS",
+      "warna": "PD",
+      "namaWarna": "Putih Merah Biru"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Genio CBS",
+      "warna": "PH",
+      "namaWarna": "Putih Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy FaSHion",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy FaSHion",
+      "warna": "CR",
+      "namaWarna": "Cream"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy FaSHion",
+      "warna": "GN",
+      "namaWarna": "Green"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy FaSHion",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy PreSTige",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy STyliSH",
+      "warna": "CR",
+      "namaWarna": "Cream"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Scoopy STyliSH",
+      "warna": "GR",
+      "namaWarna": "Grey"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 CBS",
+      "warna": "GH",
+      "namaWarna": "Hijau Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 STreet",
+      "warna": "AE",
+      "namaWarna": "Black White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 STreet",
+      "warna": "BR",
+      "namaWarna": "Black Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario 125 STreet",
+      "warna": "HV",
+      "namaWarna": "Hitam Violet"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 CBS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 CBS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 CBS",
+      "warna": "SV",
+      "namaWarna": "Silver"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 CBS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 ABS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 ABS",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 ABS",
+      "warna": "GN",
+      "namaWarna": "Green"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 ABS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 Honda Roadsync",
+      "warna": "BW",
+      "namaWarna": "Brown"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "PCX160 Honda Roadsync",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 CBS",
+      "warna": "WH",
+      "namaWarna": "White"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 ABS",
+      "warna": "BL",
+      "namaWarna": "Blue"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 ABS",
+      "warna": "BW",
+      "namaWarna": "Brown"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "STylo 160 ABS Special",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty CBS",
+      "warna": "BH",
+      "namaWarna": "Biru Hitam"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty CBS ISS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat Sporty CBS ISS",
+      "warna": "ML",
+      "namaWarna": "Merah Biru"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Beat STreet",
+      "warna": "GR",
+      "namaWarna": "Grey"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario Evo 160 CBS",
+      "warna": "PM",
+      "namaWarna": "Putih Merah"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario Evo 160 CBS",
+      "warna": "UK",
+      "namaWarna": "Biru Kuning"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario Evo 160 CBS Nitro",
+      "warna": "GK",
+      "namaWarna": "Abu-Abu Kuning"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario Evo 160 CBS Nitro",
+      "warna": "HM",
+      "namaWarna": "Hitam Merah"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario Evo 160 ABS",
+      "warna": "BK",
+      "namaWarna": "Black"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario Evo 160 ABS",
+      "warna": "PU",
+      "namaWarna": "Purple"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario Evo 160 ABS",
+      "warna": "RD",
+      "namaWarna": "Red"
+    },
+    {
+      "jenisMotor": "Matic",
+      "tipeMotor": "Vario Evo 160 ABS",
+      "warna": "WH",
+      "namaWarna": "White"
+    }
+  ],
+  "masterPart": [
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover Front Top"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover Front"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover Rear Handle"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Cover Fan"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover Front Top"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover Front"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover Rear Handle"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Cover Fan"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover Front Top"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover Front"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover Rear Handle"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Cover Fan"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover Front Top"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover Front"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover Rear Handle"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Cover Fan"
+    },
+    {
+      "tipeMotor": "BEAT SPORTY CBS ISS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Visor Front Handle"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Cover Front Top"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Cover Front"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Fender Rear Street"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Cover Fan"
+    },
+    {
+      "tipeMotor": "BEAT STREET",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover Front Lower"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover Under Side R"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Cover Under Side L"
+    },
+    {
+      "tipeMotor": "SCOOPY ENERGETIC",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover Front Lower"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover Under Side R"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Cover Under Side L"
+    },
+    {
+      "tipeMotor": "SCOOPY FASHION",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover Front Lower"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover Under Side R"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Cover Under Side L"
+    },
+    {
+      "tipeMotor": "SCOOPY PRESTIGE",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover Front Lower"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover Under Side R"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Cover Under Side L"
+    },
+    {
+      "tipeMotor": "SCOOPY STYLISH",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "GENIO CBS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "GENIO CBS ISS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cowl R Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cowl L Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover R Body Side"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover L Body Side"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover Center Upper"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover Under Side R"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover Under Side L"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cowl R Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cowl L Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover R Body Side"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover L Body Side"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover Center Upper"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover Under Side R"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover Under Side L"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS SP",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cowl R Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cowl L Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover R Body Side"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover L Body Side"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover Center Upper"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover Under Side R"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover Under Side L"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO 125 CBS ISS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cowl R Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cowl L Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover R Body Side"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover L Body Side"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover Center Upper"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover Under Side R"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover Under Side L"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO 125 STREET",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover Under Floor"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO 160 ABS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover Under Floor"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO 160 CBS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover Under Floor"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover Under Floor"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover Under Floor"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "VARIO EVO 160 ABS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover Front Center Lower"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover R Front Side"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover L Front Side"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover Inner Pocket"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover Center Upper"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "STYLO 160 CBS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover Front Center Lower"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover R Front Side"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover L Front Side"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover Inner Pocket"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover Center Upper"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover Front Top Panel"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover Front Center Lower"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover Handle Front"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover Handle Rear"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover R Front Side"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover L Front Side"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover Inner Pocket"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover Center Upper"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Step Floor"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Screen Windshield"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover Meter Panel"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover Rr Grab Rail"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "PCX 160 CBS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Screen Windshield"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover Meter Panel"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover Rr Grab Rail"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "PCX 160 ABS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Screen Windshield"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover Meter Panel"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover Rr Grab Rail"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "PCX160 ROADSYNC",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Screen Windshield"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover Meter Panel"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover Rr Grab Rail"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "PCX160 CBS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Screen Windshield"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover Meter Panel"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover Rr Grab Rail"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "PCX160 ABS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cowl R Front Side"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cowl L Front Side"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Screen Windshield"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover Front Handle"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover Meter Panel"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover R Side Body"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover L Side Body"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover Rr Grab Rail"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cowl R Side Outer"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cowl L Side Outer"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Screen Adjustable"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover Handle Upper"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover Meter Visor"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover R Body Side"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover L Body Side"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Fender Rear Tie"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover Rr Handle"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "ADV160 ABS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cowl R Side Outer"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cowl L Side Outer"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Screen Adjustable"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover Handle Upper"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover Meter Visor"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover R Body Side"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover L Body Side"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Fender Rear Tie"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover Rr Handle"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "ADV160 CBS",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cowl R Side Outer"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cowl L Side Outer"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover Front Center"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Screen Adjustable"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover Handle Upper"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover Meter Visor"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover Inner Upper"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover Inner Lower"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover R Body Side"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover L Body Side"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover Center"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Fender Rear Tie"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover Under"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover Rr Handle"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "ADV160 ROADSYNC",
+      "namaPart": "Cover Radiator"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Cowl Front Upper"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Cowl R Side Front"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Cowl L Side Front"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Screen Power Wind"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Cover R Body"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Cover L Body"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Cover Center Floor"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Step R Floor"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Step L Floor"
+    },
+    {
+      "tipeMotor": "FORZA",
+      "namaPart": "Protector Muffler"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Shroud R Fuel Tank"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Shroud L Fuel Tank"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Cover Tank Center"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Cowl Under Lower"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Cover R Rear Body"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Cover L Rear Body"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Cover Center Rear"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Visor Front Headlight"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
+      "namaPart": "Fender Rear Sport"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Shroud R Fuel Tank"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Shroud L Fuel Tank"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Cover Tank Center"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Cowl Under Lower"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Cover R Rear Body"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Cover L Rear Body"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Cover Center Rear"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Visor Front Headlight"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "CB150R STREETFIRE",
+      "namaPart": "Fender Rear Sport"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Cowl R Front Shroud"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Cowl L Front Shroud"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Cowl Front Beak"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Screen Adventure High"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Under Cowl Skid Plate"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Cover Tank Center"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Cover R Rear Side"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Cover L Rear Side"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Cover Center Rear"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "CB150X STD",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Cowl R Front Shroud"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Cowl L Front Shroud"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Cowl Front Beak"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Screen Adventure High"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Under Cowl Skid Plate"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Cover Tank Center"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Cover R Rear Side"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Cover L Rear Side"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Cover Center Rear"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "CB150X SE",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Cowl Front Upper"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Cowl R Middle Fairing"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Cowl L Middle Fairing"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Cowl R Lower Fairing"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Cowl L Lower Fairing"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Cowl R Rear Seat"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Cowl L Rear Seat"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Cover Center Rear Tail"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Screen Wind Cbr"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Cover Fuel Tank"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "CBR 150R STD",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Cowl Front Upper"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Cowl R Middle Fairing"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Cowl L Middle Fairing"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Cowl R Lower Fairing"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Cowl L Lower Fairing"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Cowl R Rear Seat"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Cowl L Rear Seat"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Cover Center Rear Tail"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Screen Wind Cbr"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Cover Fuel Tank"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Fender Front"
+    },
+    {
+      "tipeMotor": "CBR 150R ABS",
+      "namaPart": "Fender Rear"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS",
+      "namaPart": "Cowl Front Upper Center"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS",
+      "namaPart": "Cowl R Side Outer"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS",
+      "namaPart": "Cowl L Side Outer"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS",
+      "namaPart": "Cowl R Side Inner"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS",
+      "namaPart": "Cowl L Side Inner"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS",
+      "namaPart": "Cowl R Under"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS",
+      "namaPart": "Cowl L Under"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS",
+      "namaPart": "Cowl Rear Seat Tail"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS",
+      "namaPart": "Cover Fuel Tank Shell"
+    },
+    {
+      "tipeMotor": "CBR 250RR STD",
+      "namaPart": "Cowl Front Upper Center"
+    },
+    {
+      "tipeMotor": "CBR 250RR STD",
+      "namaPart": "Cowl R Side Outer"
+    },
+    {
+      "tipeMotor": "CBR 250RR STD",
+      "namaPart": "Cowl L Side Outer"
+    },
+    {
+      "tipeMotor": "CBR 250RR STD",
+      "namaPart": "Cowl R Side Inner"
+    },
+    {
+      "tipeMotor": "CBR 250RR STD",
+      "namaPart": "Cowl L Side Inner"
+    },
+    {
+      "tipeMotor": "CBR 250RR STD",
+      "namaPart": "Cowl R Under"
+    },
+    {
+      "tipeMotor": "CBR 250RR STD",
+      "namaPart": "Cowl L Under"
+    },
+    {
+      "tipeMotor": "CBR 250RR STD",
+      "namaPart": "Cowl Rear Seat Tail"
+    },
+    {
+      "tipeMotor": "CBR 250RR STD",
+      "namaPart": "Cover Fuel Tank Shell"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "namaPart": "Cowl Front Upper Center"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "namaPart": "Cowl R Side Outer"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "namaPart": "Cowl L Side Outer"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "namaPart": "Cowl R Side Inner"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "namaPart": "Cowl L Side Inner"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "namaPart": "Cowl R Under"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "namaPart": "Cowl L Under"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "namaPart": "Cowl Rear Seat Tail"
+    },
+    {
+      "tipeMotor": "CBR 250RR ABS+QS",
+      "namaPart": "Cover Fuel Tank Shell"
+    }
+  ],
+  "masterKerusakan": [
+    "Lecet",
+    "Patah",
+    "Pecah",
+    "Retak",
+    "Penyok",
+    "Hilang",
+    "Sobek"
+  ],
+  "masterPenyebab": [
+    "Gesekan Tali Tambang",
+    "Terbentur Dinding Truk",
+    "Benturan Antar Unit Motor",
+    "Terjatuh Saat Handling Driver",
+    "Tekanan Ikatan Terlalu Kuat",
+    "Gesekan Spon",
+    "Guncangan Saat Perjalanan",
+    "Terbentur Besi Press"
+  ]
+}

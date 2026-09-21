@@ -1,0 +1,6 @@
+{
+  "name": "MDC Mobile - PDI Man Dealer",
+  "description": "Frontend Mobile PWA Mobile Defect Care (MDC) Honda",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
