@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { List as VirtualList, RowComponentProps, useListRef } from 'react-window';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   UserProfile,
   ClaimItem,
@@ -47,32 +46,6 @@ import confetti from 'canvas-confetti';
 const STORAGE_SESSION_AUTH = 'mdc_mobile_session_auth';
 const STORAGE_VIEW_MODE = 'mdc_mobile_view_mode';
 const STORAGE_MASTER_DATA = 'mdc_master_data_cache';
-
-interface VirtualRowProps {
-  claims: ClaimItem[];
-  viewMode: 'CARDS' | 'SIMPLE';
-  currentUserRole?: string;
-  onSelectClaim: (claim: ClaimItem) => void;
-}
-
-const VirtualClaimRow: React.FC<RowComponentProps<VirtualRowProps>> = React.memo(
-  ({ index, style, claims, viewMode, currentUserRole, onSelectClaim }) => {
-    const claim = claims[index];
-    if (!claim) return null;
-
-    return (
-      <div style={style} className="px-3.5">
-        <ClaimCard
-          claim={claim}
-          viewMode={viewMode}
-          currentUserRole={currentUserRole}
-          onClick={() => onSelectClaim(claim)}
-        />
-      </div>
-    );
-  }
-);
-VirtualClaimRow.displayName = 'VirtualClaimRow';
 
 export const App: React.FC = () => {
   // Authentication & Profile State (Membaca sesi dari localStorage agar awet saat aplikasi di-close)
@@ -550,90 +523,6 @@ export const App: React.FC = () => {
     });
   }, [claims, activeFilter, searchQuery]);
 
-  // ========================================================
-  // Virtualization Setup (react-window) for Claim List
-  // ========================================================
-  const listContainerRef = useRef<HTMLDivElement>(null);
-  const virtualListRef = useListRef();
-  const [listDimensions, setListDimensions] = useState<{ width: number; height: number }>({
-    width: 0,
-    height: 0,
-  });
-
-  useEffect(() => {
-    const el = listContainerRef.current;
-    if (!el) return;
-
-    const updateDimensions = () => {
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          setListDimensions((prev) => {
-            if (prev.width === rect.width && prev.height === rect.height) return prev;
-            return { width: rect.width, height: rect.height };
-          });
-        }
-      }
-    };
-
-    updateDimensions();
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateDimensions();
-    });
-
-    resizeObserver.observe(el);
-    window.addEventListener('resize', updateDimensions);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', updateDimensions);
-    };
-  }, [user]);
-
-  // Scroll to top on filter change or search
-  useEffect(() => {
-    if (virtualListRef.current) {
-      virtualListRef.current.scrollToRow({ index: 0, behavior: 'auto' });
-    }
-  }, [activeFilter, searchQuery, virtualListRef]);
-
-  const getRowHeight = useCallback(
-    (index: number, rowProps: VirtualRowProps) => {
-      const claim = rowProps.claims[index];
-      if (!claim) return rowProps.viewMode === 'SIMPLE' ? 56 : 122;
-
-      if (rowProps.viewMode === 'SIMPLE') {
-        return 56;
-      }
-
-      // CARDS mode:
-      if (claim.status === 'Proses di MD') {
-        return 156;
-      }
-
-      return 122;
-    },
-    []
-  );
-
-  const getRowKey = useCallback(
-    (index: number, rowProps: VirtualRowProps) => {
-      return rowProps.claims[index]?.idKlaim || index;
-    },
-    []
-  );
-
-  const virtualRowProps = useMemo<VirtualRowProps>(
-    () => ({
-      claims: filteredClaims,
-      viewMode,
-      currentUserRole: user?.role,
-      onSelectClaim: (claim: ClaimItem) => setSelectedClaimForDetail(claim),
-    }),
-    [filteredClaims, viewMode, user?.role]
-  );
-
   // Master data readiness & syncing flags
   const isMasterReady = Boolean(masterData?.success && masterData?.motorList && masterData.motorList.length > 0);
   const isSyncingMaster = isLoadingData || !isMasterReady;
@@ -650,16 +539,29 @@ export const App: React.FC = () => {
     setIsWizardOpen(true);
   };
 
+  // Handler Tutup Resi Pengiriman & Kembali Bersih ke Halaman Utama
+  const handleCloseReceipt = useCallback(() => {
+    setSubmittedReceiptClaim(null);
+    setIsWizardOpen(false);
+    setDraftToContinue(null);
+    setActiveFilter('ALL');
+    setSearchQuery('');
+  }, []);
+
   const handleSubmitSuccess = (_idKlaim: string, status: string, claimItem?: ClaimItem) => {
     setIsWizardOpen(false);
     setDraftToContinue(null);
+    setActiveFilter('ALL');
+    setSearchQuery('');
 
     // Confetti celebration
-    confetti({
-      particleCount: 80,
-      spread: 60,
-      origin: { y: 0.6 },
-    });
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
+      });
+    } catch (_) {}
 
     // Jika klaim berstatus "Dikirim ke MD", munculkan layar Resi Pengiriman Layar Penuh
     if (status === 'Dikirim ke MD' && claimItem) {
@@ -965,10 +867,10 @@ export const App: React.FC = () => {
         </div>
 
         {/* ======================================================== */}
-        {/* 2. VIRTUALIZED SCROLLABLE CARDS SECTION                  */}
-        {/* Virtualized with react-window for 60fps & memory efficiency */}
+        {/* 2. SCROLLABLE CLAIMS LIST SECTION                        */}
+        {/* Smooth, robust native scroll with zero clipping           */}
         {/* ======================================================== */}
-        <div ref={listContainerRef} className="flex-1 min-h-0 relative w-full overflow-hidden">
+        <div className="flex-1 min-h-0 relative w-full overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeFilter}
@@ -979,20 +881,17 @@ export const App: React.FC = () => {
               className="h-full w-full"
             >
               {filteredClaims.length > 0 ? (
-                <VirtualList
-                  listRef={virtualListRef}
-                  rowCount={filteredClaims.length}
-                  rowHeight={getRowHeight}
-                  rowKey={getRowKey}
-                  rowComponent={VirtualClaimRow}
-                  rowProps={virtualRowProps}
-                  overscanCount={6}
-                  style={{
-                    height: listDimensions.height > 0 ? listDimensions.height : '100%',
-                    width: '100%',
-                  }}
-                  className="overscroll-contain py-1"
-                />
+                <div className="h-full overflow-y-auto px-3.5 py-1.5 space-y-1.5 overscroll-contain">
+                  {filteredClaims.map((claim) => (
+                    <ClaimCard
+                      key={claim.idKlaim}
+                      claim={claim}
+                      viewMode={viewMode}
+                      currentUserRole={user?.role}
+                      onClick={() => setSelectedClaimForDetail(claim)}
+                    />
+                  ))}
+                </div>
               ) : isLoadingData ? (
                 <div className="h-full overflow-y-auto px-3.5 py-4">
                   <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-white/5 border border-white/10 my-4 space-y-3">
@@ -1063,11 +962,13 @@ export const App: React.FC = () => {
         </div>
 
         {/* Fullscreen Digital Receipt Modal */}
-        <ClaimReceiptModal
-          claim={submittedReceiptClaim}
-          user={user}
-          onClose={() => setSubmittedReceiptClaim(null)}
-        />
+        {submittedReceiptClaim && (
+          <ClaimReceiptModal
+            claim={submittedReceiptClaim}
+            user={user}
+            onClose={handleCloseReceipt}
+          />
+        )}
 
         {/* Detail Modal */}
         <ClaimDetailModal

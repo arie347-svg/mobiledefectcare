@@ -6,6 +6,7 @@ import { SpreadsheetDatabase, SPREADSHEET_ID } from "./src/server/spreadsheetDb"
 
 const GAS_WEBAPP_URL =
   process.env.GAS_WEBAPP_URL ||
+  process.env.VITE_GAS_URL ||
   "https://script.google.com/macros/s/AKfycbyPMN2vvUNysv-Tn_2YCfzNcBLHC8FluGF0BwdHt07YrKT4lHMxQqkKjYsPd2DJ2v9ekQ/exec";
 
 // Google Apps Script developer endpoint with live registerUser function

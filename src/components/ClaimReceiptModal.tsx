@@ -7,6 +7,7 @@ import {
   Copy,
   Check,
   Loader2,
+  Home,
 } from 'lucide-react';
 import {
   generateLkuatPdf,
@@ -29,21 +30,9 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
   const [isSharing, setIsSharing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  if (!claim) return null;
-
-  const totalParts = claim.items?.length || 0;
-  // Hitung jumlah unit motor unik
-  const uniqueMotors = new Set(
-    (claim.items || []).map((it) => it.noMesin || it.tipe || '1')
-  );
-  const motorCount = uniqueMotors.size || 1;
-
-  const namaDealer = claim.namaDealer || user?.namaDealer || 'Dealer Honda';
-  const kodeAhm = claim.kodeAhm || user?.kodeAhm || '-';
-  const kodeDealer = claim.kodeDealer || user?.kodeDealer || '-';
-
-  // Format stempel waktu akurat saat tombol kirim ditekan
+  // Format stempel waktu akurat saat tombol kirim ditekan (Hooks ditaruh di paling atas sebelum return)
   const formattedTimestamp = useMemo(() => {
+    if (!claim) return '';
     if (claim.rawTimestamp) {
       const d = new Date(claim.rawTimestamp);
       if (!isNaN(d.getTime())) {
@@ -81,7 +70,20 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
       }
     }
     return claim.tgl || new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-  }, [claim.rawTimestamp, claim.rawDate, claim.tgl]);
+  }, [claim]);
+
+  if (!claim) return null;
+
+  const totalParts = claim.items?.length || 0;
+  // Hitung jumlah unit motor unik
+  const uniqueMotors = new Set(
+    (claim.items || []).map((it) => it.noMesin || it.tipe || '1')
+  );
+  const motorCount = uniqueMotors.size || 1;
+
+  const namaDealer = claim.namaDealer || user?.namaDealer || 'Dealer Honda';
+  const kodeAhm = claim.kodeAhm || user?.kodeAhm || '-';
+  const kodeDealer = claim.kodeDealer || user?.kodeDealer || '-';
 
   const handleCopyId = () => {
     try {
@@ -163,9 +165,12 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
         {/* Tombol Tutup (X) di Pojok Kanan Atas */}
         <button
           type="button"
-          onClick={onClose}
-          title="Tutup Resi"
-          aria-label="Tutup Resi"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          title="Tutup Resi & Kembali ke Halaman Utama"
+          aria-label="Tutup Resi & Kembali ke Halaman Utama"
           className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer z-10"
         >
           <X className="w-4 h-4" />
@@ -278,13 +283,13 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
           </div>
         </div>
 
-        {/* Footer: HANYA SATU TOMBOL AKSI BAGIKAN (SHARE) */}
-        <div className="pt-2">
+        {/* Footer: Tombol Aksi Bagikan & Kembali ke Halaman Utama */}
+        <div className="pt-2 space-y-2">
           <button
             type="button"
             onClick={handleShareLkuatPdf}
             disabled={isSharing}
-            className="w-full py-3.5 px-4 rounded-2xl bg-slate-950 hover:bg-slate-800 active:scale-98 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-60"
+            className="w-full py-3 px-4 rounded-2xl bg-slate-950 hover:bg-slate-800 active:scale-98 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-60"
           >
             {isSharing ? (
               <>
@@ -297,6 +302,18 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
                 <span>Bagikan Resi (PDF)</span>
               </>
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="w-full py-2.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-200"
+          >
+            <Home className="w-3.5 h-3.5 text-slate-500" />
+            <span>Kembali ke Halaman Utama</span>
           </button>
         </div>
 
