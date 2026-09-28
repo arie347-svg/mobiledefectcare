@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { List as VirtualList, RowComponentProps, useListRef } from 'react-window';
 import {
   UserProfile,
   ClaimItem,
@@ -40,11 +41,38 @@ import {
   Loader2,
   WifiOff,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 
 const STORAGE_SESSION_AUTH = 'mdc_mobile_session_auth';
 const STORAGE_VIEW_MODE = 'mdc_mobile_view_mode';
 const STORAGE_MASTER_DATA = 'mdc_master_data_cache';
+
+interface VirtualRowProps {
+  claims: ClaimItem[];
+  viewMode: 'CARDS' | 'SIMPLE';
+  currentUserRole?: string;
+  onSelectClaim: (claim: ClaimItem) => void;
+}
+
+const VirtualClaimRow: React.FC<RowComponentProps<VirtualRowProps>> = React.memo(
+  ({ index, style, claims, viewMode, currentUserRole, onSelectClaim }) => {
+    const claim = claims[index];
+    if (!claim) return null;
+
+    return (
+      <div style={style} className="px-3.5">
+        <ClaimCard
+          claim={claim}
+          viewMode={viewMode}
+          currentUserRole={currentUserRole}
+          onClick={() => onSelectClaim(claim)}
+        />
+      </div>
+    );
+  }
+);
+VirtualClaimRow.displayName = 'VirtualClaimRow';
 
 export const App: React.FC = () => {
   // Authentication & Profile State (Membaca sesi dari localStorage agar awet saat aplikasi di-close)
@@ -199,7 +227,7 @@ export const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Monitor status koneksi & lakukan warm-up cache aset statis (logo, font, icon)
+  // Monitor status koneksi & lakukan precache strategi aset kritis (logo MDC, Google Fonts, PWA icons)
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -207,16 +235,70 @@ export const App: React.FC = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Warm-up cache browser untuk aset statis agar instan saat sinyal drop
+    // Precache strategi proaktif untuk font Google Inter & Logo MDC agar loading instan di jaringan lambat
     if (typeof window !== 'undefined' && 'caches' in window) {
-      caches.open('mdc-static-assets-v2').then((cache) => {
-        cache.addAll([
-          '/icon-192.png',
-          '/icon-512.png',
-          '/apple-touch-icon.png',
-          '/manifest.webmanifest',
-        ]).catch(() => {});
-      }).catch(() => {});
+      const precacheCriticalAssets = async () => {
+        try {
+          const staticCache = await caches.open('mdc-static-assets-v3');
+          const fontCache = await caches.open('mdc-fonts-v3');
+
+          // 1. Precache Logo MDC & PWA Icons
+          const logoAssets = [
+            '/icon-192.png',
+            '/icon-512.png',
+            '/apple-touch-icon.png',
+            '/manifest.webmanifest',
+            'https://lh3.googleusercontent.com/d/1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1',
+          ];
+
+          await Promise.allSettled(
+            logoAssets.map(async (url) => {
+              try {
+                const matched = await staticCache.match(url);
+                if (!matched) {
+                  const res = await fetch(url, {
+                    mode: url.startsWith('http') ? 'no-cors' : 'same-origin',
+                  });
+                  if (res) await staticCache.put(url, res);
+                }
+              } catch (_) {}
+            })
+          );
+
+          // 2. Precache Fonts (Inter CSS & .woff2 glyphs)
+          const fontUrl = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap';
+          try {
+            const fontCssMatched = await fontCache.match(fontUrl);
+            let cssText = '';
+            if (!fontCssMatched) {
+              const fontRes = await fetch(fontUrl);
+              if (fontRes.ok) {
+                cssText = await fontRes.clone().text();
+                await fontCache.put(fontUrl, fontRes);
+              }
+            } else {
+              cssText = await fontCssMatched.text();
+            }
+
+            if (cssText) {
+              const fontUrls = Array.from(new Set(cssText.match(/https:\/\/fonts\.gstatic\.com\/[^\)]+/g) || [])).slice(0, 5);
+              await Promise.allSettled(
+                fontUrls.map(async (fUrl) => {
+                  try {
+                    const fMatched = await fontCache.match(fUrl);
+                    if (!fMatched) {
+                      const fRes = await fetch(fUrl);
+                      if (fRes.ok) await fontCache.put(fUrl, fRes);
+                    }
+                  } catch (_) {}
+                })
+              );
+            }
+          } catch (_) {}
+        } catch (_) {}
+      };
+
+      precacheCriticalAssets();
     }
 
     return () => {
@@ -467,6 +549,90 @@ export const App: React.FC = () => {
       return true;
     });
   }, [claims, activeFilter, searchQuery]);
+
+  // ========================================================
+  // Virtualization Setup (react-window) for Claim List
+  // ========================================================
+  const listContainerRef = useRef<HTMLDivElement>(null);
+  const virtualListRef = useListRef();
+  const [listDimensions, setListDimensions] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
+
+  useEffect(() => {
+    const el = listContainerRef.current;
+    if (!el) return;
+
+    const updateDimensions = () => {
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          setListDimensions((prev) => {
+            if (prev.width === rect.width && prev.height === rect.height) return prev;
+            return { width: rect.width, height: rect.height };
+          });
+        }
+      }
+    };
+
+    updateDimensions();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateDimensions();
+    });
+
+    resizeObserver.observe(el);
+    window.addEventListener('resize', updateDimensions);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, [user]);
+
+  // Scroll to top on filter change or search
+  useEffect(() => {
+    if (virtualListRef.current) {
+      virtualListRef.current.scrollToRow({ index: 0, behavior: 'auto' });
+    }
+  }, [activeFilter, searchQuery, virtualListRef]);
+
+  const getRowHeight = useCallback(
+    (index: number, rowProps: VirtualRowProps) => {
+      const claim = rowProps.claims[index];
+      if (!claim) return rowProps.viewMode === 'SIMPLE' ? 56 : 122;
+
+      if (rowProps.viewMode === 'SIMPLE') {
+        return 56;
+      }
+
+      // CARDS mode:
+      if (claim.status === 'Proses di MD') {
+        return 156;
+      }
+
+      return 122;
+    },
+    []
+  );
+
+  const getRowKey = useCallback(
+    (index: number, rowProps: VirtualRowProps) => {
+      return rowProps.claims[index]?.idKlaim || index;
+    },
+    []
+  );
+
+  const virtualRowProps = useMemo<VirtualRowProps>(
+    () => ({
+      claims: filteredClaims,
+      viewMode,
+      currentUserRole: user?.role,
+      onSelectClaim: (claim: ClaimItem) => setSelectedClaimForDetail(claim),
+    }),
+    [filteredClaims, viewMode, user?.role]
+  );
 
   // Master data readiness & syncing flags
   const isMasterReady = Boolean(masterData?.success && masterData?.motorList && masterData.motorList.length > 0);
@@ -777,12 +943,21 @@ export const App: React.FC = () => {
 
           {/* Claims List Header: Judul Daftar Pengajuan Klaim (Tetap tidak bergerak) */}
           <div className="px-3.5 py-1 flex items-center justify-between border-t border-white/5 bg-white/[0.02]">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10.5px] font-semibold text-white/90 uppercase tracking-wide">
-                {activeFilter === 'ALL' ? 'Daftar Pengajuan Klaim' : `Status: ${activeFilter}`}{' '}
-                <span className="text-amber-400 font-mono">({filteredClaims.length})</span>
-              </span>
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeFilter}
+                initial={{ opacity: 0, y: -3 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 3 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-1.5"
+              >
+                <span className="text-[10.5px] font-semibold text-white/90 uppercase tracking-wide">
+                  {activeFilter === 'ALL' ? 'Daftar Pengajuan Klaim' : `Status: ${activeFilter}`}{' '}
+                  <span className="text-amber-400 font-mono">({filteredClaims.length})</span>
+                </span>
+              </motion.div>
+            </AnimatePresence>
             {searchQuery && (
               <span className="text-[9.5px] text-white/50 italic">Hasil pencarian</span>
             )}
@@ -790,48 +965,68 @@ export const App: React.FC = () => {
         </div>
 
         {/* ======================================================== */}
-        {/* 2. SCROLLABLE CARDS SECTION                              */}
-        {/* The ONLY section that scrolls! (flex-1 overflow-y-auto)  */}
+        {/* 2. VIRTUALIZED SCROLLABLE CARDS SECTION                  */}
+        {/* Virtualized with react-window for 60fps & memory efficiency */}
         {/* ======================================================== */}
-        <div className="flex-1 overflow-y-auto px-3.5 py-2 min-h-0 space-y-1.5 overscroll-contain">
-          {filteredClaims.length > 0 ? (
-            filteredClaims.map((claim) => (
-              <ClaimCard
-                key={claim.idKlaim}
-                claim={claim}
-                viewMode={viewMode}
-                currentUserRole={user?.role}
-                onClick={() => setSelectedClaimForDetail(claim)}
-              />
-            ))
-          ) : isLoadingData ? (
-            <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-white/5 border border-white/10 my-4 space-y-3">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <RefreshCw className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+        <div ref={listContainerRef} className="flex-1 min-h-0 relative w-full overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeFilter}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="h-full w-full"
+            >
+              {filteredClaims.length > 0 ? (
+                <VirtualList
+                  listRef={virtualListRef}
+                  rowCount={filteredClaims.length}
+                  rowHeight={getRowHeight}
+                  rowKey={getRowKey}
+                  rowComponent={VirtualClaimRow}
+                  rowProps={virtualRowProps}
+                  overscanCount={6}
+                  style={{
+                    height: listDimensions.height > 0 ? listDimensions.height : '100%',
+                    width: '100%',
+                  }}
+                  className="overscroll-contain py-1"
+                />
+              ) : isLoadingData ? (
+                <div className="h-full overflow-y-auto px-3.5 py-4">
+                  <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-white/5 border border-white/10 my-4 space-y-3">
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <RefreshCw className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-white tracking-wide">{loadingStatusText}</p>
+                      <p className="text-[10px] text-white/50 mt-0.5 font-mono">
+                        Menghubungkan ke basis data Spreadsheet GAS
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-white tracking-wide">{loadingStatusText}</p>
-                <p className="text-[10px] text-white/50 mt-0.5 font-mono">
-                  Menghubungkan ke basis data Spreadsheet GAS
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-white/5 border border-white/10 my-4">
-              <FolderOpen className="w-10 h-10 text-white/30 mb-2" />
-              <p className="text-xs font-semibold text-white/80">Belum Ada Data Klaim</p>
-              <p className="text-[11px] text-white/50 mt-1 max-w-[240px]">
-                {activeFilter !== 'ALL'
-                  ? `Tidak ada pengajuan klaim dengan status "${activeFilter}".`
-                  : searchQuery
-                  ? 'Tidak ada klaim yang cocok dengan kata kunci pencarian.'
-                  : 'Belum ada pengajuan klaim cacat unit dari dealer Anda.'}
-              </p>
-            </div>
-          )}
+              ) : (
+                <div className="h-full overflow-y-auto px-3.5 py-4">
+                  <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-white/5 border border-white/10 my-4">
+                    <FolderOpen className="w-10 h-10 text-white/30 mb-2" />
+                    <p className="text-xs font-semibold text-white/80">Belum Ada Data Klaim</p>
+                    <p className="text-[11px] text-white/50 mt-1 max-w-[240px]">
+                      {activeFilter !== 'ALL'
+                        ? `Tidak ada pengajuan klaim dengan status "${activeFilter}".`
+                        : searchQuery
+                        ? 'Tidak ada klaim yang cocok dengan kata kunci pencarian.'
+                        : 'Belum ada pengajuan klaim cacat unit dari dealer Anda.'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* ======================================================== */}

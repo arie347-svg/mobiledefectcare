@@ -1,5 +1,5 @@
 // MDC Mobile Service Worker - PWA Offline & Resilient Static Asset Caching
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const APP_SHELL_CACHE = `mdc-app-shell-${CACHE_VERSION}`;
 const STATIC_ASSETS_CACHE = `mdc-static-assets-${CACHE_VERSION}`;
 const FONT_CACHE = `mdc-fonts-${CACHE_VERSION}`;
@@ -7,7 +7,9 @@ const CDN_CACHE = `mdc-cdn-${CACHE_VERSION}`;
 
 const CURRENT_CACHES = [APP_SHELL_CACHE, STATIC_ASSETS_CACHE, FONT_CACHE, CDN_CACHE];
 
-// Critical core assets to pre-cache immediately upon install
+const MDC_LOGO_URL = 'https://lh3.googleusercontent.com/d/1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1';
+
+// Critical core assets to pre-cache immediately upon install for slow connection resilience
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -15,7 +17,9 @@ const PRECACHE_ASSETS = [
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
+  MDC_LOGO_URL,
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
   'https://unpkg.com/@zxing/library@0.23.0',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'
@@ -26,6 +30,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     (async () => {
+      // Step 1: Precache core assets
       const results = await Promise.allSettled(
         PRECACHE_ASSETS.map(async (url) => {
           try {
@@ -40,7 +45,9 @@ self.addEventListener('install', (event) => {
 
             const cache = await caches.open(targetCacheName);
             const response = await fetch(url, {
-              mode: url.startsWith('http') ? 'cors' : 'same-origin',
+              mode: url.startsWith('http')
+                ? (url.includes('googleusercontent.com') ? 'no-cors' : 'cors')
+                : 'same-origin',
             });
             if (response && (response.ok || response.type === 'opaque')) {
               await cache.put(url, response);
@@ -50,7 +57,33 @@ self.addEventListener('install', (event) => {
           }
         })
       );
-      console.log('[SW] Pre-cache completed for', results.length, 'items');
+
+      // Step 2: Deep precache actual font files (.woff2) from Google Fonts for instant typography on slow networks
+      try {
+        const fontCache = await caches.open(FONT_CACHE);
+        const fontCssRes = await fetch('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap', { mode: 'cors' });
+        if (fontCssRes && fontCssRes.ok) {
+          const cssText = await fontCssRes.clone().text();
+          await fontCache.put('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap', fontCssRes);
+
+          const fontMatches = cssText.match(/https:\/\/fonts\.gstatic\.com\/[^\)]+/g) || [];
+          const uniqueFonts = Array.from(new Set(fontMatches)).slice(0, 6);
+          await Promise.allSettled(
+            uniqueFonts.map(async (fontUrl) => {
+              try {
+                const fRes = await fetch(fontUrl, { mode: 'cors' });
+                if (fRes && fRes.ok) {
+                  await fontCache.put(fontUrl, fRes);
+                }
+              } catch (_) {}
+            })
+          );
+        }
+      } catch (fontErr) {
+        console.warn('[SW] Pre-caching font glyphs notice:', fontErr);
+      }
+
+      console.log('[SW] Pre-cache completed for critical assets (fonts, MDC logo, app shell)');
     })()
   );
 });
@@ -125,9 +158,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // B. STRATEGI: LOGO, IKON & ASET GAMBAR STATIS
+  // B. STRATEGI: LOGO, IKON & ASET GAMBAR STATIS (Termasuk MDC Logo dari Google User Content)
   // Cache-First dengan background update agar logo & icon selalu responsif saat sinyal lemah
+  const isMdcLogo =
+    requestUrl.hostname.includes('googleusercontent.com') ||
+    requestUrl.href.includes('1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1');
+
   const isImageOrIcon =
+    isMdcLogo ||
     requestUrl.pathname.match(/\.(png|jpg|jpeg|svg|webp|ico|gif|woff2?|ttf)$/i) ||
     requestUrl.pathname === '/manifest.webmanifest' ||
     requestUrl.pathname.includes('/icon-') ||
@@ -156,9 +194,9 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         }
 
-        // Fallback logo jika request gambar gagal saat offline
-        if (requestUrl.pathname.includes('icon') || requestUrl.pathname.endsWith('.png')) {
-          const fallbackLogo = await cache.match('/icon-192.png');
+        // Fallback logo jika request gambar gagal saat offline atau koneksi lambat
+        if (isMdcLogo || requestUrl.pathname.includes('icon') || requestUrl.pathname.endsWith('.png')) {
+          const fallbackLogo = (await cache.match(MDC_LOGO_URL)) || (await cache.match('/icon-192.png'));
           if (fallbackLogo) {
             return fallbackLogo;
           }
