@@ -32,3 +32,220 @@
 .animate-smooth-glow {
   animation: smoothGlow 1.8s ease-in-out infinite;
 }
+
+/* ============================================================ */
+/* ANIMASI SPLASH KILATAN MODERN (ELECTRIC SHIMMER & LASER)     */
+/* ============================================================ */
+@keyframes mdcFlashSweep {
+  0% {
+    transform: translateX(-140%) skewX(-22deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(220%) skewX(-22deg);
+    opacity: 0;
+  }
+}
+
+@keyframes mdcLaserBeam {
+  0% {
+    transform: translateX(-100%) scaleX(0.35);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(0%) scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.35);
+    opacity: 0.5;
+  }
+}
+
+@keyframes mdcElectricRing {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.9;
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.75), 0 0 18px rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1.38);
+    opacity: 0;
+    box-shadow: 0 0 0 14px rgba(251, 191, 36, 0), 0 0 28px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+}
+
+.mdc-flash-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.mdc-flash-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 65%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(251, 191, 36, 0.28) 48%,
+    rgba(255, 255, 255, 0.42) 52%,
+    rgba(239, 68, 68, 0.24) 68%,
+    transparent 100%
+  );
+  animation: mdcFlashSweep 1.15s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  pointer-events: none;
+}
+
+.mdc-laser-beam {
+  position: relative;
+  overflow: hidden;
+}
+
+.mdc-laser-beam::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(239, 68, 68, 0.85) 35%,
+    rgba(253, 224, 71, 1) 50%,
+    rgba(255, 255, 255, 1) 53%,
+    rgba(239, 68, 68, 0.85) 65%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.9), 0 0 24px rgba(239, 68, 68, 0.85);
+  animation: mdcLaserBeam 0.85s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.mdc-electric-ring {
+  animation: mdcElectricRing 1.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* ============================================================ */
+/* ANIMASI LOADING TOMBOL MODERN (RED / EMERALD / AMBER FLASH)  */
+/* ============================================================ */
+@keyframes mdcBtnSweep {
+  0% {
+    transform: translateX(-130%) skewX(-24deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(230%) skewX(-24deg);
+    opacity: 0;
+  }
+}
+
+@keyframes mdcEmeraldGlow {
+  0%, 100% {
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.5), 0 0 28px rgba(5, 150, 105, 0.25);
+    filter: brightness(1.04);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(52, 211, 153, 0.85), 0 0 38px rgba(16, 185, 129, 0.45);
+    filter: brightness(1.14);
+  }
+}
+
+@keyframes mdcAmberGlow {
+  0%, 100% {
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.45), 0 0 26px rgba(217, 119, 6, 0.22);
+    filter: brightness(1.04);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(251, 191, 36, 0.8), 0 0 34px rgba(245, 158, 11, 0.4);
+    filter: brightness(1.12);
+  }
+}
+
+.mdc-btn-flash-red {
+  position: relative;
+  overflow: hidden;
+  animation: smoothGlow 1.3s ease-in-out infinite;
+}
+
+.mdc-btn-flash-red::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 60%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(253, 224, 71, 0.38) 48%,
+    rgba(255, 255, 255, 0.58) 52%,
+    rgba(239, 68, 68, 0.25) 70%,
+    transparent 100%
+  );
+  animation: mdcBtnSweep 0.95s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  pointer-events: none;
+}
+
+.mdc-btn-flash-emerald {
+  position: relative;
+  overflow: hidden;
+  animation: mdcEmeraldGlow 1.2s ease-in-out infinite;
+}
+
+.mdc-btn-flash-emerald::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 60%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(110, 231, 183, 0.42) 48%,
+    rgba(255, 255, 255, 0.62) 52%,
+    rgba(16, 185, 129, 0.25) 70%,
+    transparent 100%
+  );
+  animation: mdcBtnSweep 0.85s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  pointer-events: none;
+}
+
+.mdc-btn-flash-amber {
+  position: relative;
+  overflow: hidden;
+  animation: mdcAmberGlow 1.2s ease-in-out infinite;
+}
+
+.mdc-btn-flash-amber::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 60%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(253, 224, 71, 0.45) 48%,
+    rgba(255, 255, 255, 0.65) 52%,
+    rgba(245, 158, 11, 0.28) 70%,
+    transparent 100%
+  );
+  animation: mdcBtnSweep 0.85s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  pointer-events: none;
+}
+
+

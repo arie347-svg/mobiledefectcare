@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ClaimItem, UserProfile } from '../types';
+import { ClaimItem, ClaimPartDetail, UserProfile } from '../types';
 import {
   X,
   Share2,
@@ -7,7 +7,6 @@ import {
   Copy,
   Check,
   Loader2,
-  Home,
 } from 'lucide-react';
 import {
   generateLkuatPdf,
@@ -16,8 +15,8 @@ import {
 } from '../utils/lkuatGenerator';
 
 interface ClaimReceiptModalProps {
-  claim: ClaimItem | null;
-  user?: UserProfile | null;
+  claim: any;
+  user: UserProfile | null;
   onClose: () => void;
 }
 
@@ -30,120 +29,79 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
   const [isSharing, setIsSharing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Format stempel waktu akurat saat tombol kirim ditekan (Hooks ditaruh di paling atas sebelum return)
+  // Format Nama Dealer & Kode Dealer
+  const namaDealer = useMemo(() => {
+    return claim?.namaDealer || user?.namaDealer || 'Dealer Honda';
+  }, [claim, user]);
+
+  const kodeDealer = useMemo(() => {
+    return claim?.kodeDealer || user?.kodeDealer || '-';
+  }, [claim, user]);
+
+  const kotaDealer = useMemo(() => {
+    return claim?.kota || user?.kota || '-';
+  }, [claim, user]);
+
+  // Format Waktu Pengiriman
   const formattedTimestamp = useMemo(() => {
-    if (!claim) return '';
-    if (claim.rawTimestamp) {
-      const d = new Date(claim.rawTimestamp);
-      if (!isNaN(d.getTime())) {
-        const datePart = d.toLocaleDateString('id-ID', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-          timeZone: 'Asia/Jakarta',
-        });
-        const timePart = d.toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          timeZone: 'Asia/Jakarta',
-        });
-        return `${datePart}, ${timePart} WIB`;
-      }
+    const raw = claim?.timestamp || claim?.tglPeriksa || new Date();
+    if (!raw) return '-';
+    try {
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return raw.toString();
+      const dd = String(d.getDate()).padStart(2, '0');
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
+      const mmm = months[d.getMonth()];
+      const yyyy = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${dd} ${mmm} ${yyyy} • ${hh}:${mm} WIB`;
+    } catch {
+      return raw.toString();
     }
-    if (claim.rawDate) {
-      const d = new Date(claim.rawDate);
-      if (!isNaN(d.getTime())) {
-        const datePart = d.toLocaleDateString('id-ID', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-          timeZone: 'Asia/Jakarta',
-        });
-        const timePart = d.toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          timeZone: 'Asia/Jakarta',
-        });
-        return `${datePart}, ${timePart} WIB`;
-      }
-    }
-    return claim.tgl || new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
   }, [claim]);
 
-  if (!claim) return null;
+  // Hitung Total Unit Motor & Total Part
+  const { motorCount, totalParts } = useMemo(() => {
+    const items: ClaimPartDetail[] = claim?.items || [];
+    const uniqueMotors = new Set(items.map((i) => i.tipe).filter(Boolean));
+    return {
+      motorCount: uniqueMotors.size > 0 ? uniqueMotors.size : 1,
+      totalParts: items.length,
+    };
+  }, [claim]);
 
-  const totalParts = claim.items?.length || 0;
-  // Hitung jumlah unit motor unik
-  const uniqueMotors = new Set(
-    (claim.items || []).map((it) => it.noMesin || it.tipe || '1')
-  );
-  const motorCount = uniqueMotors.size || 1;
-
-  const namaDealer = claim.namaDealer || user?.namaDealer || 'Dealer Honda';
-  const kodeAhm = claim.kodeAhm || user?.kodeAhm || '-';
-  const kodeDealer = claim.kodeDealer || user?.kodeDealer || '-';
-
-  const handleCopyId = () => {
-    try {
-      navigator.clipboard.writeText(claim.idKlaim);
-      setCopiedText(true);
-      setTimeout(() => setCopiedText(false), 2000);
-    } catch (_) {
-      setToastMessage('Gagal menyalin ID Klaim.');
-      setTimeout(() => setToastMessage(null), 2500);
-    }
+  // Handler Salin ID Klaim
+  const handleCopyId = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!claim?.idKlaim) return;
+    navigator.clipboard.writeText(claim.idKlaim);
+    setCopiedText(true);
+    setTimeout(() => setCopiedText(false), 2000);
   };
 
-  // Handler Bagikan File PDF LKUAT via Web Share API
+  // Handler Bagikan Resi PDF
   const handleShareLkuatPdf = async () => {
+    if (!claim) return;
     setIsSharing(true);
     try {
       const filename = getLkuatPdfFilename(claim, user);
       const pdfBlob = await generateLkuatPdfBlob(claim, user);
-      const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+      const file = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-      const docBaseName = filename.replace(/\.pdf$/i, '');
-
-      // Coba bagikan file PDF via Web Share API
-      if (
-        navigator.share &&
-        navigator.canShare &&
-        navigator.canShare({ files: [pdfFile] })
-      ) {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: docBaseName,
-          text: `Resi Pengiriman Klaim ID #${claim.idKlaim} - ${namaDealer}`,
-          files: [pdfFile],
+          files: [file],
+          title: `Form LKUAT - ${claim.idKlaim}`,
+          text: `Berikut terlampir dokumen LKUAT untuk Klaim #${claim.idKlaim}`,
         });
-        return;
-      } else if (navigator.share) {
-        // Fallback share text bila browser tidak mendukung share file
-        await navigator.share({
-          title: docBaseName,
-          text: `Resi Pengiriman Klaim ID #${claim.idKlaim} (${namaDealer}) - Status: Dikirim ke MD, Total: ${totalParts} Part (${motorCount} Unit)`,
-        });
-        return;
+      } else {
+        generateLkuatPdf(claim, user);
       }
-
-      // Fallback unduh otomatis jika Web Share API tidak tersedia di browser
-      const doc = await generateLkuatPdf(claim, user);
-      doc.save(filename);
-      setToastMessage('Dokumen LKUAT PDF berhasil diunduh!');
-      setTimeout(() => setToastMessage(null), 3500);
     } catch (err: any) {
-      if (err?.name === 'AbortError') return;
-      console.warn('Share LKUAT Error:', err);
-      // Fallback download manual jika share error
-      try {
-        const doc = await generateLkuatPdf(claim, user);
-        doc.save(getLkuatPdfFilename(claim, user));
-        setToastMessage('Dokumen LKUAT PDF berhasil diunduh!');
-        setTimeout(() => setToastMessage(null), 3500);
-      } catch (_) {
-        setToastMessage('Gagal menyiapkan dokumen PDF.');
-        setTimeout(() => setToastMessage(null), 3000);
+      if (err?.name !== 'AbortError') {
+        console.warn('Share PDF Error:', err);
+        generateLkuatPdf(claim, user);
       }
     } finally {
       setIsSharing(false);
@@ -151,18 +109,21 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden animate-in fade-in duration-200">
-      {/* Toast Alert */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fade-in">
+      
+      {/* Toast Notifikasi */}
       {toastMessage && (
-        <div className="absolute top-4 left-4 right-4 z-50 p-3 rounded-xl bg-slate-900 text-white border border-slate-700 text-xs text-center font-medium shadow-2xl animate-in slide-in-from-top-2">
+        <div className="absolute top-6 z-50 px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-xl border border-slate-700 animate-bounce">
           {toastMessage}
         </div>
       )}
 
-      {/* Kartu Resi Bersih Putih Pas 1 Layar Tanpa Scroll */}
-      <div className="w-full max-w-sm h-auto max-h-[96dvh] flex flex-col justify-between overflow-hidden bg-white text-slate-900 border border-slate-200 shadow-2xl rounded-3xl p-5 relative select-none">
+      {/* Kartu Resi */}
+      <div 
+        className="w-full max-w-sm h-auto max-h-[96dvh] flex flex-col justify-between overflow-hidden bg-white text-slate-900 border border-slate-200 shadow-2xl rounded-3xl p-5 relative select-none"
+      >
         
-        {/* Tombol Tutup (X) di Pojok Kanan Atas */}
+        {/* Tombol Tutup (X) */}
         <button
           type="button"
           onClick={(e) => {
@@ -176,7 +137,7 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
           <X className="w-4 h-4" />
         </button>
 
-        {/* Bagian Atas: HANYA Icon Checklist Hijau Beranimasi (Tanpa Teks Deskripsi Status) */}
+        {/* Bagian Atas: Icon Checklist Hijau Beranimasi */}
         <div className="flex flex-col items-center pt-2 pb-2">
           <div className="relative flex items-center justify-center">
             <div className="absolute w-14 h-14 rounded-full bg-emerald-500/20 animate-ping duration-1000 opacity-60" />
@@ -186,7 +147,7 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
           </div>
         </div>
 
-        {/* Kotak Fisik Lembar Struk (Teks Kontras Bersih di atas Background Netral) */}
+        {/* Kotak Fisik Lembar Struk */}
         <div className="rounded-2xl bg-slate-50/90 border border-slate-200 p-4 space-y-3 my-1">
           
           {/* Header Resi: ID Klaim Resmi & Tombol Salin */}
@@ -196,7 +157,7 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
                 ID Klaim Resmi
               </span>
               <span className="text-sm font-mono font-bold text-slate-900 tracking-wider">
-                {claim.idKlaim}
+                {claim?.idKlaim || '-'}
               </span>
             </div>
             <button
@@ -221,7 +182,6 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
 
           {/* Rincian Ringkas Data Klaim */}
           <div className="space-y-2 text-[11px]">
-            {/* Stempel Waktu Pengiriman */}
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Waktu Pengiriman</span>
               <span className="font-mono text-[11px] font-semibold text-slate-800 text-right">
@@ -229,21 +189,12 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
               </span>
             </div>
 
-            {/* Garis Pemisah Halus */}
             <div className="border-t border-slate-200/80 my-1" />
 
-            {/* Identitas Dealer: Nama Dealer & Kode AHM */}
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Nama Dealer</span>
               <span className="font-bold text-slate-900 truncate max-w-[190px] text-right">
                 {namaDealer}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500">Kode AHM</span>
-              <span className="font-mono font-bold text-slate-900 tracking-wide">
-                {kodeAhm}
               </span>
             </div>
 
@@ -256,10 +207,28 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
               </div>
             )}
 
-            {/* Garis Pemisah Halus */}
             <div className="border-t border-slate-200/80 my-1" />
 
-            {/* Ringkasan Unit Motor & Suku Cadang */}
+            {claim?.fotoSopirPJ && (
+              <div className="flex justify-center my-1">
+                <img
+                  src={claim.fotoSopirPJ}
+                  alt="Bukti Foto Sopir"
+                  referrerPolicy="no-referrer"
+                  className="w-14 h-14 object-cover rounded-xl border border-slate-200 shadow-xs"
+                />
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Diketahui Oleh Sopir</span>
+              <span className="font-bold text-slate-900 text-right">
+                {claim?.sopirPJ ? `${claim.sopirPJ}${claim?.transporterPJ ? `.${claim.transporterPJ}` : ''}` : '-'}
+              </span>
+            </div>
+
+            <div className="border-t border-slate-200/80 my-1" />
+
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Total Unit Motor</span>
               <span className="font-bold text-slate-900 font-mono">
@@ -268,23 +237,16 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-slate-500">Total Suku Cadang</span>
+              <span className="text-slate-500">Total Part</span>
               <span className="font-extrabold text-slate-900 font-mono">
                 {totalParts} Part
               </span>
             </div>
           </div>
-
-          {/* Watermark Ringkas Pengesahan */}
-          <div className="pt-2 border-t border-slate-200 text-center">
-            <span className="text-[9px] text-slate-400 font-mono block">
-              Tercatat Resmi di MDC Mobile Honda
-            </span>
-          </div>
         </div>
 
-        {/* Footer: Tombol Aksi Bagikan & Kembali ke Halaman Utama */}
-        <div className="pt-2 space-y-2">
+        {/* Footer: Tombol Aksi Bagikan LKUAT (PDF) */}
+        <div className="pt-2">
           <button
             type="button"
             onClick={handleShareLkuatPdf}
@@ -299,21 +261,9 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
             ) : (
               <>
                 <Share2 className="w-4 h-4 text-emerald-400" />
-                <span>Bagikan Resi (PDF)</span>
+                <span>Bagikan LKUAT (PDF)</span>
               </>
             )}
-          </button>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="w-full py-2.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-200"
-          >
-            <Home className="w-3.5 h-3.5 text-slate-500" />
-            <span>Kembali ke Halaman Utama</span>
           </button>
         </div>
 

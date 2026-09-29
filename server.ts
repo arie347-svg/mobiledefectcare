@@ -70,6 +70,8 @@ function executeLocalSpreadsheetAction(action: string, data: any) {
       return SpreadsheetDatabase.dealerKonfirmasiSelesai(data?.idKlaim || "");
     case "dealerKonfirmasiRetur":
       return SpreadsheetDatabase.dealerKonfirmasiRetur(data?.idKlaim || "", data?.alasan || "");
+    case "hapusKlaim":
+      return SpreadsheetDatabase.hapusKlaim(data?.idKlaim || "", data?.noSj || "", data?.kodeAhm || "");
     case "checkDataVersion":
       return SpreadsheetDatabase.checkDataVersion(data?.clientVersion || "");
     default:
@@ -94,9 +96,98 @@ async function startServer() {
 
     console.log(`[API /api/gas] Eksekusi action: ${action}`);
 
+    const canAttemptRemote = Boolean(GAS_WEBAPP_URL && GAS_WEBAPP_URL.trim().length > 0);
+
+    // Fast-Local First Optimization: Untuk lookupKodeAhm, cek database lokal terlebih dahulu (Response < 10ms)
+    if (action === "lookupKodeAhm") {
+      const targetKode =
+        typeof data === "string"
+          ? data
+          : data?.kodeAhm || data?.code || data?.kode || "";
+
+      const localResult = SpreadsheetDatabase.lookupKodeAhm(targetKode);
+      if (localResult && localResult.found) {
+        console.log(`[API /api/gas] lookupKodeAhm: Cocok instan pada basis data lokal (${localResult.namaDealer})`);
+        return res.json(localResult);
+      }
+    }
+
+    // Fast-Local SWR Optimization: Untuk getMasterDataKlaim, jika basis data lokal sudah memiliki masterMotor,
+    // kembalikan seketika (<10ms) ke client dan perbarui dari Google Spreadsheet di latar belakang (non-blocking)
+    if (action === "getMasterDataKlaim" && !data?.forceRefresh) {
+      const localMaster = SpreadsheetDatabase.getMasterDataKlaim();
+      if (localMaster && Array.isArray(localMaster.motorList) && localMaster.motorList.length > 0) {
+        console.log(`[API /api/gas] getMasterDataKlaim: Instant SWR Hit (<10ms, Motor: ${localMaster.motorList.length})`);
+        if (canAttemptRemote) {
+          callGasRemote(GAS_WEBAPP_URL, "getMasterDataKlaim", { forceRefresh: false })
+            .then((bgRes) => {
+              if (bgRes && bgRes.success && Array.isArray(bgRes.motorList) && bgRes.motorList.length > 0) {
+                SpreadsheetDatabase.saveMasterData(bgRes);
+              }
+            })
+            .catch(() => {});
+        }
+        return res.json(localMaster);
+      }
+    }
+
+    // Dual-Write / Optimistic Local Registration Optimization:
+    // Karena Kode AHM sudah diverifikasi, langsung daftarkan akun ke lokal seketika (<10ms).
+    // Sinkronisasi penulisan baris ke Google Spreadsheet (Users_Mobile) dilanjutkan di background non-blocking.
+    if (action === "registerUser") {
+      const payloadData = data?.formData || data || {};
+      const cleanEmail = (payloadData.email || "").trim().toLowerCase();
+      const cleanKode = (payloadData.kodeAhm || "").trim();
+
+      console.log(`[API /api/gas] registerUser: Optimistic Dual-Write untuk ${cleanEmail}`);
+
+      // 1. Simpan seketika ke database lokal
+      const localResult = SpreadsheetDatabase.registerUser(payloadData);
+      const userObj = {
+        email: cleanEmail,
+        nama: (payloadData.namaLengkap || payloadData.nama || "").toUpperCase(),
+        noHp: payloadData.noHp || "",
+        kodeAhm: cleanKode,
+        namaDealer: payloadData.namaDealer || "",
+        kodeDealer: payloadData.kodeDealer || "",
+        kategori: payloadData.kategori || "",
+        kota: payloadData.kota || "",
+        sentraDistribusi: payloadData.sentraDistribusi || "",
+        role: payloadData.role || "PDI Man",
+      };
+
+      // 2. Jalankan remote append ke Google Spreadsheet di background (Non-blocking)
+      if (canAttemptRemote) {
+        (async () => {
+          try {
+            console.log(`[API /api/gas background] Mengirim append akun ke Google Apps Script: ${cleanEmail}`);
+            const bgController = new AbortController();
+            const bgTimeout = setTimeout(() => bgController.abort(), 35000);
+            await fetch(GAS_WEBAPP_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({ action: "registerUser", data: payloadData }),
+              redirect: "follow",
+              signal: bgController.signal,
+            });
+            clearTimeout(bgTimeout);
+            console.log(`[API /api/gas background] Berhasil sinkronisasi pendaftaran akun ke remote GAS.`);
+          } catch (bgErr: any) {
+            console.warn(`[API /api/gas background] Notice background GAS sync (${cleanEmail}):`, bgErr?.message || bgErr);
+          }
+        })();
+      }
+
+      // 3. Langsung kembalikan respons sukses ke client dalam <10ms
+      return res.json({
+        success: true,
+        message: "Akun berhasil diverifikasi & terdaftar seketika.",
+        user: userObj,
+      });
+    }
+
     // Try remote GAS first with sufficient timeout for Google Sheets querying (45s for master data)
     let remoteJson: any = null;
-    const canAttemptRemote = Boolean(GAS_WEBAPP_URL && GAS_WEBAPP_URL.trim().length > 0);
     if (canAttemptRemote) {
       try {
         const controller = new AbortController();
@@ -263,15 +354,37 @@ async function startServer() {
     }
 
     if (action === "getRecentClaims") {
-      // Jika remote GAS merespons (sukses baik berisi data maupun array kosong []), kembalikan data remote tersebut secara mutlak
+      // Jika remote GAS merespons (sukses baik berisi data maupun array kosong []),
+      // sinkronkan (overwrite) basis data lokal untuk kodeAhm ini agar data yang sudah dihapus di Spreadsheet
+      // ikut terhapus secara permanen dari spreadsheet_database.json, lalu kembalikan data remote tersebut.
       if (remoteJson && (remoteJson.success || Array.isArray(remoteJson.data))) {
+        const remoteList = Array.isArray(remoteJson.data) ? remoteJson.data : [];
+        SpreadsheetDatabase.syncRemoteClaims(data?.kodeAhm || "", remoteList);
         return res.json({
           success: true,
-          data: Array.isArray(remoteJson.data) ? remoteJson.data : [],
+          data: remoteList,
         });
       }
-      // Jika remote GAS unreachable/offline, fallback ke local db
+      // Jika remote GAS unreachable/offline, fallback ke local db (yang sudah bersih & tersinkron)
       const localResult = SpreadsheetDatabase.getRecentClaims(data?.kodeAhm || "");
+      return res.json(localResult);
+    }
+
+    if (action === "hapusKlaim") {
+      const localResult = SpreadsheetDatabase.hapusKlaim(
+        data?.idKlaim || "",
+        data?.noSj || "",
+        data?.kodeAhm || ""
+      );
+      return res.json(remoteJson?.success ? remoteJson : localResult);
+    }
+
+    if (action === "getClaimById") {
+      if (remoteJson && remoteJson.success && remoteJson.data) {
+        return res.json(remoteJson);
+      }
+      const targetId = typeof data === "string" ? data : data?.idKlaim || data?.id || "";
+      const localResult = SpreadsheetDatabase.getClaimById(targetId);
       return res.json(localResult);
     }
 

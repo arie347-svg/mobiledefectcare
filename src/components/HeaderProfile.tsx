@@ -31,25 +31,31 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({ user, onLogout, no
       <div className="relative flex items-center justify-between gap-2.5 mb-2">
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Logo MDC */}
-          <div className="relative flex-shrink-0 w-9 h-9 rounded-xl bg-white/15 border border-white/30 backdrop-blur-md p-1.5 flex items-center justify-center shadow-xs overflow-hidden">
-            <img
-              src="/icon-192.png"
-              alt="Logo MDC"
-              className="w-full h-full object-contain drop-shadow-xs"
-              onError={(e) => {
-                const target = e.currentTarget;
-                target.style.display = 'none';
-                const parent = target.parentElement;
-                if (parent) {
-                  const fallback = parent.querySelector('.mdc-text-logo');
-                  if (fallback) fallback.classList.remove('hidden');
-                }
-              }}
-            />
-            <span className="mdc-text-logo hidden text-[10px] font-black tracking-wider text-white font-mono">
-              MDC
+          <div className="relative flex-shrink-0 w-9 h-9">
+            <div className="w-full h-full rounded-xl bg-white/15 border border-white/30 backdrop-blur-md p-1.5 flex items-center justify-center shadow-xs overflow-hidden">
+              <img
+                src="/icon-192.png"
+                alt="Logo MDC"
+                className="w-full h-full object-contain drop-shadow-xs"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    const fallback = parent.querySelector('.mdc-text-logo');
+                    if (fallback) fallback.classList.remove('hidden');
+                  }
+                }}
+              />
+              <span className="mdc-text-logo hidden text-[10px] font-black tracking-wider text-white font-mono">
+                MDC
+              </span>
+            </div>
+            {/* Indikator Online Hijau (Posisinya presisi di sudut luar tanpa terpotong bentuk rounded/overflow-hidden) */}
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3 z-10 pointer-events-none">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-[#8b151b] shadow-xs" />
             </span>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-red-700" />
           </div>
 
           <div className="min-w-0">
@@ -94,10 +100,10 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({ user, onLogout, no
         <div className="flex items-center justify-between text-[10px] text-white/80 pt-1 border-t border-white/10">
           <div className="flex items-center gap-1">
             <MapPin className="w-2.5 h-2.5 text-red-300" />
-            <span>Kota: <strong className="text-white">{kotaFormatted}</strong></span>
+            <span>Kota : <strong className="text-white">{kotaFormatted}</strong></span>
           </div>
           <div>
-            <span>Asal Gudang: <strong className="text-amber-300 font-semibold">{asalGudang}</strong></span>
+            <span>Asal Gudang : <strong className="text-amber-300 font-semibold">{asalGudang}</strong></span>
           </div>
         </div>
       </div>

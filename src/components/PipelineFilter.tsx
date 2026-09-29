@@ -70,7 +70,7 @@ export const PipelineFilter: React.FC<PipelineFilterProps> = ({
       <div className="flex items-center justify-between mb-1.5 px-0.5">
         <div className="flex items-center gap-1.5">
           <h3 className="text-[10.5px] font-bold text-white/85 tracking-wider uppercase">
-            Status Alur Klaim
+            Status Klaim
           </h3>
           <motion.span
             key={totalCount}
@@ -140,10 +140,11 @@ export const PipelineFilter: React.FC<PipelineFilterProps> = ({
                 />
               )}
 
+              {/* Indikator Merah Berkedip pada Draft (Ditempatkan di dalam sudut kanan atas kartu secara utuh tanpa terpotong bentuk) */}
               {item.isSiren && item.id === 'Draft' && (
-                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 z-20">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+                <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 z-20 pointer-events-none">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-80" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 ring-1.5 ring-slate-900 shadow-xs" />
                 </span>
               )}
 

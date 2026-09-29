@@ -19,9 +19,12 @@ import {
   Download,
   ChevronDown,
   Loader2,
+  Trash2,
+  Zap,
 } from 'lucide-react';
 import {
   formatTimestampWIB,
+  formatTanggalIndonesia,
   hitungSisaJamKerja,
   hitungEstimasiSelesai,
   parseTanggalAman,
@@ -39,6 +42,7 @@ interface ClaimDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEditDraft?: (claim: ClaimItem) => void;
+  onDeleteClaim?: (claim: ClaimItem) => void;
   onConfirmFinish?: (claimId: string) => void;
   onConfirmRetur?: (claimId: string, alasan: string) => void;
   onPreviewPhoto: (url: string, title: string) => void;
@@ -108,6 +112,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
   isOpen,
   onClose,
   onEditDraft,
+  onDeleteClaim,
   onConfirmFinish,
   onConfirmRetur,
   onPreviewPhoto,
@@ -127,6 +132,9 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
   const [alasanRetur, setAlasanRetur] = useState<string>('');
   const [isSubmittingRetur, setIsSubmittingRetur] = useState<boolean>(false);
   const [isSubmittingFinish, setIsSubmittingFinish] = useState<boolean>(false);
+  const [finishProgress, setFinishProgress] = useState<number>(0);
+  const [returProgress, setReturProgress] = useState<number>(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -142,6 +150,9 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
       setAlasanRetur('');
       setIsSubmittingRetur(false);
       setIsSubmittingFinish(false);
+      setFinishProgress(0);
+      setReturProgress(0);
+      setShowDeleteConfirm(false);
     }
   }, [claim?.idKlaim, claim?.status, isOpen]);
 
@@ -222,6 +233,40 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
     const tglSelesaiVal = claim.tglSelesai || (claim.status === 'Selesai' ? (claim.rawDate || claim.tgl || '-') : '-');
     const timestampVerif = `${formattedTglPemeriksaan} 21:32`;
 
+    // LOGIKA BARU: Cek keterisian kolom MD Status Penerimaan dari sheet Klaim_Header
+    const rawStatusTerima = (claim.mdStatusPenerimaan || '').trim();
+    const isStatusTerimaFilled = rawStatusTerima !== '' && rawStatusTerima !== '-';
+
+    let statusKeputusan = '-';
+    let alasanDitolak = '-';
+    let tglPengajuanKlaimModal = '-';
+
+    if (isStatusTerimaFilled) {
+      if (rawStatusTerima.toLowerCase().includes('tolak') || claim.status === 'Ditolak') {
+        statusKeputusan = 'Ditolak';
+        alasanDitolak = rawStatusTerima.replace(/^Ditolak:?\s*/i, '') || rawStatusTerima;
+      } else {
+        statusKeputusan = 'Diterima';
+        alasanDitolak = '-';
+      }
+
+      // Ekstraksi tanggal yyyy-mm-dd dari MD Status Penerimaan
+      const dateMatch = rawStatusTerima.match(/(\d{4}-\d{2}-\d{2})/);
+      if (dateMatch) {
+        tglPengajuanKlaimModal = dateMatch[1];
+      } else {
+        tglPengajuanKlaimModal = formattedTglPemeriksaan;
+      }
+    } else if (claim.status === 'Ditolak') {
+      statusKeputusan = 'Ditolak';
+      alasanDitolak = '-';
+      tglPengajuanKlaimModal = formattedTglPemeriksaan;
+    } else {
+      statusKeputusan = '-';
+      alasanDitolak = '-';
+      tglPengajuanKlaimModal = '-'; // Kosong / strip jika MD Status Penerimaan belum diisi
+    }
+
     // Render baris rincian suku cadang
     const itemsHtml = (claim.items || [])
       .map((item, idx) => {
@@ -251,17 +296,17 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
     // Paraf Sopir (Gambar atau Nama)
     let sopirSignHtml = '';
     if (claim.parafSopirPJ && (claim.parafSopirPJ.startsWith('data:image') || claim.parafSopirPJ.startsWith('http'))) {
-      sopirSignHtml = `<img src="${claim.parafSopirPJ}" style="max-height: 40px; max-width: 75px; object-fit: contain;" />`;
+      sopirSignHtml = `<img src="${claim.parafSopirPJ}" style="height: 52px; max-height: 58px; width: auto; max-width: 108px; object-fit: contain; filter: contrast(1.15); display: inline-block;" />`;
     } else {
-      sopirSignHtml = `<span style="font-weight: bold; font-size: 10px; color: #1e293b;">${claim.sopirPJ || '-'}</span>`;
+      sopirSignHtml = `<span style="font-weight: bold; font-size: 11px; color: #1e293b;">${claim.sopirPJ || '-'}</span>`;
     }
 
     // Paraf Pemeriksa Dealer
     let dealerSignHtml = '';
     if (claim.parafUser && (claim.parafUser.startsWith('data:image') || claim.parafUser.startsWith('http'))) {
-      dealerSignHtml = `<img src="${claim.parafUser}" style="max-height: 40px; max-width: 75px; object-fit: contain;" />`;
+      dealerSignHtml = `<img src="${claim.parafUser}" style="height: 52px; max-height: 58px; width: auto; max-width: 108px; object-fit: contain; filter: contrast(1.15); display: inline-block;" />`;
     } else {
-      dealerSignHtml = `<span style="font-weight: bold; font-size: 9.5px; color: #1e293b;">${namaPemeriksaLengkap}</span>`;
+      dealerSignHtml = `<span style="font-weight: bold; font-size: 10.5px; color: #1e293b;">${namaPemeriksaLengkap}</span>`;
     }
 
     // Evaluasi kondisi tanda tangan sesuai aturan:
@@ -431,8 +476,8 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
           }
           .sign-body {
             flex: 1;
-            min-height: 54px;
-            padding: 4px;
+            min-height: 58px;
+            padding: 2px 4px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -613,10 +658,10 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
           <div class="admin-pengajuan">
             <div class="admin-head">PENGAJUAN KLAIM (DIISI OLEH PETUGAS KLAIM ADMIN MAIN DEALER)</div>
             <table class="admin-table">
-              <tr><td style="font-weight: bold; width: 36%;">TGL PENGAJUAN KLAIM</td><td style="width: 3%;">:</td><td>${formattedTglPemeriksaan}</td></tr>
+              <tr><td style="font-weight: bold; width: 36%;">TGL PENGAJUAN KLAIM</td><td style="width: 3%;">:</td><td>${tglPengajuanKlaimModal}</td></tr>
               <tr><td style="font-weight: bold;">JENIS PERBAIKAN</td><td>:</td><td>${jenisPerbaikan}</td></tr>
-              <tr><td style="font-weight: bold;">KEPUTUSAN</td><td>:</td><td>${claim.status === 'Ditolak' ? 'Ditolak' : 'Diterima'}</td></tr>
-              <tr><td style="font-weight: bold;">ALASAN DITOLAK</td><td>:</td><td>-</td></tr>
+              <tr><td style="font-weight: bold;">KEPUTUSAN</td><td>:</td><td>${statusKeputusan}</td></tr>
+              <tr><td style="font-weight: bold;">ALASAN DITOLAK</td><td>:</td><td>${alasanDitolak}</td></tr>
             </table>
           </div>
 
@@ -707,12 +752,22 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 
   // 4. Handler Konfirmasi Retur ke MD (Part Tidak OK)
   const handleKirimRetur = async () => {
+    if (isSubmittingFinish || isSubmittingRetur) return;
     if (!alasanRetur.trim()) {
       alert('Mohon tuliskan alasan atau keterangan kenapa barang diretur.');
       return;
     }
     setIsSubmittingRetur(true);
+    setReturProgress(25);
     try {
+      await new Promise((r) => setTimeout(r, 65));
+      setReturProgress(65);
+      await new Promise((r) => setTimeout(r, 65));
+      setReturProgress(90);
+      await new Promise((r) => setTimeout(r, 60));
+      setReturProgress(100);
+      await new Promise((r) => setTimeout(r, 70));
+
       if (onConfirmRetur) {
         await onConfirmRetur(claim.idKlaim, alasanRetur.trim());
       } else {
@@ -725,19 +780,30 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
       alert(err?.message || 'Gagal mengirim permintaan retur.');
     } finally {
       setIsSubmittingRetur(false);
+      setReturProgress(0);
     }
   };
 
-  // 5. Handler Konfirmasi Terima Part di Dealer (Part OK)
+  // 5. Handler Konfirmasi Terima Part di Dealer (Part OK - Animasi Kilatan Emerald Modern)
   const handleKonfirmasiTerima = async () => {
-    if (!onConfirmFinish || isSubmittingFinish) return;
+    if (!onConfirmFinish || isSubmittingFinish || isSubmittingRetur) return;
+    setShowReturForm(false);
     setIsSubmittingFinish(true);
+    setFinishProgress(25);
     try {
+      await new Promise((r) => setTimeout(r, 65));
+      setFinishProgress(65);
+      await new Promise((r) => setTimeout(r, 65));
+      setFinishProgress(90);
+      await new Promise((r) => setTimeout(r, 60));
+      setFinishProgress(100);
+      await new Promise((r) => setTimeout(r, 75));
+
       await onConfirmFinish(claim.idKlaim);
     } catch (err: any) {
       alert(err?.message || 'Gagal memproses konfirmasi terima.');
-    } finally {
       setIsSubmittingFinish(false);
+      setFinishProgress(0);
     }
   };
 
@@ -773,7 +839,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                 type="button"
                 onClick={() => setShowExportDropdown(!showExportDropdown)}
                 disabled={isExporting}
-                title="Ekspor LKUAT PDF"
+                title="Export"
                 className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 active:scale-95 text-white text-[11px] font-bold transition-all shadow border border-amber-400/40 flex items-center gap-1 cursor-pointer disabled:opacity-50"
               >
                 {isExporting ? (
@@ -783,7 +849,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <span>Ekspor</span>
+                    <span>Export</span>
                     <ChevronDown className={`w-3 h-3 transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
                   </>
                 )}
@@ -793,7 +859,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
               {showExportDropdown && (
                 <div className="absolute right-0 mt-1.5 w-48 rounded-2xl bg-slate-900 border border-white/20 shadow-2xl backdrop-blur-xl z-50 overflow-hidden divide-y divide-white/10 animate-in fade-in zoom-in-95 duration-150">
                   <div className="p-2 bg-slate-950 text-[10px] font-bold text-amber-300">
-                    Opsi Ekspor LKUAT
+                    Export
                   </div>
                   
                   <button
@@ -802,7 +868,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                     className="w-full px-3 py-2 text-left text-xs font-medium text-white hover:bg-red-600/30 flex items-center gap-2 transition-colors cursor-pointer"
                   >
                     <Share2 className="w-3.5 h-3.5 text-sky-400" />
-                    <span>Bagikan File PDF</span>
+                    <span>Bagikan</span>
                   </button>
 
                   <button
@@ -812,7 +878,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                     className="w-full px-3 py-2 text-left text-xs font-medium text-white hover:bg-red-600/30 flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <Download className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Download PDF Resmi</span>
+                    <span>Download</span>
                   </button>
                 </div>
               )}
@@ -903,25 +969,65 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
           <div className="rounded-2xl p-3.5 bg-black/35 border border-white/15 backdrop-blur-md shadow-inner">
             {selectedStepView === 1 && (
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                   <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
                     <Store className="w-3.5 h-3.5 text-amber-400" />
                     1. Pemeriksaan di Dealer
                   </h4>
-                  {claim.status === 'Draft' && onEditDraft && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onClose();
-                        onEditDraft(claim);
-                      }}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg bg-red-600 text-white hover:bg-red-500 active:scale-95 transition-all shadow-md shadow-red-900/50"
-                    >
-                      <Edit3 className="w-3 h-3" />
-                      Lanjutkan Draft
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {claim.status === 'Draft' && onDeleteClaim && !showDeleteConfirm && (
+                      <button
+                        type="button"
+                        onClick={() => setShowDeleteConfirm(true)}
+                        title="Hapus Pengajuan Klaim / Draft ini secara permanen"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg bg-white/10 text-red-300 border border-red-500/30 hover:bg-red-950/60 hover:text-red-200 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Hapus
+                      </button>
+                    )}
+                    {claim.status === 'Draft' && onEditDraft && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onEditDraft(claim);
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg bg-red-600 text-white hover:bg-red-500 active:scale-95 transition-all shadow-md shadow-red-900/50 cursor-pointer"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        Lanjutkan Draft
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {showDeleteConfirm && onDeleteClaim && (
+                  <div className="mb-2.5 p-2.5 rounded-xl bg-red-950/80 border border-red-500/40 flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-red-100 font-medium">
+                      Hapus draft klaim ini secara permanen dari HP & Server?
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setShowDeleteConfirm(false)}
+                        className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10.5px] font-bold text-white/80 cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onDeleteClaim(claim);
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-[10.5px] font-bold text-white shadow cursor-pointer"
+                      >
+                        Ya, Hapus
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-xs text-white/70">
                   {claim.status === 'Draft'
                     ? 'Klaim berstatus DRAFT titipan. Wajib diselesaikan sebelum batas 24 jam.'
@@ -933,40 +1039,79 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
               </div>
             )}
 
-            {selectedStepView === 2 && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5 text-sky-400" />
-                    2. Pengiriman ke Main Dealer
-                  </h4>
-                  {waPengurus && (
-                    <div className="flex items-center gap-1.5">
-                      <a
-                        href={`tel:${waPengurus}`}
-                        title="Telepon Pengurus"
-                        className="p-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white shadow transition-all flex items-center justify-center"
-                      >
-                        <Phone className="w-3 h-3" />
-                      </a>
-                      <a
-                        href={`https://wa.me/${cleanPhone(waPengurus)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Chat WhatsApp Pengurus"
-                        className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all flex items-center justify-center"
-                      >
-                        <MessageCircle className="w-3 h-3" />
-                      </a>
+            {selectedStepView === 2 && (() => {
+              const isDititip = claim.metodeKembali === 'DITITIP';
+              const driverPengirim = isDititip
+                ? (claim.sopirKembali || claim.sopirPJ || '-')
+                : (claim.sopirPJ || '-');
+              const nopolPengirim = isDititip
+                ? (claim.nopolKembali || claim.nopolPJ || '-')
+                : (claim.nopolPJ || '-');
+              const transporterPengirim = isDititip
+                ? (claim.transporterKembali || claim.transporterPJ || '-')
+                : (claim.transporterPJ || '-');
+              const waPengurusPengirim = cleanPhone(
+                isDititip
+                  ? (claim.kontakPengurusKembali || claim.kontakPengurusPJ)
+                  : (claim.kontakPengurusPJ || claim.kontakPengurusKembali)
+              );
+
+              return (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5 text-sky-400" />
+                        2. Pengiriman ke Main Dealer
+                      </h4>
+                      <span className={`text-[9.5px] px-1.5 py-0.5 rounded-md font-semibold border ${
+                        isDititip
+                          ? 'bg-amber-950/60 text-amber-300 border-amber-500/30'
+                          : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30'
+                      }`}>
+                        {isDititip ? 'DITITIP' : 'DIKIRIM LANGSUNG'}
+                      </span>
                     </div>
-                  )}
+
+                    {waPengurusPengirim && (
+                      <div className="flex items-center gap-1.5">
+                        <a
+                          href={`tel:${waPengurusPengirim}`}
+                          title={`Telepon Pengurus ${transporterPengirim}`}
+                          className="p-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white shadow transition-all flex items-center justify-center"
+                        >
+                          <Phone className="w-3 h-3" />
+                        </a>
+                        <a
+                          href={`https://wa.me/${cleanPhone(waPengurusPengirim)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`Chat WhatsApp Pengurus ${transporterPengirim}`}
+                          className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all flex items-center justify-center"
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-xs text-white/85 space-y-1.5">
+                    <div>
+                      Driver Pengirim: <strong className="text-white">{driverPengirim}</strong> {nopolPengirim && nopolPengirim !== '-' ? `(${nopolPengirim})` : ''}
+                    </div>
+                    <div>
+                      Transporter Pengirim: <strong className="text-white">{transporterPengirim}</strong>
+                    </div>
+
+                    {isDititip && (
+                      <div className="pt-1 text-[10.5px] text-amber-300/80 border-t border-white/10 flex items-center gap-1">
+                        <span>Dititipkan via armada pengembalian. Penanggungjawab klaiman: <strong>{claim.sopirPJ || '-'} ({claim.transporterPJ || '-'})</strong></span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="text-xs text-white/85 space-y-1">
-                  <div>Driver: <strong className="text-white">{claim.sopirPJ || '-'}</strong> ({claim.nopolPJ || '-'})</div>
-                  <div>Transporter: <strong className="text-white">{claim.transporterPJ || '-'}</strong></div>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {selectedStepView === 3 && (
               <div>
@@ -1012,141 +1157,222 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
               </div>
             )}
 
-            {selectedStepView === 4 && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <CornerUpLeft className="w-3.5 h-3.5 text-indigo-400" />
-                    4. Dikirim Kembali ke Dealer
-                  </h4>
-                  <div className="flex items-center gap-1.5">
-                    {/* Kontak Pengurus Ekspedisi hanya dapat dilihat oleh PDI Man */}
-                    {user?.role === 'PDI Man' && waPengurus && (
-                      <a
-                        href={`https://wa.me/${cleanPhone(waPengurus)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Chat Pengurus Ekspedisi"
-                        className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1"
-                      >
-                        <MessageCircle className="w-3 h-3" /> Pengurus
-                      </a>
-                    )}
-                    {/* Kontak PDI Man hanya dapat dilihat oleh Repairmen */}
-                    {user?.role === 'Repairmen' && claim.noHpPdi && (
-                      <a
-                        href={`https://wa.me/${cleanPhone(claim.noHpPdi)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Chat PDI Man"
-                        className="px-2 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[10px] font-bold flex items-center gap-1"
-                      >
-                        <MessageCircle className="w-3 h-3" /> PDI Man
-                      </a>
-                    )}
+            {selectedStepView === 4 && (() => {
+              const driverBalik = claim.mdSopirBalik || claim.sopirKembali || claim.sopirPJ || '-';
+              const nopolBalik = claim.mdNopolBalik || claim.nopolKembali || claim.nopolPJ || '';
+              const transporterBalik = claim.mdTransporterBalik || claim.transporterKembali || claim.transporterPJ || '-';
+              
+              // Tanggal perubahan status menjadi Kirim Dlr
+              const tglKirimDlrRaw = claim.mdTargetSelesai || claim.tglSelesai || claim.rawDate || claim.tgl;
+              const tglKirimDlrFormatted = (() => {
+                try {
+                  const d = parseTanggalAman(tglKirimDlrRaw);
+                  if (!isNaN(d.getTime())) {
+                    return formatTanggalIndonesia(d);
+                  }
+                  return String(tglKirimDlrRaw);
+                } catch {
+                  return String(tglKirimDlrRaw || '-');
+                }
+              })();
+
+              return (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <CornerUpLeft className="w-3.5 h-3.5 text-indigo-400" />
+                      4. Dikirim Kembali ke Dealer
+                    </h4>
+                    <div className="flex items-center gap-1.5">
+                      {/* Kontak Pengurus Ekspedisi hanya dapat dilihat oleh PDI Man */}
+                      {user?.role === 'PDI Man' && waPengurus && (
+                        <a
+                          href={`https://wa.me/${cleanPhone(waPengurus)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Chat Pengurus Ekspedisi"
+                          className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1"
+                        >
+                          <MessageCircle className="w-3 h-3" /> Pengurus
+                        </a>
+                      )}
+                      {/* Kontak PDI Man hanya dapat dilihat oleh Repairmen */}
+                      {user?.role === 'Repairmen' && claim.noHpPdi && (
+                        <a
+                          href={`https://wa.me/${cleanPhone(claim.noHpPdi)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Chat PDI Man"
+                          className="px-2 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[10px] font-bold flex items-center gap-1"
+                        >
+                          <MessageCircle className="w-3 h-3" /> PDI Man
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <p className="text-xs text-white/70 mb-2.5">
-                  Armada ekspedisi sedang dalam perjalanan mengantarkan part yang telah selesai diperbaiki ke Dealer Anda.
-                </p>
 
-                {/* Keterangan Part Sudah Divalidasi Hasil Perbaikan Disertai Checklist Hijau */}
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs mb-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="leading-tight font-medium">
-                    Part sudah divalidasi hasil perbaikan & lolos QC Main Dealer.
-                  </span>
-                </div>
-
-                {/* Bagian Aksi Konfirmasi Serah Terima di Dealer */}
-                {claim.status === 'Dikirim ke Dealer' && (
-                  <div className="rounded-2xl border border-white/15 bg-black/40 p-3 space-y-2.5 shadow-inner">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">Konfirmasi Kondisi Barang:</span>
-                      <span className="text-[10px] text-emerald-400 font-semibold px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/30">
-                        Tiba di Dealer
-                      </span>
+                  {/* Informasi Driver & Transporter Pengirim ke Dealer serta Tanggal Perubahan Status */}
+                  <div className="text-xs text-white/85 space-y-1.5 p-2.5 rounded-xl bg-slate-900/60 border border-white/10 mb-2.5">
+                    <div>
+                      Driver Pengirim: <strong className="text-white">{driverBalik}</strong> {nopolBalik && nopolBalik !== '-' ? `(${nopolBalik})` : ''}
                     </div>
-
-                    {/* Dua Tombol Aksi Utama: Terima & Retur */}
-                    <div className="grid grid-cols-2 gap-2">
-                      {/* Tombol Terima: Solid Menonjol Hijau */}
-                      <button
-                        type="button"
-                        disabled={isSubmittingFinish}
-                        onClick={handleKonfirmasiTerima}
-                        className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none text-white text-xs font-bold shadow-lg shadow-emerald-950/60 border border-emerald-400/50 flex items-center justify-center gap-1.5 cursor-pointer transition-all"
-                      >
-                        {isSubmittingFinish ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                        ) : (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                        )}
-                        <span>{isSubmittingFinish ? 'Memproses...' : 'Terima'}</span>
-                      </button>
-
-                      {/* Tombol Retur: Transparan / Redup Tidak Mencolok */}
-                      <button
-                        type="button"
-                        onClick={() => setShowReturForm((prev) => !prev)}
-                        className={`w-full py-2.5 px-3 rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs font-medium active:scale-[0.98] ${
-                          showReturForm
-                            ? 'bg-red-950/50 border-red-500/50 text-red-300'
-                            : 'bg-transparent hover:bg-white/5 border-white/20 text-white/60 hover:text-white'
-                        }`}
-                      >
-                        <AlertTriangle className="w-3.5 h-3.5 text-white/50" />
-                        <span>Retur</span>
-                      </button>
+                    <div>
+                      Transporter: <strong className="text-white">{transporterBalik}</strong>
                     </div>
+                    <div className="text-white/70">
+                      Tgl Kirim Dealer: <strong className="text-amber-300 font-mono">{tglKirimDlrFormatted}</strong>
+                    </div>
+                  </div>
 
-                    {/* Kolom Input Teks Dinamis Alasan / Keterangan Retur */}
-                    {showReturForm && (
-                      <div className="pt-2.5 border-t border-white/10 space-y-2 animate-in fade-in zoom-in-95 duration-150">
-                        <label className="block text-[11px] font-semibold text-red-300">
-                          Alasan / Keterangan Kenapa Barang Diretur:
-                        </label>
-                        <textarea
-                          rows={2}
-                          value={alasanRetur}
-                          onChange={(e) => setAlasanRetur(e.target.value)}
-                          placeholder="Jelaskan kondisi cacat fisik atau alasan part tidak sesuai..."
-                          className="w-full p-2.5 rounded-xl bg-black/60 border border-red-500/40 text-xs text-white placeholder-white/40 focus:outline-none focus:border-red-400 transition-colors resize-none"
-                        />
-                        <div className="flex items-center justify-end gap-2">
+                  {/* Keterangan Part Sudah Divalidasi Hasil Perbaikan Disertai Checklist Hijau */}
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs mb-3">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <span className="leading-tight font-medium">
+                      Part sudah divalidasi hasil perbaikan & lolos QC Main Dealer.
+                    </span>
+                  </div>
+
+                  {/* Bagian Aksi Konfirmasi Serah Terima di Dealer */}
+                  {claim.status === 'Dikirim ke Dealer' && (
+                    <div className="rounded-2xl border border-white/15 bg-black/40 p-3 space-y-2.5 shadow-inner">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white">Konfirmasi Kondisi Barang:</span>
+                        <span className="text-[10px] text-emerald-400 font-semibold px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/30">
+                          Tiba di Dealer
+                        </span>
+                      </div>
+
+                      {/* Dua Tombol Aksi Utama: Terima & Retur */}
+                      <div className="space-y-1.5">
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* Tombol Terima: Solid Menonjol Hijau + Animasi Kilatan Emerald Modern */}
                           <button
                             type="button"
-                            onClick={() => {
-                              setShowReturForm(false);
-                              setAlasanRetur('');
-                            }}
-                            className="px-3 py-1.5 rounded-lg text-xs text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                            disabled={isSubmittingFinish || isSubmittingRetur}
+                            onClick={handleKonfirmasiTerima}
+                            className={`relative overflow-hidden w-full py-2.5 px-3 rounded-xl text-white text-xs font-bold shadow-lg border flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                              isSubmittingFinish
+                                ? 'bg-emerald-900/90 mdc-btn-flash-emerald border-emerald-300/70 cursor-wait'
+                                : 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 active:scale-[0.98] shadow-emerald-950/60 border-emerald-400/50 disabled:opacity-45 disabled:pointer-events-none'
+                            }`}
                           >
-                            Batal
+                            {isSubmittingFinish && (
+                              <div
+                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/85 via-teal-400/75 to-emerald-300/60 transition-all duration-75 ease-out pointer-events-none"
+                                style={{ width: `${finishProgress}%` }}
+                              />
+                            )}
+                            <div className="relative z-10 flex items-center justify-center gap-1.5">
+                              {isSubmittingFinish ? (
+                                <>
+                                  {finishProgress >= 100 ? (
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-white animate-bounce" />
+                                  ) : (
+                                    <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200 animate-pulse" />
+                                  )}
+                                  <span>{finishProgress >= 100 ? 'Diterima!' : 'Menerima'}</span>
+                                  <span className="font-mono font-extrabold text-[10px] bg-black/45 px-1.5 py-0.5 rounded border border-emerald-200/40 text-emerald-100">
+                                    {finishProgress}%
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                  <span>Terima</span>
+                                </>
+                              )}
+                            </div>
                           </button>
+
+                          {/* Tombol Retur: Dikunci otomatis saat Terima sedang memproses */}
                           <button
                             type="button"
-                            onClick={handleKirimRetur}
-                            disabled={!alasanRetur.trim() || isSubmittingRetur}
-                            className="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 active:scale-95 disabled:opacity-40 disabled:pointer-events-none text-xs font-bold text-white shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                            disabled={isSubmittingFinish || isSubmittingRetur}
+                            onClick={() => setShowReturForm((prev) => !prev)}
+                            className={`w-full py-2.5 px-3 rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs font-medium active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none ${
+                              showReturForm
+                                ? 'bg-red-950/50 border-red-500/50 text-red-300'
+                                : 'bg-transparent hover:bg-white/5 border-white/20 text-white/60 hover:text-white'
+                            }`}
                           >
-                            {isSubmittingRetur && <Loader2 className="w-3 h-3 animate-spin" />}
-                            <span>Kirim Retur ke MD</span>
+                            <AlertTriangle className="w-3.5 h-3.5 text-white/50" />
+                            <span>Retur</span>
                           </button>
                         </div>
+
+                        {/* Progress Bar Kilatan Emerald saat Tombol Terima Ditekan */}
+                        {isSubmittingFinish && (
+                          <div className="overflow-hidden rounded-full bg-black/50 h-1.5 border border-emerald-400/30 p-[1px]">
+                            <div
+                              className="bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 h-full transition-all duration-75 ease-out rounded-full shadow-[0_0_10px_rgba(52,211,153,0.9)]"
+                              style={{ width: `${finishProgress}%` }}
+                            />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+
+                      {/* Kolom Input Teks Dinamis Alasan / Keterangan Retur */}
+                      {showReturForm && (
+                        <div className="pt-2.5 border-t border-white/10 space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                          <label className="block text-[11px] font-semibold text-red-300">
+                            Alasan / Keterangan Kenapa Barang Diretur:
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={alasanRetur}
+                            onChange={(e) => setAlasanRetur(e.target.value)}
+                            placeholder="Jelaskan kondisi cacat fisik atau alasan part tidak sesuai..."
+                            className="w-full p-2.5 rounded-xl bg-black/60 border border-red-500/40 text-xs text-white placeholder-white/40 focus:outline-none focus:border-red-400 transition-colors resize-none"
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              disabled={isSubmittingRetur}
+                              onClick={() => {
+                                setShowReturForm(false);
+                                setAlasanRetur('');
+                              }}
+                              className="px-3 py-1.5 rounded-lg text-xs text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-40"
+                            >
+                              Batal
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleKirimRetur}
+                              disabled={!alasanRetur.trim() || isSubmittingRetur || isSubmittingFinish}
+                              className={`relative overflow-hidden px-3.5 py-1.5 rounded-lg text-xs font-bold text-white shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:pointer-events-none ${
+                                isSubmittingRetur
+                                  ? 'bg-red-800 mdc-btn-flash-red border border-amber-300/50'
+                                  : 'bg-red-600 hover:bg-red-500 active:scale-95'
+                              }`}
+                            >
+                              {isSubmittingRetur ? (
+                                <>
+                                  <Zap className="w-3 h-3 text-amber-300 fill-amber-300 animate-pulse" />
+                                  <span>Mengirim Retur</span>
+                                  <span className="font-mono font-extrabold text-[10px] bg-black/45 px-1.5 py-0.5 rounded border border-amber-300/40 text-amber-200">
+                                    {returProgress}%
+                                  </span>
+                                </>
+                              ) : (
+                                <span>Kirim Retur ke MD</span>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {selectedStepView === 5 && (
               <div className="text-center py-2">
                 <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-1.5" />
-                <h4 className="text-xs font-bold text-white">5. Klaim Ditutup (Selesai)</h4>
+                <h4 className="text-xs font-bold text-white">5. Klaim Selesai</h4>
                 <p className="text-xs text-white/70 mt-1">
-                  Suku cadang telah diterima kembali oleh Dealer dan serah terima tuntas.
+                  Part telah diterima kembali oleh Dealer dan serah terima tuntas.
                 </p>
               </div>
             )}
@@ -1155,7 +1381,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
           {/* Rincian Unit & Part Klaim */}
           <div>
             <h4 className="text-xs font-bold text-white/80 tracking-wide uppercase mb-2">
-              Rincian Motor & Suku Cadang ({claim.items?.length || 0})
+              Rincian Motor & Part ({claim.items?.length || 0})
             </h4>
 
             <div className="space-y-2">
@@ -1227,14 +1453,38 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
               <span className="text-white/60">No. Surat Jalan:</span>
               <strong className="font-mono text-amber-300">{claim.noSj}</strong>
             </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Sopir PJ Bongkar:</span>
-              <span className="text-white">{claim.sopirPJ} ({claim.nopolPJ})</span>
+            <div className="flex justify-between items-center">
+              <span className="text-white/60">Sopir Penanggungjawab:</span>
+              <span className="text-white">{claim.sopirPJ} ({claim.transporterPJ})</span>
             </div>
-            <div className="flex justify-between">
+
+            {/* BUKTI FOTO SOPIR LANGSUNG DI BAWAH SOPIR PJ DENGAN GARIS BAWAH */}
+            {claim.fotoSopirPJ && (
+              <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                <span className="text-white/60">Bukti Foto Sopir:</span>
+                <img
+                  src={claim.fotoSopirPJ}
+                  alt="Foto Sopir PJ"
+                  referrerPolicy="no-referrer"
+                  onClick={() => onPreviewPhoto(claim.fotoSopirPJ!, 'Foto Sopir PJ')}
+                  className="w-10 h-10 object-cover rounded-lg border border-white/20 cursor-pointer hover:scale-105 transition-transform shadow-xs"
+                />
+              </div>
+            )}
+
+            <div className="flex justify-between pt-0.5">
               <span className="text-white/60">Metode Pengembalian:</span>
               <span className="font-bold text-white uppercase">{claim.metodeKembali}</span>
             </div>
+
+            {claim.metodeKembali === 'DITITIP' && (
+              <div className="flex justify-between items-center pt-1 border-t border-white/10 text-amber-300">
+                <span className="text-white/60">Sopir Pengembalian (Titip):</span>
+                <span className="font-medium">
+                  {claim.sopirKembali || '-'} ({claim.transporterKembali || '-'}) {claim.nopolKembali ? `• ${claim.nopolKembali}` : ''}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

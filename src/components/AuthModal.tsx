@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { UserProfile } from '../types';
 import { GasService, isGasEnvironment } from '../services/gasBridge';
 import {
@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Sparkles,
+  Zap,
 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -31,6 +32,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loginEmail, setLoginEmail] = useState('');
   const [loginKodeAhm, setLoginKodeAhm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loginProgress, setLoginProgress] = useState(0);
+  const [registerProgress, setRegisterProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(externalErrorMessage || null);
 
   React.useEffect(() => {
@@ -45,8 +48,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [regHp, setRegHp] = useState('');
   const [regKodeAhm, setRegKodeAhm] = useState('');
   const [regLookupLoading, setRegLookupLoading] = useState(false);
+  const [lookupProgress, setLookupProgress] = useState(0);
   const [regDealerInfo, setRegDealerInfo] = useState<{
     found: boolean;
+    kodeAhm?: string;
     namaDealer?: string;
     kodeDealer?: string;
     kategori?: string;
@@ -58,6 +63,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [emailTouched, setEmailTouched] = useState(false);
   const [hpTouched, setHpTouched] = useState(false);
 
+  // Helper animasi progress persentase (0 -> 100%)
+  const progressIntervalRef = useRef<any>(null);
+
+  const startProgressAnimation = () => {
+    setLookupProgress(20);
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    progressIntervalRef.current = setInterval(() => {
+      setLookupProgress((prev) => {
+        if (prev >= 92) return prev;
+        return prev + Math.floor(Math.random() * 15) + 10;
+      });
+    }, 35);
+  };
+
+  const completeProgressAnimation = () => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    setLookupProgress(100);
+  };
+
+  const resetProgressAnimation = () => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    setLookupProgress(0);
+  };
+
   // Helpers for validation
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -68,9 +97,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     return (clean.startsWith('08') || clean.startsWith('628')) && clean.length >= 10 && clean.length <= 13;
   };
 
-  // Handle Lookup Kode AHM on Register (Tombol Cari)
-  const handleSearchKodeAhm = async () => {
-    const cleanKode = regKodeAhm.trim();
+  // Handle Lookup Kode AHM on Register (Cepat & Instan)
+  const handleSearchKodeAhm = async (customCode?: string) => {
+    const cleanKode = (customCode !== undefined ? customCode : regKodeAhm).trim();
     if (!cleanKode) {
       setErrorMessage('Silakan masukkan Kode AHM Dealer terlebih dahulu.');
       setRegDealerInfo(null);
@@ -79,23 +108,46 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     setErrorMessage(null);
     setRegLookupLoading(true);
+    startProgressAnimation();
+
     try {
       const res = await GasService.lookupKodeAhm(cleanKode);
-      if (res && res.found) {
-        setRegDealerInfo(res);
-        // Otomatis sinkronkan format kode resmi jika dikembalikan dari server
-        if (res.kodeAhm) {
-          setRegKodeAhm(res.kodeAhm);
+      completeProgressAnimation();
+
+      setTimeout(() => {
+        if (res && res.found) {
+          setRegDealerInfo(res);
+          if (res.kodeAhm) {
+            setRegKodeAhm(res.kodeAhm);
+          }
+        } else {
+          setRegDealerInfo({ found: false });
         }
-      } else {
-        setRegDealerInfo({ found: false });
-      }
+        setRegLookupLoading(false);
+        resetProgressAnimation();
+      }, 160);
     } catch (_) {
-      setRegDealerInfo({ found: false });
-    } finally {
-      setRegLookupLoading(false);
+      completeProgressAnimation();
+      setTimeout(() => {
+        setRegDealerInfo({ found: false });
+        setRegLookupLoading(false);
+        resetProgressAnimation();
+      }, 160);
     }
   };
+
+  // Auto-search instan ketika pengguna mengetik 4 hingga 5 digit angka
+  useEffect(() => {
+    const trimmed = regKodeAhm.trim();
+    const cleanDigits = trimmed.replace(/\D/g, '');
+
+    if (cleanDigits.length >= 4 && cleanDigits.length <= 5 && !regDealerInfo?.found && !regLookupLoading) {
+      const timer = setTimeout(() => {
+        handleSearchKodeAhm(trimmed);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [regKodeAhm]);
 
   // Handle Login Submit
   const handleLogin = async (e: React.FormEvent) => {
@@ -113,20 +165,41 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     setIsLoading(true);
+    setLoginProgress(15);
+
+    // Animasi dinamis persentase login (0% -> 100%)
+    const loginInterval = setInterval(() => {
+      setLoginProgress((prev) => {
+        if (prev >= 92) return prev;
+        return prev + Math.floor(Math.random() * 8) + 10;
+      });
+    }, 40);
+
     try {
       const res = await GasService.loginUser(loginEmail, loginKodeAhm);
+      clearInterval(loginInterval);
+
       if (res && res.status === 'SUCCESS' && res.user) {
-        onLoginSuccess(res.user);
+        setLoginProgress(100);
+        setTimeout(() => {
+          onLoginSuccess(res.user);
+          setIsLoading(false);
+          setLoginProgress(0);
+        }, 180);
+        return;
       } else {
+        setLoginProgress(0);
+        setIsLoading(false);
         setErrorMessage(
           res?.message ||
             'Kombinasi Email dan Kode AHM tidak ditemukan. Pastikan akun telah terdaftar.'
         );
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Gagal terhubung ke server GAS.');
-    } finally {
+      clearInterval(loginInterval);
+      setLoginProgress(0);
       setIsLoading(false);
+      setErrorMessage(err?.message || 'Gagal terhubung ke server GAS.');
     }
   };
 
@@ -171,6 +244,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     isRegisteringRef.current = true;
     setIsLoading(true);
+    setRegisterProgress(15);
+
+    // Animasi dinamis persentase pendaftaran (0% -> 100%)
+    const regInterval = setInterval(() => {
+      setRegisterProgress((prev) => {
+        if (prev >= 92) return prev;
+        return prev + Math.floor(Math.random() * 8) + 10;
+      });
+    }, 40);
 
     try {
       const payload = {
@@ -187,8 +269,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       };
 
       const res = await GasService.registerUser(payload);
-      
+      clearInterval(regInterval);
+
       if (res && res.success) {
+        setRegisterProgress(100);
         // Gunakan objek user yang langsung dikembalikan dari server pendaftaran
         const loggedUser: UserProfile = res.user || {
           email: payload.email,
@@ -203,16 +287,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           role: payload.role || 'PDI Man',
         };
 
-        // Langsung arahkan masuk ke aplikasi tanpa jeda
-        onLoginSuccess(loggedUser);
+        // Langsung arahkan masuk ke aplikasi tanpa jeda kedip tombol
+        setTimeout(() => {
+          onLoginSuccess(loggedUser);
+          setIsLoading(false);
+          isRegisteringRef.current = false;
+          setRegisterProgress(0);
+        }, 160);
+        return;
       } else {
+        setRegisterProgress(0);
+        setIsLoading(false);
+        isRegisteringRef.current = false;
         setErrorMessage(res?.message || 'Pendaftaran gagal. Silakan coba kembali.');
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Gagal menghubungi server GAS.');
-    } finally {
+      clearInterval(regInterval);
+      setRegisterProgress(0);
       setIsLoading(false);
       isRegisteringRef.current = false;
+      setErrorMessage(err?.message || 'Gagal menghubungi server GAS.');
     }
   };
 
@@ -380,24 +474,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     disabled={regLookupLoading}
-                    onClick={handleSearchKodeAhm}
-                    className={`px-3 py-1.5 bg-[#e02b37] hover:bg-[#c9202c] active:scale-95 text-white font-medium text-xs flex items-center justify-center gap-1 transition-all cursor-pointer flex-shrink-0 ${
-                      regLookupLoading ? 'animate-smooth-glow shadow-[0_0_15px_rgba(224,43,55,0.7)]' : ''
+                    onClick={() => handleSearchKodeAhm()}
+                    className={`px-3 py-1.5 bg-[#e02b37] hover:bg-[#c9202c] active:scale-95 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer flex-shrink-0 min-w-[82px] ${
+                      regLookupLoading ? 'mdc-btn-flash-red bg-red-700' : ''
                     }`}
                   >
-                    <Search className="w-3.5 h-3.5" />
-                    <span>{regLookupLoading ? 'Mencari...' : 'Cari'}</span>
+                    {regLookupLoading ? (
+                      <span className="relative z-10 flex items-center gap-1 font-mono font-bold text-amber-200 tracking-wider">
+                        <Zap className="w-3 h-3 text-amber-300 fill-amber-300 animate-pulse" />
+                        {lookupProgress}%
+                      </span>
+                    ) : (
+                      <>
+                        <Search className="w-3.5 h-3.5" />
+                        <span>Cari</span>
+                      </>
+                    )}
                   </button>
                 </div>
 
-                {/* Validasi Status di Bawah Kolom Kode AHM */}
-                {regDealerInfo && regDealerInfo.found && (
-                  <div className="flex items-center gap-1.5 mt-1.5 text-emerald-400 text-[11px] font-normal animate-in fade-in duration-200">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                    <span>Dealer Ditemukan</span>
+                {/* Progress Bar Kilatan Modern saat Pencarian Aktif */}
+                {regLookupLoading && (
+                  <div className="mt-1.5 overflow-hidden rounded-full bg-black/40 h-1.5 border border-red-500/30 p-[1px]">
+                    <div
+                      className="bg-gradient-to-r from-red-500 via-amber-300 to-emerald-400 h-full transition-all duration-75 ease-out rounded-full shadow-[0_0_10px_rgba(251,191,36,0.85)]"
+                      style={{ width: `${lookupProgress}%` }}
+                    />
                   </div>
                 )}
-                {regDealerInfo && !regDealerInfo.found && (
+
+                {/* Validasi Status di Bawah Kolom Kode AHM */}
+                {regDealerInfo && regDealerInfo.found && !regLookupLoading && (
+                  <div className="flex items-center gap-1.5 mt-1.5 text-emerald-400 text-[11px] font-normal animate-in fade-in duration-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                    <span>Dealer Terverifikasi (100%)</span>
+                  </div>
+                )}
+                {regDealerInfo && !regDealerInfo.found && !regLookupLoading && (
                   <div className="flex items-center gap-1.5 mt-1.5 text-red-400 text-[11px] font-normal animate-in fade-in duration-200">
                     <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
                     <span>dealer tidak ditemukan. Periksa kembali Kode AHM</span>
@@ -457,19 +570,57 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
               </div>
 
-              {/* Tombol Kirim Verifikasi Akun (Animasi Modern Smooth Glow, Tanpa Spinner) */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full py-2.5 px-4 rounded-xl text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
-                  isLoading
-                    ? 'bg-red-700 animate-smooth-glow shadow-[0_0_20px_rgba(220,38,38,0.8)] cursor-wait'
-                    : 'bg-[#c5232a] hover:bg-[#b51c23] active:scale-98 shadow-lg shadow-red-950/60'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>{isLoading ? 'Memverifikasi Pendaftaran...' : 'Kirim Verifikasi Akun'}</span>
-              </button>
+              {/* Tombol Kirim Verifikasi Akun (Animasi Kilatan Modern + Dynamic Progress Fill) */}
+              <div>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`relative overflow-hidden w-full py-2.5 px-4 rounded-xl text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-wait ${
+                    isLoading
+                      ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50'
+                      : 'bg-[#c5232a] hover:bg-[#b51c23] active:scale-98 shadow-lg shadow-red-950/60'
+                  }`}
+                >
+                  {isLoading && (
+                    <div
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
+                      style={{ width: `${registerProgress}%` }}
+                    />
+                  )}
+                  <div className="relative z-10 flex items-center justify-center gap-2">
+                    {isLoading ? (
+                      <>
+                        {registerProgress >= 100 ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                        ) : (
+                          <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+                        )}
+                        <span className="tracking-wide font-semibold">
+                          {registerProgress >= 100 ? 'Akun Terverifikasi!' : 'Memverifikasi Akun'}
+                        </span>
+                        <span className="font-mono font-bold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded-md text-[11px] border border-amber-300/40 shadow-inner">
+                          {registerProgress}%
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Kirim Verifikasi Akun</span>
+                      </>
+                    )}
+                  </div>
+                </button>
+
+                {/* Progress Bar Laser Bawah Tombol Pendaftaran */}
+                {isLoading && (
+                  <div className="mt-1.5 overflow-hidden rounded-full bg-black/40 h-1.5 border border-red-500/30 p-[1px]">
+                    <div
+                      className="bg-gradient-to-r from-red-500 via-amber-300 to-emerald-400 h-full transition-all duration-100 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
+                      style={{ width: `${registerProgress}%` }}
+                    />
+                  </div>
+                )}
+              </div>
 
               {/* Link Sudah Punya Akun */}
               <div className="text-center pt-0.5">
@@ -537,19 +688,57 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </p>
               </div>
 
-              {/* Tombol Masuk (Animasi Smooth Glow Tanpa Spinner) */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full py-2.5 px-4 rounded-xl text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 ${
-                  isLoading
-                    ? 'bg-red-700 animate-smooth-glow shadow-[0_0_20px_rgba(220,38,38,0.8)] cursor-wait'
-                    : 'bg-[#c5232a] hover:bg-[#b51c23] active:scale-98 shadow-lg shadow-red-950/60'
-                }`}
-              >
-                <LogIn className="w-4 h-4" />
-                <span>{isLoading ? 'Memverifikasi Akun...' : 'Masuk ke MDC Mobile'}</span>
-              </button>
+              {/* Tombol Masuk (Animasi Kilatan Modern + Dynamic Progress Fill) */}
+              <div>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`relative overflow-hidden w-full py-2.5 px-4 rounded-xl text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-wait ${
+                    isLoading
+                      ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50'
+                      : 'bg-[#c5232a] hover:bg-[#b51c23] active:scale-98 shadow-lg shadow-red-950/60'
+                  }`}
+                >
+                  {isLoading && (
+                    <div
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
+                      style={{ width: `${loginProgress}%` }}
+                    />
+                  )}
+                  <div className="relative z-10 flex items-center justify-center gap-2">
+                    {isLoading ? (
+                      <>
+                        {loginProgress >= 100 ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                        ) : (
+                          <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+                        )}
+                        <span className="tracking-wide font-semibold">
+                          {loginProgress >= 100 ? 'Akses Diterima!' : 'Memverifikasi Akun'}
+                        </span>
+                        <span className="font-mono font-bold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded-md text-[11px] border border-amber-300/40 shadow-inner">
+                          {loginProgress}%
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="w-4 h-4" />
+                        <span>Masuk ke MDC Mobile</span>
+                      </>
+                    )}
+                  </div>
+                </button>
+
+                {/* Progress Bar Laser Bawah Tombol Login */}
+                {isLoading && (
+                  <div className="mt-1.5 overflow-hidden rounded-full bg-black/40 h-1.5 border border-red-500/30 p-[1px]">
+                    <div
+                      className="bg-gradient-to-r from-red-500 via-amber-300 to-emerald-400 h-full transition-all duration-100 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
+                      style={{ width: `${loginProgress}%` }}
+                    />
+                  </div>
+                )}
+              </div>
 
               <div className="text-center pt-1">
                 <p className="text-[11px] text-white/65 font-normal">Belum memiliki akun?</p>

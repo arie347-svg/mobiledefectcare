@@ -220,19 +220,19 @@ export const generateLkuatPdf = async (
     // Body kolom (area tanda tangan/cap)
     if (i === 0) {
       if (sopirSignImg) {
-        doc.addImage(sopirSignImg, 'PNG', cX + 8, topBoxY + 9, 26, 17);
+        doc.addImage(sopirSignImg, 'PNG', cX + 4, topBoxY + 6.5, 34, 22.5);
       } else {
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
+        doc.setFontSize(8.5);
         doc.setTextColor(0, 0, 0);
         doc.text(claim.sopirPJ || '-', cX + colWidth / 2, topBoxY + 18, { align: 'center' });
       }
     } else if (i === 1) {
       if (dealerSignImg) {
-        doc.addImage(dealerSignImg, 'PNG', cX + 8, topBoxY + 9, 26, 17);
+        doc.addImage(dealerSignImg, 'PNG', cX + 4, topBoxY + 6.5, 34, 22.5);
       } else {
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7.5);
+        doc.setFontSize(8.5);
         doc.setTextColor(0, 0, 0);
         doc.text(namaPemeriksaLengkap, cX + colWidth / 2, topBoxY + 18, { align: 'center' });
       }
@@ -364,14 +364,51 @@ export const generateLkuatPdf = async (
   doc.setTextColor(15, 23, 42);
   doc.text('PENGAJUAN KLAIM (DIISI OLEH PETUGAS KLAIM ADMIN MAIN DEALER)', marginX + 3, adminY + 3.5);
 
+  // Evaluasi Keputusan MD berdasarkan kolom MD Status Penerimaan (Sheet Klaim_Header)
+  const rawStatusTerima = (claim.mdStatusPenerimaan || '').trim();
+  const isStatusTerimaFilled = rawStatusTerima !== '' && rawStatusTerima !== '-';
+
+  let statusKeputusan = '-';
+  let alasanDitolak = '-';
+
+  if (isStatusTerimaFilled) {
+    if (rawStatusTerima.toLowerCase().includes('tolak') || claim.status === 'Ditolak') {
+      statusKeputusan = 'Ditolak';
+      alasanDitolak = rawStatusTerima.replace(/^Ditolak:?\s*/i, '') || rawStatusTerima;
+    } else {
+      statusKeputusan = 'Diterima';
+      alasanDitolak = '-';
+    }
+  } else if (claim.status === 'Ditolak') {
+    statusKeputusan = 'Ditolak';
+    alasanDitolak = '-';
+  } else {
+    // Belum diproses / kolom MD Status Penerimaan di sheet masih kosong
+    statusKeputusan = '-';
+    alasanDitolak = '-';
+  }
+
+  // Ekstraksi Tanggal dari MD Status Penerimaan (Format yyyy-mm-dd)
+  let tglPengajuanKlaim = '-';
+  if (isStatusTerimaFilled && claim.mdStatusPenerimaan) {
+    const dateMatch = claim.mdStatusPenerimaan.match(/(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      tglPengajuanKlaim = dateMatch[1];
+    } else {
+      tglPengajuanKlaim = formattedTglPemeriksaan; // Fallback jika format tanggal teks bebas
+    }
+  } else {
+    tglPengajuanKlaim = '-'; // Kosong / tanda strip jika MD Status Penerimaan belum terisi
+  }
+
   // Isi pengajuan klaim
   doc.setFontSize(7.5);
   let curAdminRowY = adminY + 8.8;
   const adminRows = [
-    ['TGL PENGAJUAN KLAIM', formattedTglPemeriksaan],
+    ['TGL PENGAJUAN KLAIM', tglPengajuanKlaim],
     ['JENIS PERBAIKAN', jenisPerbaikan],
-    ['KEPUTUSAN', claim.status === 'Ditolak' ? 'Ditolak' : 'Diterima'],
-    ['ALASAN DITOLAK', '-'],
+    ['KEPUTUSAN', statusKeputusan],
+    ['ALASAN DITOLAK', alasanDitolak],
   ];
   adminRows.forEach((row) => {
     doc.setFont('helvetica', 'bold');

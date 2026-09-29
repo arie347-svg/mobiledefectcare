@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   UserProfile,
   ClaimItem,
@@ -26,6 +26,13 @@ import {
   calculateDashboardStats,
 } from './utils/initialClaims';
 import {
+  mergeClaimsWithLocalDrafts,
+  getLocalDrafts,
+  recordMutationLock,
+  removeLocalDraft,
+  recordDeletedClaim,
+} from './utils/draftStorage';
+import {
   Plus,
   RefreshCw,
   Search,
@@ -39,6 +46,7 @@ import {
   LogOut,
   Loader2,
   WifiOff,
+  Zap,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
@@ -46,38 +54,81 @@ import confetti from 'canvas-confetti';
 const STORAGE_SESSION_AUTH = 'mdc_mobile_session_auth';
 const STORAGE_VIEW_MODE = 'mdc_mobile_view_mode';
 const STORAGE_MASTER_DATA = 'mdc_master_data_cache';
+const ZOMBIE_CLEANUP_FLAG = 'mdc_zombie_cleanup_v2';
 
 export const App: React.FC = () => {
-  // Authentication & Profile State (Membaca sesi dari localStorage agar awet saat aplikasi di-close)
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isVerifyingSession, setIsVerifyingSession] = useState<boolean>(() => {
-    // Bersihkan cache lama klaim secara proaktif tanpa menyentuh token sesi auth utama
+  const isFetchingClaimsRef = useRef<boolean>(false);
+  const lastClaimsFetchAtRef = useRef<number>(0);
+
+  // Instant Session Hydration (0ms): Baca profil user langsung dari localStorage agar halaman utama langsung terbuka tanpa layar tunggu
+  const [user, setUser] = useState<UserProfile | null>(() => {
     try {
-      localStorage.removeItem('mdc_mobile_session_user');
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('mdc_claims_')) {
-          localStorage.removeItem(key);
+      const raw =
+        localStorage.getItem(STORAGE_SESSION_AUTH) ||
+        sessionStorage.getItem(STORAGE_SESSION_AUTH);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.user && parsed.user.email && parsed.user.kodeAhm) {
+          return parsed.user as UserProfile;
         }
       }
     } catch (_) {}
-    
-    // Pengecekan utama: Baca dari localStorage agar sesi tidak hilang saat aplikasi ditutup
-    return Boolean(
-      localStorage.getItem(STORAGE_SESSION_AUTH) || 
-      sessionStorage.getItem(STORAGE_SESSION_AUTH)
-    );
+    return null;
+  });
+
+  const [isVerifyingSession, setIsVerifyingSession] = useState<boolean>(() => {
+    // Bersihkan cache lama klaim & residu zombie draft secara proaktif tanpa menyentuh token sesi auth utama
+    try {
+      const hasCleanedZombie = localStorage.getItem(ZOMBIE_CLEANUP_FLAG);
+      localStorage.removeItem('mdc_mobile_session_user');
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (
+          key.startsWith('mdc_claims_') ||
+          (!hasCleanedZombie && key.startsWith('mdc_local_drafts_'))
+        ) {
+          localStorage.removeItem(key);
+        }
+      }
+      if (!hasCleanedZombie) {
+        // Catat juga ID klaim zombie lama ke daftar tombstone agar tidak pernah hidup lagi
+        recordDeletedClaim('CLM-01099-1790670340984', '77777777777');
+        recordDeletedClaim('CLM-1790668898204', '12345678900');
+        recordDeletedClaim('CLM-01099-1790668913846', '12345678900');
+        localStorage.setItem(ZOMBIE_CLEANUP_FLAG, 'true');
+      }
+
+      const raw =
+        localStorage.getItem(STORAGE_SESSION_AUTH) ||
+        sessionStorage.getItem(STORAGE_SESSION_AUTH);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      // Jika objek user sudah ter-hydrate di memori (0ms), tidak perlu memblokir UI dengan splash screen verifikasi
+      if (parsed && parsed.user && parsed.user.email && parsed.user.kodeAhm) {
+        return false;
+      }
+      return Boolean(parsed && parsed.email && parsed.kodeAhm);
+    } catch (_) {
+      return false;
+    }
   });
   const [sessionVerifyError, setSessionVerifyError] = useState<string | null>(null);
 
-  // Master Data & Claims State (Murni ditarik langsung dari Live Spreadsheet)
-  const [masterData, setMasterData] = useState<MasterDataResponse>({
-    success: false,
-    transporterList: [],
-    motorList: [],
-    partList: [],
-    kerusakanList: [],
-    penyebabList: [],
+  // Master Data & Claims State: Gunakan SWR (Stale-While-Revalidate) Cache Lokal untuk Master Data (0ms)
+  const [masterData, setMasterData] = useState<MasterDataResponse>(() => {
+    const cached = GasCache.getMasterData();
+    if (cached && Array.isArray(cached.motorList) && cached.motorList.length > 0) {
+      return cached;
+    }
+    return {
+      success: false,
+      transporterList: [],
+      motorList: [],
+      partList: [],
+      kerusakanList: [],
+      penyebabList: [],
+    };
   });
 
   const [claims, setClaims] = useState<ClaimItem[]>([]);
@@ -175,6 +226,44 @@ export const App: React.FC = () => {
   const [previewPhoto, setPreviewPhoto] = useState<{ url: string; title: string } | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [submittedReceiptClaim, setSubmittedReceiptClaim] = useState<ClaimItem | null>(null);
+
+  // State untuk Direct Link Publik Resi (Bisa dibuka siapa saja tanpa perlu login/instal app)
+  const [publicReceiptClaim, setPublicReceiptClaim] = useState<ClaimItem | null>(null);
+  const [isLoadingPublicReceipt, setIsLoadingPublicReceipt] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return Boolean(params.get('receipt'));
+    }
+    return false;
+  });
+  const [publicReceiptError, setPublicReceiptError] = useState<string | null>(null);
+
+  // Deteksi URL Parameter ?receipt=... saat halaman dimuat
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const receiptId = params.get('receipt');
+
+    if (receiptId) {
+      setIsLoadingPublicReceipt(true);
+      setPublicReceiptError(null);
+
+      GasService.getClaimById(receiptId)
+        .then((res) => {
+          if (res && res.success && res.data) {
+            setPublicReceiptClaim(res.data);
+          } else {
+            setPublicReceiptError(res?.message || `Klaim dengan ID #${receiptId} tidak ditemukan.`);
+          }
+        })
+        .catch((err: any) => {
+          setPublicReceiptError(err?.message || 'Gagal memuat detail resi klaim.');
+        })
+        .finally(() => {
+          setIsLoadingPublicReceipt(false);
+        });
+    }
+  }, []);
 
   // Live Digital Clock (WIB)
   useEffect(() => {
@@ -280,36 +369,58 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  // Fetch Master Data & User Claims secara optimal, paralel, dan spreadsheet sebagai Single Source of Truth
+  // Fetch Master Data & User Claims secara optimal dengan strategi Decoupled Split-Stream & SWR
+  // 1. Klaim Terbaru (getRecentClaims) langsung diselesaikan tanpa menunggu Master Data (~200-600ms)
+  // 2. Master Data (motor, part, kerusakan) berjalan independen di jalur paralel & cache lokal 0ms
   const fetchAllData = useCallback(async (currentUser: UserProfile, forceRefreshMaster = false) => {
+    isFetchingClaimsRef.current = true;
+    lastClaimsFetchAtRef.current = Date.now();
     setIsLoadingData(true);
     setDataFetchError(null);
     setLoadingStatusText(
       forceRefreshMaster
-        ? 'Memperbarui master data & klaim...'
-        : 'Menyinkronkan data klaim terbaru...'
+        ? 'Kilatan sinkronisasi master & klaim...'
+        : 'Menyinkronkan klaim kecepatan tinggi...'
     );
 
+    // Langkah A: Gunakan SWR Cache Master Data segera (0 milidetik UI ready)
+    const localMaster = GasCache.getMasterData();
+    if (localMaster && Array.isArray(localMaster.motorList) && localMaster.motorList.length > 0) {
+      setMasterData(localMaster);
+    }
+
+    // Langkah B (Non-Blocking Master Stream): Jalankan pengambilan Master Data secara independen tanpa menahan daftar klaim!
+    const shouldFetchMaster = forceRefreshMaster || !localMaster || !localMaster.motorList || localMaster.motorList.length === 0;
+    if (shouldFetchMaster) {
+      GasService.getMasterDataKlaim(forceRefreshMaster)
+        .then((freshMaster) => {
+          if (freshMaster && freshMaster.success && Array.isArray(freshMaster.motorList)) {
+            setMasterData(freshMaster);
+          }
+        })
+        .catch(() => {});
+    } else {
+      // Background revalidation tanpa memblokir UI
+      setTimeout(() => {
+        GasService.getMasterDataKlaim(false)
+          .then((bgMaster) => {
+            if (bgMaster && bgMaster.success && Array.isArray(bgMaster.motorList) && bgMaster.motorList.length > 0) {
+              setMasterData(bgMaster);
+            }
+          })
+          .catch(() => {});
+      }, 600);
+    }
+
+    // Langkah C (Fast Claims Stream): Selesaikan sinkronisasi riwayat klaim seketika begitu respon tiba
     try {
-      // 1. Ambil data secara live tanpa cache lokal
-      const claimsPromise = GasService.getRecentClaims(currentUser.kodeAhm);
-      const masterPromise = GasService.getMasterDataKlaim(true);
+      const claimsRes = await GasService.getRecentClaims(currentUser.kodeAhm);
 
-      // Jalankan paralel: menghemat waktu tunggu jaringan
-      const [claimsRes, mData] = await Promise.all([claimsPromise, masterPromise]);
-
-      // Pasang Master Data (murni dari spreadsheet)
-      if (mData && mData.success) {
-        setMasterData(mData);
-      }
-
-      // Pasang Claims: Murni bersumber langsung dari Spreadsheet
       if (claimsRes && Array.isArray(claimsRes.data)) {
-        setClaims(claimsRes.data);
-        // Hitung statistik dashboard instan di client
-        setDashboardStats(calculateDashboardStats(claimsRes.data));
+        const combined = mergeClaimsWithLocalDrafts(claimsRes.data, currentUser.kodeAhm);
+        setClaims(combined);
+        setDashboardStats(calculateDashboardStats(combined));
 
-        // Deteksi perubahan status klaim dari spreadsheet
         const statusChanges = detectStatusChanges(claimsRes.data);
         if (statusChanges.length > 0) {
           setNotifications((prev) => {
@@ -320,18 +431,21 @@ export const App: React.FC = () => {
           setActiveToast(statusChanges[0]);
         }
       } else {
-        setClaims([]);
-        setDashboardStats(calculateDashboardStats([]));
+        const localOnly = getLocalDrafts(currentUser.kodeAhm);
+        setClaims(localOnly);
+        setDashboardStats(calculateDashboardStats(localOnly));
       }
     } catch (err: any) {
       console.warn('[MDC] Sinkronisasi notice:', err?.message || err);
       setDataFetchError(err?.message || 'Gagal menyinkronkan data dengan spreadsheet.');
     } finally {
+      lastClaimsFetchAtRef.current = Date.now();
+      isFetchingClaimsRef.current = false;
       setIsLoadingData(false);
     }
   }, []);
 
-  // Verifikasi Sesi Real-Time ke Backend Google Apps Script / Sheet Users_Mobile
+  // Verifikasi Sesi Real-Time ke Backend Google Apps Script / Sheet Users_Mobile (Paralel di latar belakang jika sudah ter-hydrate)
   useEffect(() => {
     const verifySessionRealtime = async () => {
       let storedAuth: string | null = null;
@@ -356,19 +470,32 @@ export const App: React.FC = () => {
       };
 
       try {
-        const { email, kodeAhm } = JSON.parse(storedAuth);
+        const parsed = JSON.parse(storedAuth);
+        const { email, kodeAhm } = parsed || {};
         if (!email || !kodeAhm) {
           clearStoredAuth();
           setIsVerifyingSession(false);
           return;
         }
 
-        // Pemanggilan fungsi verifikasi real-time ke server/spreadsheet backend
+        // Pemanggilan verifikasi ke server backend
         const res = await GasService.loginUser(email, kodeAhm);
         if (res && res.status === 'SUCCESS' && res.user) {
-          setUser(res.user);
+          const enrichedSession = JSON.stringify({
+            email: res.user.email,
+            kodeAhm: res.user.kodeAhm,
+            user: res.user,
+          });
+          localStorage.setItem(STORAGE_SESSION_AUTH, enrichedSession);
+          sessionStorage.setItem(STORAGE_SESSION_AUTH, enrichedSession);
+          setUser((prev) => {
+            if (prev && prev.email === res.user!.email && prev.kodeAhm === res.user!.kodeAhm) {
+              return prev;
+            }
+            return res.user!;
+          });
         } else {
-          // Tolak akses masuk secara mutlak jika tidak ditemukan di Users_Mobile
+          // Tolak akses masuk jika akun dicabut dari Users_Mobile
           clearStoredAuth();
           setUser(null);
           setSessionVerifyError(
@@ -377,10 +504,12 @@ export const App: React.FC = () => {
           );
         }
       } catch (err: any) {
-        console.warn('[MDC] Gagal verifikasi sesi real-time:', err);
-        clearStoredAuth();
-        setUser(null);
-        setSessionVerifyError('Gagal memverifikasi akun ke server backend. Silakan login kembali.');
+        console.warn('[MDC] Notice verifikasi sesi real-time:', err);
+        if (!user) {
+          clearStoredAuth();
+          setUser(null);
+          setSessionVerifyError('Gagal memverifikasi akun ke server backend. Silakan login kembali.');
+        }
       } finally {
         setIsVerifyingSession(false);
       }
@@ -400,11 +529,20 @@ export const App: React.FC = () => {
     if (!user) return;
 
     const pollClaims = () => {
+      // Cegah tabrakan request (race condition) jika fetchAllData sedang aktif atau baru saja selesai (< 8 detik)
+      if (isFetchingClaimsRef.current || Date.now() - lastClaimsFetchAtRef.current < 8000) {
+        return;
+      }
+
+      isFetchingClaimsRef.current = true;
+      lastClaimsFetchAtRef.current = Date.now();
+
       GasService.getRecentClaims(user.kodeAhm)
         .then((claimsRes) => {
           if (claimsRes && Array.isArray(claimsRes.data)) {
-            setClaims(claimsRes.data);
-            setDashboardStats(calculateDashboardStats(claimsRes.data));
+            const combined = mergeClaimsWithLocalDrafts(claimsRes.data, user.kodeAhm);
+            setClaims(combined);
+            setDashboardStats(calculateDashboardStats(combined));
 
             const changes = detectStatusChanges(claimsRes.data);
             if (changes.length > 0) {
@@ -419,6 +557,10 @@ export const App: React.FC = () => {
         })
         .catch((err) => {
           console.warn('[MDC] Polling klaim notice:', err);
+        })
+        .finally(() => {
+          lastClaimsFetchAtRef.current = Date.now();
+          isFetchingClaimsRef.current = false;
         });
     };
 
@@ -437,12 +579,16 @@ export const App: React.FC = () => {
     };
   }, [user]);
 
-  // Auth Handlers (Menyimpan sesi auth ke localStorage agar awet saat aplikasi di-close)
+  // Auth Handlers (Menyimpan sesi auth beserta objek user lengkap ke localStorage agar 0ms saat aplikasi dibuka kembali)
   const handleLoginSuccess = (loggedInUser: UserProfile) => {
     setUser(loggedInUser);
     setSessionVerifyError(null);
     
-    const sessionData = JSON.stringify({ email: loggedInUser.email, kodeAhm: loggedInUser.kodeAhm });
+    const sessionData = JSON.stringify({
+      email: loggedInUser.email,
+      kodeAhm: loggedInUser.kodeAhm,
+      user: loggedInUser,
+    });
     
     // Simpan ke localStorage agar tidak hilang saat aplikasi ditutup
     localStorage.setItem(STORAGE_SESSION_AUTH, sessionData);
@@ -479,7 +625,7 @@ export const App: React.FC = () => {
       localStorage.removeItem('mdc_mobile_session_user');
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('mdc_claims_')) {
+        if (key && (key.startsWith('mdc_claims_') || key.startsWith('mdc_local_drafts_'))) {
           localStorage.removeItem(key);
         }
       }
@@ -523,9 +669,9 @@ export const App: React.FC = () => {
     });
   }, [claims, activeFilter, searchQuery]);
 
-  // Master data readiness & syncing flags
+  // Master data readiness & syncing flags (Tombol Klaim Baru langsung aktif 0ms selama Master Data siap)
   const isMasterReady = Boolean(masterData?.success && masterData?.motorList && masterData.motorList.length > 0);
-  const isSyncingMaster = isLoadingData || !isMasterReady;
+  const isSyncingMaster = !isMasterReady;
 
   // Claim Wizard Handlers
   const handleOpenNewClaim = () => {
@@ -538,6 +684,35 @@ export const App: React.FC = () => {
     setDraftToContinue(draftClaim);
     setIsWizardOpen(true);
   };
+
+  const handleDeleteClaim = useCallback(async (targetClaim: ClaimItem) => {
+    if (!targetClaim) return;
+    const kode = user?.kodeAhm || targetClaim.kodeAhm || '';
+
+    // 1. Catat ke daftar hitam (Tombstone) & bersihkan dari localStorage secara instan (0ms)
+    recordDeletedClaim(targetClaim.idKlaim, targetClaim.noSj);
+    if (kode) {
+      removeLocalDraft(kode, targetClaim.idKlaim);
+      if (targetClaim.noSj) {
+        removeLocalDraft(kode, targetClaim.noSj);
+      }
+    }
+
+    // 2. Perbarui state UI seketika & tutup modal detail
+    setSelectedClaimForDetail(null);
+    setClaims((prev) => {
+      const updated = prev.filter(
+        (c) => c.idKlaim !== targetClaim.idKlaim && (!targetClaim.noSj || c.noSj !== targetClaim.noSj)
+      );
+      setDashboardStats(calculateDashboardStats(updated));
+      return updated;
+    });
+
+    // 3. Hapus dari server lokal (spreadsheet_database.json) & Google Apps Script
+    try {
+      await GasService.hapusKlaim(targetClaim.idKlaim, targetClaim.noSj, kode);
+    } catch (_) {}
+  }, [user]);
 
   // Handler Tutup Resi Pengiriman & Kembali Bersih ke Halaman Utama
   const handleCloseReceipt = useCallback(() => {
@@ -569,6 +744,7 @@ export const App: React.FC = () => {
     }
 
     if (claimItem) {
+      recordMutationLock(claimItem);
       setClaims((prev) => {
         const filtered = prev.filter((c) => c.idKlaim !== claimItem.idKlaim && c.noSj !== claimItem.noSj);
         const updated = [claimItem, ...filtered];
@@ -578,81 +754,136 @@ export const App: React.FC = () => {
     }
 
     if (user) {
-      fetchAllData(user, false);
+      // Tunggu 1.5 detik agar penulisan spreadsheet selesai sebelum merefresh di latar belakang
+      setTimeout(() => {
+        fetchAllData(user, false);
+      }, 1500);
     }
   };
 
-  // Dealer Konfirmasi Selesai Handler
+  // Dealer Konfirmasi Selesai Handler (Instant 0-Wait Optimistic UI + Auto-Rollback)
   const handleConfirmFinish = async (idKlaim: string) => {
-    try {
-      if (user) {
-        const updatedClaims = claims.map((c) =>
-          c.idKlaim === idKlaim
-            ? {
-                ...c,
-                status: 'Selesai',
-                tglSelesai:
-                  new Date().toLocaleDateString('id-ID', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                  }) + ' (Diterima Dealer)',
-              }
-            : c
-        );
-        setClaims(updatedClaims);
-        setDashboardStats(calculateDashboardStats(updatedClaims));
+    const previousClaims = [...claims];
+    const originalItem = claims.find((c) => c.idKlaim === idKlaim) || null;
+
+    if (user) {
+      let finishedItem: ClaimItem | null = null;
+      const updatedClaims = claims.map((c) => {
+        if (c.idKlaim === idKlaim) {
+          finishedItem = {
+            ...c,
+            status: 'Selesai',
+            tglSelesai:
+              new Date().toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              }) + ' (Diterima Dealer)',
+          };
+          return finishedItem;
+        }
+        return c;
+      });
+
+      if (finishedItem) {
+        recordMutationLock(finishedItem);
       }
 
-      const res = await GasService.dealerKonfirmasiSelesai(idKlaim);
-      if (res && res.success) {
-        setSelectedClaimForDetail(null);
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.5 },
-        });
-        if (user) {
-          fetchAllData(user, false);
-        }
-      }
-    } catch (err: any) {
-      alert(err?.message || 'Gagal mengonfirmasi serah terima part.');
+      setClaims(updatedClaims);
+      setDashboardStats(calculateDashboardStats(updatedClaims));
     }
+
+    // Langsung tutup modal & munculkan perayaan confetti tanpa tertahan latency GAS
+    setSelectedClaimForDetail(null);
+    try {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.5 },
+      });
+    } catch (_) {}
+
+    // Sinkronisasi ke server/GAS di latar belakang dengan proteksi Rollback otomatis
+    void (async () => {
+      try {
+        const res = await GasService.dealerKonfirmasiSelesai(idKlaim);
+        if (res && res.success) {
+          if (user) {
+            setTimeout(() => {
+              fetchAllData(user, false);
+            }, 1500);
+          }
+        } else {
+          // Rollback jika server menolak
+          if (originalItem) recordMutationLock(originalItem);
+          setClaims(previousClaims);
+          setDashboardStats(calculateDashboardStats(previousClaims));
+          alert(res?.message || 'Gagal menyimpan konfirmasi terima ke server. Status dikembalikan.');
+        }
+      } catch (err: any) {
+        if (originalItem) recordMutationLock(originalItem);
+        setClaims(previousClaims);
+        setDashboardStats(calculateDashboardStats(previousClaims));
+        alert(err?.message || 'Gagal mengonfirmasi serah terima part. Status dikembalikan.');
+      }
+    })();
   };
 
-  // Dealer Konfirmasi Retur Handler (Barang Tidak OK)
+  // Dealer Konfirmasi Retur Handler (Instant Optimistic UI + Auto-Rollback)
   const handleConfirmRetur = async (idKlaim: string, alasan: string) => {
-    try {
-      if (user) {
-        const updatedClaims = claims.map((c) =>
-          c.idKlaim === idKlaim
-            ? {
-                ...c,
-                status: 'Proses di MD',
-                mdValidasiRepairman: `Retur Dealer: ${alasan}`,
-              }
-            : c
-        );
-        setClaims(updatedClaims);
-        setDashboardStats(calculateDashboardStats(updatedClaims));
+    const previousClaims = [...claims];
+    const originalItem = claims.find((c) => c.idKlaim === idKlaim) || null;
+
+    if (user) {
+      let returItem: ClaimItem | null = null;
+      const updatedClaims = claims.map((c) => {
+        if (c.idKlaim === idKlaim) {
+          returItem = {
+            ...c,
+            status: 'Proses di MD',
+            mdValidasiRepairman: `Retur Dealer: ${alasan}`,
+          };
+          return returItem;
+        }
+        return c;
+      });
+
+      if (returItem) {
+        recordMutationLock(returItem);
       }
 
-      const res = await GasService.dealerKonfirmasiRetur(idKlaim, alasan);
-      if (res && res.success) {
-        setSelectedClaimForDetail(null);
-        alert('Pengajuan retur berhasil dikirim. Status klaim dikembalikan ke Main Dealer untuk penanganan.');
-        if (user) {
-          fetchAllData(user, false);
-        }
-      }
-    } catch (err: any) {
-      alert(err?.message || 'Gagal memproses pengajuan retur klaim.');
+      setClaims(updatedClaims);
+      setDashboardStats(calculateDashboardStats(updatedClaims));
     }
+
+    setSelectedClaimForDetail(null);
+
+    void (async () => {
+      try {
+        const res = await GasService.dealerKonfirmasiRetur(idKlaim, alasan);
+        if (res && res.success) {
+          if (user) {
+            setTimeout(() => {
+              fetchAllData(user, false);
+            }, 1500);
+          }
+        } else {
+          if (originalItem) recordMutationLock(originalItem);
+          setClaims(previousClaims);
+          setDashboardStats(calculateDashboardStats(previousClaims));
+          alert(res?.message || 'Gagal mengirim pengajuan retur ke server. Status dikembalikan.');
+        }
+      } catch (err: any) {
+        if (originalItem) recordMutationLock(originalItem);
+        setClaims(previousClaims);
+        setDashboardStats(calculateDashboardStats(previousClaims));
+        alert(err?.message || 'Gagal memproses pengajuan retur klaim. Status dikembalikan.');
+      }
+    })();
   };
 
-  // IF VERIFYING SESSION ON APP LOAD: TAMPILKAN SPLASH SCREEN VERIFIKASI REAL-TIME
-  if (isVerifyingSession) {
+  // IF LOADING PUBLIC RECEIPT FROM DIRECT LINK (?receipt=...)
+  if (isLoadingPublicReceipt) {
     return (
       <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#3a0609] via-[#220406] to-[#0d0102] text-white font-sans antialiased">
         <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-b from-red-500 to-red-700 p-0.5 shadow-lg shadow-red-950/80 flex items-center justify-center mb-3 animate-pulse">
@@ -666,8 +897,82 @@ export const App: React.FC = () => {
           </div>
         </div>
         <Loader2 className="w-6 h-6 animate-spin text-red-500 mb-2" />
-        <p className="text-xs font-semibold text-white/90">Memverifikasi Akun Real-Time...</p>
-        <p className="text-[10px] text-white/50 mt-0.5">Memeriksa status di basis data Users_Mobile</p>
+        <p className="text-xs font-semibold text-white/90">Memuat Kartu Resi Online ...</p>
+      </div>
+    );
+  }
+
+  // IF PUBLIC RECEIPT OPENED DIRECTLY FROM LINK (?receipt=...)
+  if (publicReceiptClaim) {
+    return (
+      <div className="h-full min-h-[100dvh] w-full bg-slate-950 flex flex-col items-center justify-center p-4">
+        <ClaimReceiptModal
+          claim={publicReceiptClaim}
+          user={user}
+          onClose={() => {
+            setPublicReceiptClaim(null);
+            // Bersihkan parameter query dari URL tanpa reload halaman
+            if (typeof window !== 'undefined' && window.history?.replaceState) {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('receipt');
+              window.history.replaceState({}, document.title, url.pathname);
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
+  // IF PUBLIC RECEIPT ERROR (Klaim tidak ditemukan)
+  if (publicReceiptError) {
+    return (
+      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#3a0609] via-[#220406] to-[#0d0102] text-white font-sans text-center">
+        <div className="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-500/40 text-red-400 flex items-center justify-center mb-3">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="text-sm font-bold text-white mb-1">Resi Tidak Ditemukan</h3>
+        <p className="text-xs text-white/70 max-w-xs mb-4">{publicReceiptError}</p>
+        <button
+          type="button"
+          onClick={() => {
+            setPublicReceiptError(null);
+            if (typeof window !== 'undefined' && window.history?.replaceState) {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('receipt');
+              window.history.replaceState({}, document.title, url.pathname);
+            }
+          }}
+          className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition-all cursor-pointer shadow-lg"
+        >
+          Tutup & Kembali
+        </button>
+      </div>
+    );
+  }
+
+  // IF VERIFYING SESSION ON APP LOAD: TAMPILKAN SPLASH KILATAN MODERN
+  if (isVerifyingSession) {
+    return (
+      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#3a0609] via-[#220406] to-[#0d0102] text-white font-sans antialiased">
+        <div className="mdc-flash-card relative px-7 py-6 rounded-3xl bg-white/[0.04] border border-white/15 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center max-w-xs w-full">
+          <div className="relative mx-auto w-14 h-14 rounded-full bg-gradient-to-b from-amber-400 via-red-500 to-red-700 p-0.5 shadow-lg shadow-red-950/80 flex items-center justify-center mb-3.5">
+            <div className="absolute inset-0 rounded-full mdc-electric-ring" />
+            <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-1.5 overflow-hidden relative z-10">
+              <img
+                src="https://lh3.googleusercontent.com/d/1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1"
+                alt="MDC Pin"
+                className="w-full h-full object-contain"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-bold mb-1.5">
+            <Zap className="w-3 h-3 fill-amber-300 text-amber-300 animate-pulse" />
+            <span>KILAT SINKRONISASI</span>
+          </div>
+          <p className="text-xs font-semibold text-white/90 tracking-wide">Memverifikasi Sesi Dealer...</p>
+          <div className="w-36 h-[2px] mt-3 rounded-full mdc-laser-beam" />
+        </div>
       </div>
     );
   }
@@ -805,9 +1110,9 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                if (user) fetchAllData(user, true);
+                if (user) fetchAllData(user, false);
               }}
-              title="Sinkronkan dengan Spreadsheet"
+              title="Sinkronkan Data Klaim Terbaru (Klik untuk sinkron cepat)"
               className={`p-1.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 transition-all ${
                 isLoadingData ? 'animate-spin text-red-400' : ''
               }`}
@@ -843,8 +1148,8 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Claims List Header: Judul Daftar Pengajuan Klaim (Tetap tidak bergerak) */}
-          <div className="px-3.5 py-1 flex items-center justify-between border-t border-white/5 bg-white/[0.02]">
+          {/* Claims List Header: Judul Daftar Pengajuan Klaim + Laser Flash Sweep Bar */}
+          <div className="relative px-3.5 py-1 flex items-center justify-between border-t border-white/5 bg-white/[0.02] overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeFilter}
@@ -860,8 +1165,19 @@ export const App: React.FC = () => {
                 </span>
               </motion.div>
             </AnimatePresence>
-            {searchQuery && (
+
+            {isLoadingData ? (
+              <span className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-300 bg-amber-500/15 border border-amber-400/30 px-2 py-0.5 rounded-full shadow-xs">
+                <Zap className="w-2.5 h-2.5 text-amber-300 fill-amber-300 animate-pulse" />
+                <span>Kilat Sinkron...</span>
+              </span>
+            ) : searchQuery ? (
               <span className="text-[9.5px] text-white/50 italic">Hasil pencarian</span>
+            ) : null}
+
+            {/* Pita Kilatan Laser Horizontal saat menyinkronkan data */}
+            {isLoadingData && (
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] mdc-laser-beam" />
             )}
           </div>
         </div>
@@ -881,7 +1197,7 @@ export const App: React.FC = () => {
               className="h-full w-full"
             >
               {filteredClaims.length > 0 ? (
-                <div className="h-full overflow-y-auto px-3.5 py-1.5 space-y-1.5 overscroll-contain">
+                <div className={`h-full overflow-y-auto px-3.5 py-1.5 space-y-1.5 overscroll-contain ${isLoadingData ? 'mdc-flash-card' : ''}`}>
                   {filteredClaims.map((claim) => (
                     <ClaimCard
                       key={claim.idKlaim}
@@ -893,21 +1209,45 @@ export const App: React.FC = () => {
                   ))}
                 </div>
               ) : isLoadingData ? (
-                <div className="h-full overflow-y-auto px-3.5 py-4">
-                  <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-white/5 border border-white/10 my-4 space-y-3">
-                    <div className="relative">
-                      <div className="w-10 h-10 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <RefreshCw className="w-3.5 h-3.5 text-red-400 animate-pulse" />
-                      </div>
+                <div className="h-full overflow-y-auto px-3.5 py-2.5 space-y-2.5 select-none">
+                  {/* Banner Splash Kilatan Modern */}
+                  <div className="mdc-flash-card rounded-2xl p-3.5 bg-gradient-to-r from-red-950/70 via-slate-900/90 to-amber-950/50 border border-red-500/30 shadow-lg flex items-center gap-3">
+                    <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-red-500 to-red-700 text-white shadow-md flex-shrink-0">
+                      <div className="absolute inset-0 rounded-xl mdc-electric-ring" />
+                      <Zap className="w-4 h-4 text-white fill-white relative z-10" />
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold text-white tracking-wide">{loadingStatusText}</p>
-                      <p className="text-[10px] text-white/50 mt-0.5 font-mono">
-                        Menghubungkan ke basis data Spreadsheet GAS
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-extrabold text-white tracking-wide truncate">
+                          {loadingStatusText}
+                        </span>
+                        <span className="text-[8.5px] font-mono font-black uppercase px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                          TURBO
+                        </span>
+                      </div>
+                      <p className="text-[10.5px] text-white/65 truncate mt-0.5">
+                        Menarik riwayat klaim real-time dari Spreadsheet...
                       </p>
                     </div>
                   </div>
+
+                  {/* Deretan Kartu Shimmer Kilatan Modern (Staggered Electric Flash Cards) */}
+                  {[0, 1, 2].map((idx) => (
+                    <div
+                      key={idx}
+                      style={{ animationDelay: `${idx * 120}ms` }}
+                      className="mdc-flash-card rounded-2xl p-3.5 bg-white/[0.04] border border-white/10 backdrop-blur-md space-y-2.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="h-3.5 w-40 rounded-md bg-gradient-to-r from-white/15 via-white/25 to-white/10" />
+                        <div className="h-4 w-20 rounded-full bg-gradient-to-r from-red-500/25 via-amber-400/25 to-red-500/20 border border-white/10" />
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-0.5">
+                        <div className="h-2.5 w-32 rounded bg-white/10" />
+                        <div className="h-2.5 w-16 rounded bg-white/10" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="h-full overflow-y-auto px-3.5 py-4">
@@ -977,6 +1317,7 @@ export const App: React.FC = () => {
           isOpen={!!selectedClaimForDetail}
           onClose={() => setSelectedClaimForDetail(null)}
           onEditDraft={handleEditDraft}
+          onDeleteClaim={handleDeleteClaim}
           onConfirmFinish={handleConfirmFinish}
           onConfirmRetur={handleConfirmRetur}
           onPreviewPhoto={(url, title) => setPreviewPhoto({ url, title })}

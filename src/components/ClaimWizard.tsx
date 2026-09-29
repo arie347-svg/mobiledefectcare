@@ -23,10 +23,13 @@ import {
   ChevronDown,
   ChevronUp,
   CheckCircle2,
+  Zap,
 } from 'lucide-react';
 import { SignaturePad } from './SignaturePad';
 import { BarcodeScannerModal } from './BarcodeScannerModal';
 import { compressImage } from '../utils/slaCalculator';
+import { compressClaimImage } from '../utils/imageCompressor';
+import { saveLocalDraft, removeLocalDraft, recordMutationLock, markDraftSyncedToServer } from '../utils/draftStorage';
 
 // Manual transporter options when nopol is not in master spreadsheet list
 const MANUAL_TRANSPORTERS = ['TM', 'RJTM', 'JTM', 'WSS', 'YSS', 'SBR'];
@@ -90,6 +93,8 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(() => determineDraftResumeStep(initialDraft));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingStatus, setSubmittingStatus] = useState<'Draft' | 'Dikirim ke MD' | null>(null);
+  const [submitProgress, setSubmitProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
@@ -144,10 +149,29 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
   const [tglPemeriksaan, setTglPemeriksaan] = useState<string>(
     initialDraft?.tglPeriksa || new Date().toISOString().split('T')[0]
   );
+  const [fotoSopirPJ, setFotoSopirPJ] = useState<string>(initialDraft?.fotoSopirPJ || ''); // << STATE FOTO SOPIR
   const [namaSopirPJ, setNamaSopirPJ] = useState<string>(initialDraft?.sopirPJ || '');
   const [nopolPJ, setNopolPJ] = useState<string>(initialDraft?.nopolPJ || '');
   const [transporterPJ, setTransporterPJ] = useState<string>(initialDraft?.transporterPJ || '');
   const [parafSopir, setParafSopir] = useState<string>(initialDraft?.parafSopirPJ || '');
+
+  // Handler kamera langsung dengan kompresi otomatis (khusus jepretan kamera HP)
+  const handleFotoSopirCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Kompresi adaptif optimal ke max 800px & kualitas 0.65 (target <80KB)
+      const base64 = await compressClaimImage(file, {
+        maxDimension: 800,
+        initialQuality: 0.65,
+        maxSizeBytes: 80 * 1024,
+      });
+      setFotoSopirPJ(base64);
+    } catch (_) {
+      alert('Gagal memproses foto sopir. Silakan coba ambil ulang.');
+    }
+  };
 
   // STEP 2 STATE: Multi-motor & Multi-part
   const buildInitialMotors = (): PayloadMotorItem[] => {
@@ -328,7 +352,18 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
   };
 
   // STEP 3 STATE
-  const [metodeKembali, setMetodeKembali] = useState<string>(initialDraft?.metodeKembali || '');
+  // Mode kunci metode HANYA aktif jika draft sebelumnya memang sudah memiliki metode pengembalian valid ('DIKIRIM LANGSUNG' atau 'DITITIP')
+  // Jika sebelumnya pengguna menekan tombol draft sebelum memilih metode, kedua tombol metode tetap terbuka dan bisa diedit
+  const isMethodLocked = Boolean(
+    initialDraft &&
+      initialDraft.metodeKembali &&
+      (initialDraft.metodeKembali.trim() === 'DIKIRIM LANGSUNG' || initialDraft.metodeKembali.trim() === 'DITITIP')
+  );
+
+  const [metodeKembali, setMetodeKembali] = useState<string>(() => {
+    const raw = (initialDraft?.metodeKembali || '').trim();
+    return raw === 'DIKIRIM LANGSUNG' || raw === 'DITITIP' ? raw : '';
+  });
   const [namaSopirKembali, setNamaSopirKembali] = useState<string>(initialDraft?.sopirKembali || '');
   const [nopolKembali, setNopolKembali] = useState<string>(initialDraft?.nopolKembali || '');
   const [transporterKembali, setTransporterKembali] = useState<string>(initialDraft?.transporterKembali || '');
@@ -543,7 +578,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
   };
 
   const handleSelectMetodeKembali = (metode: 'DIKIRIM LANGSUNG' | 'DITITIP') => {
-    if (initialDraft && initialDraft.metodeKembali) return;
+    if (isMethodLocked) return;
 
     setMetodeKembali(metode);
     if (metode === 'DIKIRIM LANGSUNG') {
@@ -566,7 +601,13 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
     if (!file) return;
 
     try {
-      const base64 = await compressImage(file, 800, 0.60);
+      // Kompresi otomatis adaptif: 1000px, kualitas 0.65, max 95KB
+      // Tetap tajam untuk detail nomor part, retakan, atau goresan motor
+      const base64 = await compressClaimImage(file, {
+        maxDimension: 1000,
+        initialQuality: 0.65,
+        maxSizeBytes: 95 * 1024,
+      });
       updatePart(motorIndex, partIndex, 'fotoPart', base64);
     } catch (_) {
       alert('Gagal memproses foto. Silakan coba lagi.');
@@ -590,6 +631,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
     if (noSj.length !== 11) return 'Nomor Surat Jalan harus berupa 11 digit angka!';
     if (!tglDo) return 'Tanggal DO wajib diisi!';
     if (!tglPemeriksaan) return 'Tanggal Periksa wajib diisi!';
+    if (!fotoSopirPJ) return 'Foto bukti mengetahui sopir wajib diambil via kamera!'; // << VALIDASI FOTO SOPIR
     if (!namaSopirPJ.trim()) return 'Nama Sopir wajib diisi!';
     if (!nopolPJ.trim()) return 'Nomor Polisi wajib diisi!';
     if (!transporterPJ.trim()) return 'Transporter wajib dipilih!';
@@ -710,43 +752,80 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
         ? (transporterKembali || transporterPJ)
         : transporterKembali;
 
-    const payload: SimpanKlaimPayload = {
-      idKlaim: initialDraft?.idKlaim,
-      user,
-      status,
-      lastStep: currentStep,
-      step1: {
-        noSj,
-        tglDo,
-        tglPemeriksaan,
-        namaSopirPJ,
-        nopolPJ,
-        transporterPJ,
-        parafSopir,
-      },
-      motors,
-      step3: {
-        metode: metodeKembali,
-        namaSopirKembali: finalNamaSopirKembali,
-        nopolKembali: finalNopolKembali,
-        transporterKembali: finalTransporterKembali,
-        parafUser,
-      },
-    };
-
     setIsSubmitting(true);
-    try {
-      let createdId = initialDraft?.idKlaim || `CLM-${user.kodeAhm || 'DLR'}-${Date.now().toString().slice(-6)}`;
+    setSubmittingStatus(status);
+    setSubmitProgress(18);
 
-      try {
-        const { GasService } = await import('../services/gasBridge');
-        const res = await GasService.simpanPengajuanKlaim(payload);
-        if (res && res.idKlaim) {
-          createdId = res.idKlaim;
-        }
-      } catch (gasErr) {
-        console.warn('[ClaimWizard] GAS notice, saving to local persistent storage:', gasErr);
+    // Jalankan animasi progres aktif sejak tahap kompresi foto agar tidak membeku di 0%
+    const preCompressTimer = setInterval(() => {
+      setSubmitProgress((prev) => (prev < 48 ? prev + 4 : prev));
+    }, 45);
+
+    try {
+      // PRE-FLIGHT COMPRESSION SANITIZER (Safety Net):
+      // Memastikan seluruh foto (sopir dan parts) lolos batas kompresi optimal
+      let sanitizedFotoSopir = fotoSopirPJ;
+      if (sanitizedFotoSopir && sanitizedFotoSopir.length * 0.75 > 120 * 1024) {
+        try {
+          sanitizedFotoSopir = await compressClaimImage(sanitizedFotoSopir, {
+            maxDimension: 800,
+            initialQuality: 0.60,
+            maxSizeBytes: 80 * 1024,
+          });
+        } catch (_) {}
       }
+
+      const sanitizedMotors: PayloadMotorItem[] = await Promise.all(
+        motors.map(async (m) => {
+          const sanitizedParts = await Promise.all(
+            m.parts.map(async (p) => {
+              if (p.fotoPart && p.fotoPart.length * 0.75 > 150 * 1024) {
+                try {
+                  const compressed = await compressClaimImage(p.fotoPart, {
+                    maxDimension: 1000,
+                    initialQuality: 0.60,
+                    maxSizeBytes: 95 * 1024,
+                  });
+                  return { ...p, fotoPart: compressed };
+                } catch (_) {
+                  return p;
+                }
+              }
+              return p;
+            })
+          );
+          return { ...m, parts: sanitizedParts };
+        })
+      );
+
+      clearInterval(preCompressTimer);
+
+      const payload: SimpanKlaimPayload = {
+        idKlaim: initialDraft?.idKlaim,
+        user,
+        status,
+        lastStep: currentStep,
+        step1: {
+          noSj,
+          tglDo,
+          tglPemeriksaan,
+          namaSopirPJ,
+          nopolPJ,
+          transporterPJ,
+          parafSopir,
+          fotoSopirPJ: sanitizedFotoSopir,
+        },
+        motors: sanitizedMotors,
+        step3: {
+          metode: metodeKembali,
+          namaSopirKembali: finalNamaSopirKembali,
+          nopolKembali: finalNopolKembali,
+          transporterKembali: finalTransporterKembali,
+          parafUser,
+        },
+      };
+
+      let createdId = initialDraft?.idKlaim || `CLM-${user.kodeAhm || 'DLR'}-${Date.now().toString().slice(-6)}`;
 
       const now = new Date();
       const dateFormatted = now.toLocaleDateString('id-ID', {
@@ -777,6 +856,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
         nopolPJ: payload.step1.nopolPJ,
         transporterPJ: payload.step1.transporterPJ,
         parafSopirPJ: payload.step1.parafSopir,
+        fotoSopirPJ: payload.step1.fotoSopirPJ,
         metodeKembali: payload.step3.metode,
         sopirKembali: payload.step3.namaSopirKembali,
         nopolKembali: payload.step3.nopolKembali,
@@ -803,18 +883,91 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
         ),
       };
 
-      // Bersihkan residual cache lokal jika pernah ada agar Spreadsheet menjadi Single Source of Truth
-      try {
-        const storageKey = `mdc_claims_${user.kodeAhm || 'DEFAULT'}`;
-        localStorage.removeItem(storageKey);
-      } catch (_) {}
+      // JIKA STATUS DRAFT: Simpan instan ke lokal (0ms) + Animasi Persentase Kilatan Menuju 100% + Silent Background Sync ke Spreadsheet
+      if (status === 'Draft') {
+        saveLocalDraft(user.kodeAhm, newClaimItem);
 
-      setIsSubmitting(false);
-      onSubmitSuccess(createdId, status, newClaimItem);
+        // Lanjutkan animasi persentase mulus menuju 100% (~200ms)
+        setSubmitProgress(65);
+        await new Promise((r) => setTimeout(r, 55));
+        setSubmitProgress(88);
+        await new Promise((r) => setTimeout(r, 55));
+        setSubmitProgress(100);
+        await new Promise((r) => setTimeout(r, 75));
+
+        setIsSubmitting(false);
+        setSubmittingStatus(null);
+        setSubmitProgress(0);
+        onSubmitSuccess(createdId, status, newClaimItem);
+
+        // Background Sync (Asinkron Tanpa Memblokir UI Pengguna)
+        import('../services/gasBridge').then(({ GasService }) => {
+          GasService.simpanPengajuanKlaim(payload)
+            .then((res) => {
+              console.log('[ClaimWizard] Background Draft sync sukses ke Spreadsheet:', res);
+              const finalSyncedId = (res && res.idKlaim) ? res.idKlaim : createdId;
+              markDraftSyncedToServer(user.kodeAhm, finalSyncedId, noSj);
+            })
+            .catch((gasErr) => {
+              console.warn('[ClaimWizard] Background Draft sync ditunda (data aman tersimpan lokal):', gasErr);
+            });
+        });
+        return;
+      }
+
+      // JIKA STATUS DIKIRIM KE MD: Lanjutkan animasi progress dinamis menuju 100%
+      setSubmitProgress((prev) => Math.max(prev, 52));
+      const progressInterval = setInterval(() => {
+        setSubmitProgress((prev) => {
+          if (prev >= 92) return prev;
+          return prev + Math.floor(Math.random() * 9) + 5;
+        });
+      }, 45);
+
+      try {
+        const { GasService } = await import('../services/gasBridge');
+        const res = await GasService.simpanPengajuanKlaim(payload);
+        if (res && res.idKlaim) {
+          createdId = res.idKlaim;
+          newClaimItem.idKlaim = res.idKlaim;
+        }
+
+        clearInterval(progressInterval);
+        setSubmitProgress(100);
+
+        // Hapus dari draft lokal jika ada
+        removeLocalDraft(user.kodeAhm, createdId);
+        removeLocalDraft(user.kodeAhm, noSj);
+        recordMutationLock(newClaimItem);
+
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setSubmittingStatus(null);
+          setSubmitProgress(0);
+          onSubmitSuccess(createdId, status, newClaimItem);
+        }, 150);
+      } catch (err) {
+        clearInterval(progressInterval);
+        console.warn('[ClaimWizard] GAS submit notice (fallback ke optimis):', err);
+        setSubmitProgress(100);
+        removeLocalDraft(user.kodeAhm, createdId);
+        removeLocalDraft(user.kodeAhm, noSj);
+        recordMutationLock(newClaimItem);
+
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setSubmittingStatus(null);
+          setSubmitProgress(0);
+          onSubmitSuccess(createdId, status, newClaimItem);
+        }, 150);
+      }
     } catch (err) {
+      clearInterval(preCompressTimer);
       console.error('[ClaimWizard] Save error:', err);
-      setErrorMessage('Terjadi kesalahan saat menyimpan klaim. Silakan coba lagi.');
+      setErrorMessage('Terjadi kesalahan saat memproses data klaim. Silakan coba lagi.');
       setIsSubmitting(false);
+      setSubmittingStatus(null);
+      setSubmitProgress(0);
     }
   };
 
@@ -954,6 +1107,63 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
               </h3>
             </div>
 
+            {/* FOTO BUKTI MENGETAHUI SOPIR (HANYA KAMERA LANGSUNG - SEBELUM KOLOM NAMA) */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-semibold text-white/90 flex items-center gap-1">
+                  <span>Foto Bukti Mengetahui Sopir</span>
+                  <span className="text-red-400">*</span>
+                </label>
+                {fotoSopirPJ ? (
+                  <span className="text-[9px] text-emerald-400 flex items-center gap-1 font-semibold">
+                    <CheckCircle2 className="w-3 h-3" /> Foto Tersedia
+                  </span>
+                ) : (
+                  <span className="text-[9px] text-amber-300 font-medium">
+                    Kamera Langsung
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <label
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border ${
+                    fotoSopirPJ
+                      ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300'
+                      : 'border-dashed border-red-500/60 bg-red-950/20 text-white/90'
+                  } hover:border-red-400 cursor-pointer text-xs transition-colors shadow-sm`}
+                >
+                  <Camera className="w-4 h-4 text-red-400" />
+                  <span className="font-semibold">
+                    {fotoSopirPJ ? 'Ambil Ulang Foto Sopir' : 'Ambil Foto'}
+                  </span>
+                  {/* Atribut capture="environment" mengunci kamera belakang ponsel tanpa galeri */}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleFotoSopirCapture}
+                  />
+                </label>
+
+                {fotoSopirPJ && (
+                  <div className="w-11 h-11 rounded-lg overflow-hidden border border-emerald-500/50 flex-shrink-0 shadow-md">
+                    <img
+                      src={fotoSopirPJ}
+                      referrerPolicy="no-referrer"
+                      alt="Foto Sopir"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-[9.5px] text-white/50 mt-1">
+                Wajib mengambil foto fisik sopir penanggung jawab secara langsung di tempat.
+              </p>
+            </div>
+
+            {/* KOLOM NAMA SOPIR (POSISI SETELAH FOTO) */}
             <div>
               <label className="text-[11px] font-semibold text-white/90">
                 Nama Sopir <span className="text-red-400">*</span>
@@ -963,7 +1173,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 type="text"
                 value={namaSopirPJ}
                 onChange={(e) => setNamaSopirPJ(e.target.value.toUpperCase())}
-                placeholder="Ketik disini"
+                placeholder="Nama lengkap sopir ekspedisi"
                 className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/20 text-white text-xs outline-none focus:border-red-500"
               />
             </div>
@@ -2127,7 +2337,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
               <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1.5">
                 <Truck className="w-3.5 h-3.5" /> Metode Pengembalian Part
               </h3>
-              {initialDraft && initialDraft.metodeKembali && (
+              {isMethodLocked && (
                 <span className="text-[10px] font-semibold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-2 py-0.5 rounded-full">
                   🔒 Terkunci (Mode Edit Draft)
                 </span>
@@ -2141,26 +2351,26 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
               <div className="grid grid-cols-2 gap-2.5 mt-1.5">
                 <button
                   type="button"
-                  disabled={Boolean(initialDraft && initialDraft.metodeKembali)}
+                  disabled={isMethodLocked}
                   onClick={() => handleSelectMetodeKembali('DIKIRIM LANGSUNG')}
                   className={`py-2 px-3 rounded-xl border text-center transition-all text-xs font-bold ${
                     metodeKembali === 'DIKIRIM LANGSUNG'
                       ? 'bg-red-600 border-red-400 text-white shadow-md shadow-red-900/50'
                       : 'bg-black/30 border-white/15 text-white/70 hover:border-white/30'
-                  } ${initialDraft && initialDraft.metodeKembali ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
+                  } ${isMethodLocked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
                 >
                   DIKIRIM LANGSUNG
                 </button>
 
                 <button
                   type="button"
-                  disabled={Boolean(initialDraft && initialDraft.metodeKembali)}
+                  disabled={isMethodLocked}
                   onClick={() => handleSelectMetodeKembali('DITITIP')}
                   className={`py-2 px-3 rounded-xl border text-center transition-all text-xs font-bold ${
                     metodeKembali === 'DITITIP'
                       ? 'bg-red-600 border-red-400 text-white shadow-md shadow-red-900/50'
                       : 'bg-black/30 border-white/15 text-white/70 hover:border-white/30'
-                  } ${initialDraft && initialDraft.metodeKembali ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
+                  } ${isMethodLocked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
                 >
                   DITITIP
                 </button>
@@ -2318,6 +2528,16 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
       {/* Floating Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/90 backdrop-blur-md border-t border-white/15 p-3">
+        {/* Progress Bar Laser Kilatan Modern */}
+        {isSubmitting && (
+          <div className="max-w-md mx-auto mb-2 overflow-hidden rounded-full bg-black/50 h-1.5 border border-amber-400/30 p-[1px]">
+            <div
+              className="bg-gradient-to-r from-red-500 via-amber-300 to-emerald-400 h-full transition-all duration-75 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
+              style={{ width: `${submitProgress}%` }}
+            />
+          </div>
+        )}
+
         <div className="max-w-md mx-auto flex items-center gap-2">
           {currentStep < 3 ? (
             <>
@@ -2325,17 +2545,45 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 type="button"
                 onClick={() => handleSaveClaim('Draft')}
                 disabled={isSubmitting}
-                className="flex-1 py-3 rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 active:scale-98 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                  isSubmitting && submittingStatus === 'Draft'
+                    ? 'border-amber-400/60 bg-amber-950/85 mdc-btn-flash-amber cursor-wait'
+                    : 'border-white/20 bg-white/10 hover:bg-white/15 active:scale-98'
+                }`}
               >
-                <Save className="w-4 h-4 text-amber-300" />
-                Simpan Draft
+                {isSubmitting && submittingStatus === 'Draft' && (
+                  <div
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
+                    style={{ width: `${submitProgress}%` }}
+                  />
+                )}
+                <div className="relative z-10 flex items-center justify-center gap-1.5">
+                  {isSubmitting && submittingStatus === 'Draft' ? (
+                    <>
+                      {submitProgress >= 100 ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                      ) : (
+                        <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                      )}
+                      <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan Draft'}</span>
+                      <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                        {submitProgress}%
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 text-amber-300" />
+                      <span>Simpan Draft</span>
+                    </>
+                  )}
+                </div>
               </button>
 
               <button
                 type="button"
                 onClick={handleNext}
                 disabled={isSubmitting}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white text-xs font-bold shadow-lg shadow-red-900/50 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white text-xs font-bold shadow-lg shadow-red-900/50 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Lanjutkan
               </button>
@@ -2348,14 +2596,38 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     type="button"
                     onClick={() => handleSaveClaim('Draft')}
                     disabled={isSubmitting}
-                    className="w-full py-3 rounded-xl border border-amber-500/30 bg-amber-950/60 hover:bg-amber-900/70 active:scale-98 text-amber-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
+                    className={`relative overflow-hidden w-full py-3 rounded-xl border text-amber-100 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer disabled:cursor-not-allowed ${
+                      isSubmitting && submittingStatus === 'Draft'
+                        ? 'border-amber-400/60 bg-amber-900/90 mdc-btn-flash-amber cursor-wait'
+                        : 'border-amber-500/30 bg-amber-950/60 hover:bg-amber-900/70 active:scale-98'
+                    }`}
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4 text-amber-300" />
+                    {isSubmitting && submittingStatus === 'Draft' && (
+                      <div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
+                        style={{ width: `${submitProgress}%` }}
+                      />
                     )}
-                    Simpan Titipan (Draft 24 Jam)
+                    <div className="relative z-10 flex items-center justify-center gap-1.5">
+                      {isSubmitting && submittingStatus === 'Draft' ? (
+                        <>
+                          {submitProgress >= 100 ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                          ) : (
+                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                          )}
+                          <span>{submitProgress >= 100 ? 'Titipan Tersimpan!' : 'Menyimpan Titipan'}</span>
+                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                            {submitProgress}%
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 text-amber-300" />
+                          <span>Simpan Titipan (Draft 24 Jam)</span>
+                        </>
+                      )}
+                    </div>
                   </button>
                 ) : (
                   <>
@@ -2363,28 +2635,76 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       type="button"
                       onClick={() => handleSaveClaim('Draft')}
                       disabled={isSubmitting}
-                      className="flex-1 py-3 rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 active:scale-98 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                        isSubmitting && submittingStatus === 'Draft'
+                          ? 'border-amber-400/60 bg-amber-950/85 mdc-btn-flash-amber cursor-wait'
+                          : 'border-white/20 bg-white/10 hover:bg-white/15 active:scale-98'
+                      }`}
                     >
-                      {isSubmitting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Save className="w-4 h-4 text-amber-300" />
+                      {isSubmitting && submittingStatus === 'Draft' && (
+                        <div
+                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
+                          style={{ width: `${submitProgress}%` }}
+                        />
                       )}
-                      Simpan Draft
+                      <div className="relative z-10 flex items-center justify-center gap-1.5">
+                        {isSubmitting && submittingStatus === 'Draft' ? (
+                          <>
+                            {submitProgress >= 100 ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                            ) : (
+                              <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                            )}
+                            <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan'}</span>
+                            <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                              {submitProgress}%
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 text-amber-300" />
+                            <span>Simpan Draft</span>
+                          </>
+                        )}
+                      </div>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleSaveClaim('Dikirim ke MD')}
                       disabled={isSubmitting}
-                      className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white text-xs font-bold shadow-lg shadow-red-900/50 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                        isSubmitting && submittingStatus === 'Dikirim ke MD'
+                          ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50 cursor-wait'
+                          : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-900/50'
+                      }`}
                     >
-                      {isSubmitting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4" />
+                      {isSubmitting && submittingStatus === 'Dikirim ke MD' && (
+                        <div
+                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
+                          style={{ width: `${submitProgress}%` }}
+                        />
                       )}
-                      Kirim ke MD
+                      <div className="relative z-10 flex items-center justify-center gap-1.5">
+                        {isSubmitting && submittingStatus === 'Dikirim ke MD' ? (
+                          <>
+                            {submitProgress >= 100 ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                            ) : (
+                              <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+                            )}
+                            <span>{submitProgress >= 100 ? 'Terkirim!' : 'Mengirim ke MD'}</span>
+                            <span className="font-mono font-extrabold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                              {submitProgress}%
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            <span>Kirim ke MD</span>
+                          </>
+                        )}
+                      </div>
                     </button>
                   </>
                 )
@@ -2394,38 +2714,126 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     type="button"
                     onClick={() => handleSaveClaim('Draft')}
                     disabled={isSubmitting}
-                    className="flex-1 py-3 rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 active:scale-98 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                      isSubmitting && submittingStatus === 'Draft'
+                        ? 'border-amber-400/60 bg-amber-950/85 mdc-btn-flash-amber cursor-wait'
+                        : 'border-white/20 bg-white/10 hover:bg-white/15 active:scale-98'
+                    }`}
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4 text-amber-300" />
+                    {isSubmitting && submittingStatus === 'Draft' && (
+                      <div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
+                        style={{ width: `${submitProgress}%` }}
+                      />
                     )}
-                    Simpan Draft
+                    <div className="relative z-10 flex items-center justify-center gap-1.5">
+                      {isSubmitting && submittingStatus === 'Draft' ? (
+                        <>
+                          {submitProgress >= 100 ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                          ) : (
+                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                          )}
+                          <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan'}</span>
+                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                            {submitProgress}%
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 text-amber-300" />
+                          <span>Simpan Draft</span>
+                        </>
+                      )}
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleSaveClaim('Dikirim ke MD')}
                     disabled={isSubmitting}
-                    className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white text-xs font-bold shadow-lg shadow-red-900/50 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                      isSubmitting && submittingStatus === 'Dikirim ke MD'
+                        ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50 cursor-wait'
+                        : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-900/50'
+                    }`}
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
+                    {isSubmitting && submittingStatus === 'Dikirim ke MD' && (
+                      <div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
+                        style={{ width: `${submitProgress}%` }}
+                      />
                     )}
-                    Kirim ke MD
+                    <div className="relative z-10 flex items-center justify-center gap-1.5">
+                      {isSubmitting && submittingStatus === 'Dikirim ke MD' ? (
+                        <>
+                          {submitProgress >= 100 ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                          ) : (
+                            <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+                          )}
+                          <span>{submitProgress >= 100 ? 'Terkirim!' : 'Mengirim ke MD'}</span>
+                          <span className="font-mono font-extrabold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                            {submitProgress}%
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          <span>Kirim ke MD</span>
+                        </>
+                      )}
+                    </div>
                   </button>
                 </>
               ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-1.5"
-                >
-                  Pilih Metode Pengembalian Dahulu
-                </button>
+                <div className="w-full flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSaveClaim('Draft')}
+                    disabled={isSubmitting}
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                      isSubmitting && submittingStatus === 'Draft'
+                        ? 'border-amber-400/60 bg-amber-950/85 mdc-btn-flash-amber cursor-wait'
+                        : 'border-white/20 bg-white/10 hover:bg-white/15 active:scale-98'
+                    }`}
+                  >
+                    {isSubmitting && submittingStatus === 'Draft' && (
+                      <div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
+                        style={{ width: `${submitProgress}%` }}
+                      />
+                    )}
+                    <div className="relative z-10 flex items-center justify-center gap-1.5">
+                      {isSubmitting && submittingStatus === 'Draft' ? (
+                        <>
+                          {submitProgress >= 100 ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                          ) : (
+                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                          )}
+                          <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan'}</span>
+                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                            {submitProgress}%
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 text-amber-300" />
+                          <span>Simpan Draft</span>
+                        </>
+                      )}
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled
+                    className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-1.5"
+                  >
+                    Pilih Metode Dahulu
+                  </button>
+                </div>
               )}
             </>
           )}

@@ -260,7 +260,7 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, viewMode, currentUs
               <span className="text-white/50 italic">Draft</span>
             ) : (
               <span className="text-amber-300 font-mono">
-                Est: <strong className="text-white font-mono">{estSelesai}</strong>
+                EstSelesai: <strong className="text-white font-mono">{estSelesai}</strong>
               </span>
             )}
           </div>

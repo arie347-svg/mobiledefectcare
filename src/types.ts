@@ -75,6 +75,7 @@ export interface ClaimItem {
   nopolPJ: string;
   transporterPJ: string;
   parafSopirPJ: string;
+  fotoSopirPJ?: string; // << TAMBAHKAN DI SINI (Kolom AD Spreadsheet)
   metodeKembali: string; // 'DIKIRIM LANGSUNG' | 'DITITIP'
   sopirKembali: string;
   nopolKembali: string;
@@ -93,6 +94,8 @@ export interface ClaimItem {
   mdSopirBalik?: string;
   mdNopolBalik?: string;
   mdTransporterBalik?: string;
+  mdStatusPenerimaan?: string;
+  kota?: string;
   isUrgent?: boolean;
   kodeDealer?: string;
   lastStep?: number;
@@ -127,6 +130,7 @@ export interface SimpanKlaimPayload {
     nopolPJ: string;
     transporterPJ: string;
     parafSopir: string;
+    fotoSopirPJ?: string; // << TAMBAHKAN DI SINI
   };
   motors: PayloadMotorItem[];
   step3: {

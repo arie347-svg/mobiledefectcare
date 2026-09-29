@@ -1,8 +1,68 @@
 {
   "spreadsheetId": "1Xy9095taEr4EQC7dWqOj_nPjaIDNsxyf6k6eN7Tb3Mc",
-  "lastUpdated": "2026-09-21T04:01:39.108Z",
-  "masterDealer": [],
-  "userMobile": [],
+  "lastUpdated": "2026-09-29T13:37:22.020Z",
+  "masterDealer": [
+    {
+      "kodeAhm": "00999",
+      "namaDealer": "Daya Adicipta Motora",
+      "kodeDealer": "EGKHSH",
+      "kategori": "Big Wing",
+      "kota": "Bandung",
+      "sentraDistribusi": "Baros"
+    },
+    {
+      "kodeAhm": "00600",
+      "namaDealer": "Merdeka Motor",
+      "kodeDealer": "HAGA",
+      "kategori": "Reguler",
+      "kota": "Bekasi",
+      "sentraDistribusi": "Karawang"
+    },
+    {
+      "kodeAhm": "01099",
+      "namaDealer": "Graha Prawira Daniswara",
+      "kodeDealer": "HBR",
+      "kategori": "Reguler",
+      "kota": "Bekasi",
+      "sentraDistribusi": "Karawang"
+    },
+    {
+      "kodeAhm": "08099",
+      "namaDealer": "Murni Subaja Mas",
+      "kodeDealer": "HBIJ",
+      "kategori": "Reguler",
+      "kota": "Bekasi",
+      "sentraDistribusi": "Karawang"
+    }
+  ],
+  "userMobile": [
+    {
+      "timestamp": "2026-09-29T07:48:57.980Z",
+      "email": "safaria347@gmail.com",
+      "namaLengkap": "ARI IMAM SAFARI",
+      "noHp": "082118421300",
+      "kodeAhm": "01099",
+      "namaDealer": "Graha Prawira Daniswara",
+      "kodeDealer": "HBR",
+      "kategori": "Reguler",
+      "kota": "Bekasi",
+      "sentraDistribusi": "Karawang",
+      "role": "PDI Man"
+    },
+    {
+      "timestamp": "2026-09-29T07:47:33.237Z",
+      "email": "testfast@dealer.com",
+      "namaLengkap": "TEST FAST",
+      "noHp": "08123456789",
+      "kodeAhm": "00999",
+      "namaDealer": "Daya Adicipta Motora",
+      "kodeDealer": "EGKHSH",
+      "kategori": "Big Wing",
+      "kota": "Bandung",
+      "sentraDistribusi": "Baros",
+      "role": "PDI Man"
+    }
+  ],
   "klaimHeader": [],
   "klaimDetail": [],
   "masterTransporter": [
@@ -760,109 +820,109 @@
   "masterMotor": [
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150R STreetfire Special Edition",
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150R STreetfire Special Edition",
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150R STreetfire Special Edition",
+      "tipeMotor": "CB150R STREETFIRE SPECIAL EDITION",
       "warna": "SV",
       "namaWarna": "Silver"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150R STreetfire",
+      "tipeMotor": "CB150R STREETFIRE",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150R STreetfire",
+      "tipeMotor": "CB150R STREETFIRE",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Super Cub C 125",
+      "tipeMotor": "SUPER CUB C 125",
       "warna": "GR",
       "namaWarna": "Grey"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Super Cub C 125",
+      "tipeMotor": "SUPER CUB C 125",
       "warna": "BP",
       "namaWarna": "Biru Putih"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Super Cub C 125",
+      "tipeMotor": "SUPER CUB C 125",
       "warna": "MP",
       "namaWarna": "Merah Putih"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Super Cub C125",
+      "tipeMotor": "SUPER CUB C125",
       "warna": "GR",
       "namaWarna": "Grey"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Super Cub C125",
+      "tipeMotor": "SUPER CUB C125",
       "warna": "AP",
       "namaWarna": "Abu-Abu Putih"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Super Cub C125",
+      "tipeMotor": "SUPER CUB C125",
       "warna": "MP",
       "namaWarna": "Merah Putih"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Genio CBS",
+      "tipeMotor": "GENIO CBS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Genio CBS",
+      "tipeMotor": "GENIO CBS",
       "warna": "HM",
       "namaWarna": "Hitam Merah"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Genio CBS",
+      "tipeMotor": "GENIO CBS",
       "warna": "HS",
       "namaWarna": "Hitam Silver"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Genio CBS ISS",
+      "tipeMotor": "GENIO CBS ISS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Genio CBS ISS",
+      "tipeMotor": "GENIO CBS ISS",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Genio CBS ISS",
+      "tipeMotor": "GENIO CBS ISS",
       "warna": "BW",
       "namaWarna": "Brown"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Genio CBS ISS",
+      "tipeMotor": "GENIO CBS ISS",
       "warna": "GN",
       "namaWarna": "Green"
     },
@@ -886,13 +946,13 @@
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CB650Ram In M/T",
+      "tipeMotor": "CB650RAM IN M/T",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CB650Ram In M/T",
+      "tipeMotor": "CB650RAM IN M/T",
       "warna": "RD",
       "namaWarna": "Red"
     },
@@ -922,31 +982,31 @@
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Rebel 1100",
+      "tipeMotor": "REBEL 1100",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Cmx500 Rebel",
+      "tipeMotor": "CMX500 REBEL",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Cmx500 Rebel",
+      "tipeMotor": "CMX500 REBEL",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Cmx500 Rebel",
+      "tipeMotor": "CMX500 REBEL",
       "warna": "GR",
       "namaWarna": "Grey"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Cmx500 Rebel",
+      "tipeMotor": "CMX500 REBEL",
       "warna": "RD",
       "namaWarna": "Red"
     },
@@ -958,7 +1018,7 @@
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CRF1100L Africa Twin",
+      "tipeMotor": "CRF1100L AFRICA TWIN",
       "warna": "PC",
       "namaWarna": "Putih Biru Merah"
     },
@@ -970,7 +1030,7 @@
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CRF250Rally",
+      "tipeMotor": "CRF250RALLY",
       "warna": "HN",
       "namaWarna": "Hitam Merah Putih"
     },
@@ -982,229 +1042,229 @@
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy Energetic",
+      "tipeMotor": "SCOOPY ENERGETIC",
       "warna": "MH",
       "namaWarna": "Merah Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy Energetic",
+      "tipeMotor": "SCOOPY ENERGETIC",
       "warna": "SH",
       "namaWarna": "Silver Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy FaSHion",
+      "tipeMotor": "SCOOPY FASHION",
       "warna": "BP",
       "namaWarna": "Biru Putih"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy FaSHion",
+      "tipeMotor": "SCOOPY FASHION",
       "warna": "CW",
       "namaWarna": "Coklat Putih"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy PreSTige",
+      "tipeMotor": "SCOOPY PRESTIGE",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy PreSTige",
+      "tipeMotor": "SCOOPY PRESTIGE",
       "warna": "WH",
       "namaWarna": "White"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy STyliSH",
+      "tipeMotor": "SCOOPY STYLISH",
       "warna": "GN",
       "namaWarna": "Green"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy STyliSH",
+      "tipeMotor": "SCOOPY STYLISH",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Cub",
-      "tipeMotor": "Supra X 125 SW",
+      "tipeMotor": "SUPRA X 125 SW",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Cub",
-      "tipeMotor": "Supra X 125 CW",
+      "tipeMotor": "SUPRA X 125 CW",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Cub",
-      "tipeMotor": "Supra X 125 CW",
+      "tipeMotor": "SUPRA X 125 CW",
       "warna": "MH",
       "namaWarna": "Merah Hitam"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Gold Wing",
+      "tipeMotor": "GOLD WING",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty CBS",
+      "tipeMotor": "BEAT SPORTY CBS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty CBS",
+      "tipeMotor": "BEAT SPORTY CBS",
       "warna": "MH",
       "namaWarna": "Merah Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty CBS",
+      "tipeMotor": "BEAT SPORTY CBS",
       "warna": "PH",
       "namaWarna": "Putih Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty CBS ISS Deluxe",
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty CBS ISS Deluxe",
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
       "warna": "SV",
       "namaWarna": "Silver"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty Dlx Smart Key",
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty Dlx Smart Key",
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty Dlx Smart Key",
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
       "warna": "GN",
       "namaWarna": "Green"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat STreet",
+      "tipeMotor": "BEAT STREET",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat STreet",
+      "tipeMotor": "BEAT STREET",
       "warna": "BW",
       "namaWarna": "Brown"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 CBS",
+      "tipeMotor": "VARIO 125 CBS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 CBS",
+      "tipeMotor": "VARIO 125 CBS",
       "warna": "MH",
       "namaWarna": "Merah Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 CBS ISS Sp",
+      "tipeMotor": "VARIO 125 CBS ISS SP",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 CBS ISS Sp",
+      "tipeMotor": "VARIO 125 CBS ISS SP",
       "warna": "WH",
       "namaWarna": "White"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 CBS ISS",
+      "tipeMotor": "VARIO 125 CBS ISS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 CBS ISS",
+      "tipeMotor": "VARIO 125 CBS ISS",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 CBS ISS",
+      "tipeMotor": "VARIO 125 CBS ISS",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 160 ABS",
+      "tipeMotor": "VARIO 160 ABS",
       "warna": "WH",
       "namaWarna": "White"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 160 ABS",
+      "tipeMotor": "VARIO 160 ABS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 160 ABS",
+      "tipeMotor": "VARIO 160 ABS",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 CBS",
+      "tipeMotor": "STYLO 160 CBS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 CBS",
+      "tipeMotor": "STYLO 160 CBS",
       "warna": "CR",
       "namaWarna": "Cream"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 CBS",
+      "tipeMotor": "STYLO 160 CBS",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 ABS",
+      "tipeMotor": "STYLO 160 ABS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 ABS",
+      "tipeMotor": "STYLO 160 ABS",
       "warna": "GN",
       "namaWarna": "Green"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 ABS",
+      "tipeMotor": "STYLO 160 ABS",
       "warna": "WH",
       "namaWarna": "White"
     },
@@ -1258,43 +1318,43 @@
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Forza",
+      "tipeMotor": "FORZA",
       "warna": "AH",
       "namaWarna": "Abu2 Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Forza",
+      "tipeMotor": "FORZA",
       "warna": "BH",
       "namaWarna": "Biru Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Forza",
+      "tipeMotor": "FORZA",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Forza",
+      "tipeMotor": "FORZA",
       "warna": "MH",
       "namaWarna": "Merah Hitam"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CBR 150R STd",
+      "tipeMotor": "CBR 150R STD",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CBR 150R STd",
+      "tipeMotor": "CBR 150R STD",
       "warna": "MH",
       "namaWarna": "Merah Hitam"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CBR 150R STd",
+      "tipeMotor": "CBR 150R STD",
       "warna": "BK",
       "namaWarna": "Black"
     },
@@ -1312,25 +1372,25 @@
     },
     {
       "jenisMotor": "Cub",
-      "tipeMotor": "Revo Fit",
+      "tipeMotor": "REVO FIT",
       "warna": "BB",
       "namaWarna": "Black Blue"
     },
     {
       "jenisMotor": "Cub",
-      "tipeMotor": "Revo Fit",
+      "tipeMotor": "REVO FIT",
       "warna": "BR",
       "namaWarna": "Black Red"
     },
     {
       "jenisMotor": "Cub",
-      "tipeMotor": "Revo X",
+      "tipeMotor": "REVO X",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Cub",
-      "tipeMotor": "Revo X",
+      "tipeMotor": "REVO X",
       "warna": "MH",
       "namaWarna": "Merah Hitam"
     },
@@ -1342,7 +1402,7 @@
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CBR 250RR STd",
+      "tipeMotor": "CBR 250RR STD",
       "warna": "BK",
       "namaWarna": "Black"
     },
@@ -1396,13 +1456,13 @@
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "ST125 Dax",
+      "tipeMotor": "ST125 DAX",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "ST125 Dax",
+      "tipeMotor": "ST125 DAX",
       "warna": "GR",
       "namaWarna": "Grey"
     },
@@ -1432,31 +1492,31 @@
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150X STd",
+      "tipeMotor": "CB150X STD",
       "warna": "CS",
       "namaWarna": "Coklat - Silver"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150X STd",
+      "tipeMotor": "CB150X STD",
       "warna": "GC",
       "namaWarna": "Hijau Silver"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150X STd",
+      "tipeMotor": "CB150X STD",
       "warna": "MS",
       "namaWarna": "Merah Silver"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150X Se",
+      "tipeMotor": "CB150X SE",
       "warna": "HS",
       "namaWarna": "Hitam Silver"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Em1 E:",
+      "tipeMotor": "EM1 E:",
       "warna": "WH",
       "namaWarna": "White"
     },
@@ -1480,49 +1540,49 @@
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CUV E: Roadsync Duo",
+      "tipeMotor": "CUV E: ROADSYNC DUO",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CUV E: Roadsync Duo",
+      "tipeMotor": "CUV E: ROADSYNC DUO",
       "warna": "SV",
       "namaWarna": "Silver"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "CUV E: Roadsync Duo",
+      "tipeMotor": "CUV E: ROADSYNC DUO",
       "warna": "WH",
       "namaWarna": "White"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Icon E:",
+      "tipeMotor": "ICON E:",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Icon E:",
+      "tipeMotor": "ICON E:",
       "warna": "GN",
       "namaWarna": "Green"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Icon E:",
+      "tipeMotor": "ICON E:",
       "warna": "OR",
       "namaWarna": "Orange"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Icon E:",
+      "tipeMotor": "ICON E:",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Icon E:",
+      "tipeMotor": "ICON E:",
       "warna": "WH",
       "namaWarna": "White"
     },
@@ -1576,127 +1636,127 @@
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "PCX160 Roadsync",
+      "tipeMotor": "PCX160 ROADSYNC",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "PCX160 Roadsync",
+      "tipeMotor": "PCX160 ROADSYNC",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 160 CBS",
+      "tipeMotor": "VARIO 160 CBS",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 160 CBS",
+      "tipeMotor": "VARIO 160 CBS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 160 CBS",
+      "tipeMotor": "VARIO 160 CBS",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 160 CBS",
+      "tipeMotor": "VARIO 160 CBS",
       "warna": "WH",
       "namaWarna": "White"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "Sonic 150R",
+      "tipeMotor": "SONIC 150R",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "Sonic 150R",
+      "tipeMotor": "SONIC 150R",
       "warna": "MH",
       "namaWarna": "Merah Hitam"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "Sonic 150R HRR",
+      "tipeMotor": "SONIC 150R HRR",
       "warna": "MP",
       "namaWarna": "Merah Putih"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "Sonic 150R Matte Black",
+      "tipeMotor": "SONIC 150R MATTE BLACK",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Monkey Z125",
+      "tipeMotor": "MONKEY Z125",
       "warna": "HS",
       "namaWarna": "Hitam Silver"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Monkey Z125",
+      "tipeMotor": "MONKEY Z125",
       "warna": "KS",
       "namaWarna": "Kuning Silver"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Monkey Z125",
+      "tipeMotor": "MONKEY Z125",
       "warna": "MS",
       "namaWarna": "Merah Silver"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150 Verza SW",
+      "tipeMotor": "CB150 VERZA SW",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150 Verza CW",
+      "tipeMotor": "CB150 VERZA CW",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Sport",
-      "tipeMotor": "CB150 Verza CW",
+      "tipeMotor": "CB150 VERZA CW",
       "warna": "MH",
       "namaWarna": "Merah Hitam"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Monkey 125",
+      "tipeMotor": "MONKEY 125",
       "warna": "PA",
       "namaWarna": "Putih Abu-Abu"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Monkey 125",
+      "tipeMotor": "MONKEY 125",
       "warna": "PM",
       "namaWarna": "Putih Merah"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Monkey 125",
+      "tipeMotor": "MONKEY 125",
       "warna": "SK",
       "namaWarna": "Silver Kuning"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Xl750 Transalp",
+      "tipeMotor": "XL750 TRANSALP",
       "warna": "PB",
       "namaWarna": "Putih Biru"
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Xl750 Transalp",
+      "tipeMotor": "XL750 TRANSALP",
       "warna": "BK",
       "namaWarna": "Black"
     },
@@ -1714,19 +1774,19 @@
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty CBS ISS Deluxe",
+      "tipeMotor": "BEAT SPORTY CBS ISS DELUXE",
       "warna": "GN",
       "namaWarna": "Green"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty Dlx Smart Key",
+      "tipeMotor": "BEAT SPORTY DLX SMART KEY",
       "warna": "BW",
       "namaWarna": "Brown"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat STreet",
+      "tipeMotor": "BEAT STREET",
       "warna": "WH",
       "namaWarna": "White"
     },
@@ -1738,13 +1798,13 @@
     },
     {
       "jenisMotor": "CBU",
-      "tipeMotor": "Rebel 1100",
+      "tipeMotor": "REBEL 1100",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Forza",
+      "tipeMotor": "FORZA",
       "warna": "PH",
       "namaWarna": "Putih Hitam"
     },
@@ -1756,85 +1816,85 @@
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "ADV160 Roadsync",
+      "tipeMotor": "ADV160 ROADSYNC",
       "warna": "BW",
       "namaWarna": "Brown"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Genio CBS",
+      "tipeMotor": "GENIO CBS",
       "warna": "PD",
       "namaWarna": "Putih Merah Biru"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Genio CBS",
+      "tipeMotor": "GENIO CBS",
       "warna": "PH",
       "namaWarna": "Putih Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy FaSHion",
+      "tipeMotor": "SCOOPY FASHION",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy FaSHion",
+      "tipeMotor": "SCOOPY FASHION",
       "warna": "CR",
       "namaWarna": "Cream"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy FaSHion",
+      "tipeMotor": "SCOOPY FASHION",
       "warna": "GN",
       "namaWarna": "Green"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy FaSHion",
+      "tipeMotor": "SCOOPY FASHION",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy PreSTige",
+      "tipeMotor": "SCOOPY PRESTIGE",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy STyliSH",
+      "tipeMotor": "SCOOPY STYLISH",
       "warna": "CR",
       "namaWarna": "Cream"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Scoopy STyliSH",
+      "tipeMotor": "SCOOPY STYLISH",
       "warna": "GR",
       "namaWarna": "Grey"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 CBS",
+      "tipeMotor": "VARIO 125 CBS",
       "warna": "GH",
       "namaWarna": "Hijau Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 STreet",
+      "tipeMotor": "VARIO 125 STREET",
       "warna": "AE",
       "namaWarna": "Black White"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 STreet",
+      "tipeMotor": "VARIO 125 STREET",
       "warna": "BR",
       "namaWarna": "Black Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario 125 STreet",
+      "tipeMotor": "VARIO 125 STREET",
       "warna": "HV",
       "namaWarna": "Hitam Violet"
     },
@@ -1888,109 +1948,109 @@
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "PCX160 Honda Roadsync",
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
       "warna": "BW",
       "namaWarna": "Brown"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "PCX160 Honda Roadsync",
+      "tipeMotor": "PCX160 HONDA ROADSYNC",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 CBS",
+      "tipeMotor": "STYLO 160 CBS",
       "warna": "WH",
       "namaWarna": "White"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 ABS",
+      "tipeMotor": "STYLO 160 ABS",
       "warna": "BL",
       "namaWarna": "Blue"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 ABS",
+      "tipeMotor": "STYLO 160 ABS",
       "warna": "BW",
       "namaWarna": "Brown"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "STylo 160 ABS Special",
+      "tipeMotor": "STYLO 160 ABS SPECIAL",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty CBS",
+      "tipeMotor": "BEAT SPORTY CBS",
       "warna": "BH",
       "namaWarna": "Biru Hitam"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty CBS ISS",
+      "tipeMotor": "BEAT SPORTY CBS ISS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat Sporty CBS ISS",
+      "tipeMotor": "BEAT SPORTY CBS ISS",
       "warna": "ML",
       "namaWarna": "Merah Biru"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Beat STreet",
+      "tipeMotor": "BEAT STREET",
       "warna": "GR",
       "namaWarna": "Grey"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario Evo 160 CBS",
+      "tipeMotor": "VARIO EVO 160 CBS",
       "warna": "PM",
       "namaWarna": "Putih Merah"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario Evo 160 CBS",
+      "tipeMotor": "VARIO EVO 160 CBS",
       "warna": "UK",
       "namaWarna": "Biru Kuning"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario Evo 160 CBS Nitro",
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
       "warna": "GK",
       "namaWarna": "Abu-Abu Kuning"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario Evo 160 CBS Nitro",
+      "tipeMotor": "VARIO EVO 160 CBS NITRO",
       "warna": "HM",
       "namaWarna": "Hitam Merah"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario Evo 160 ABS",
+      "tipeMotor": "VARIO EVO 160 ABS",
       "warna": "BK",
       "namaWarna": "Black"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario Evo 160 ABS",
+      "tipeMotor": "VARIO EVO 160 ABS",
       "warna": "PU",
       "namaWarna": "Purple"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario Evo 160 ABS",
+      "tipeMotor": "VARIO EVO 160 ABS",
       "warna": "RD",
       "namaWarna": "Red"
     },
     {
       "jenisMotor": "Matic",
-      "tipeMotor": "Vario Evo 160 ABS",
+      "tipeMotor": "VARIO EVO 160 ABS",
       "warna": "WH",
       "namaWarna": "White"
     }

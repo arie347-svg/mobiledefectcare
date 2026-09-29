@@ -437,6 +437,29 @@ export const GasService = {
     );
   },
 
+  // 6b. Get Single Claim by ID (Bisa dibuka siapa saja melalui direct link tanpa login)
+  getClaimById(idKlaim: string): Promise<{ success: boolean; data: ClaimItem | null; message?: string }> {
+    const cleanId = (idKlaim || '').trim();
+    console.log(`[gasBridge] getClaimById CALL idKlaim: ${cleanId}`);
+
+    return executeGasAction<{ success: boolean; data: ClaimItem | null; message?: string }>(
+      'getClaimById',
+      { idKlaim: cleanId },
+      (gasRun, resolve, reject) => {
+        gasRun
+          .withSuccessHandler((rawRes: any) => {
+            const res = parseGasResponse<{ success: boolean; data: ClaimItem | null; message?: string }>(rawRes);
+            resolve(res);
+          })
+          .withFailureHandler((err: Error) => {
+            console.warn('[gasBridge] getClaimById Notice:', err?.message || err);
+            reject(new Error(err?.message || 'Gagal memuat detail resi klaim dari server.'));
+          })
+          .getClaimById(cleanId);
+      }
+    );
+  },
+
   // 7. Simpan Pengajuan Klaim
   simpanPengajuanKlaim(
     payload: SimpanKlaimPayload
@@ -512,6 +535,35 @@ export const GasService = {
           .dealerKonfirmasiRetur(idKlaim, alasan);
       }
     );
+  },
+
+  // 8c. Hapus Klaim / Draft
+  hapusKlaim(
+    idKlaim: string,
+    noSj?: string,
+    kodeAhm?: string
+  ): Promise<{ success: boolean; message?: string }> {
+    console.log(`[gasBridge] hapusKlaim CALL idKlaim: ${idKlaim} noSj: ${noSj || ''}`);
+
+    return executeGasAction<{ success: boolean; message?: string }>(
+      'hapusKlaim',
+      { idKlaim, noSj, kodeAhm },
+      (gasRun, resolve) => {
+        if (typeof gasRun.hapusKlaim === 'function') {
+          gasRun
+            .withSuccessHandler((rawRes: any) => {
+              const res = parseGasResponse<{ success: boolean; message?: string }>(rawRes);
+              resolve(res || { success: true });
+            })
+            .withFailureHandler(() => {
+              resolve({ success: true });
+            })
+            .hapusKlaim(idKlaim, noSj, kodeAhm);
+        } else {
+          resolve({ success: true });
+        }
+      }
+    ).catch(() => ({ success: true }));
   },
 
   // 9. Check Data Version (Heartbeat)

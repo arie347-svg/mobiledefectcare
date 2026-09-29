@@ -33,6 +33,7 @@ export interface StoredClaimHeader {
   idKlaim: string;
   timestamp: string;
   status: string;
+  lastStep?: number;
   noSj: string;
   tglDo: string;
   tglPeriksa: string;
@@ -42,6 +43,7 @@ export interface StoredClaimHeader {
   nopolPJ: string;
   transporterPJ: string;
   parafSopirPJ?: string;
+  fotoSopirPJ?: string; // << TAMBAHKAN KE INTERFACE
   metodeKembali: string;
   sopirKembali: string;
   nopolKembali: string;
@@ -546,12 +548,14 @@ export const SpreadsheetDatabase = {
         nopolPJ: h.nopolPJ,
         transporterPJ: h.transporterPJ,
         parafSopirPJ: h.parafSopirPJ,
+        fotoSopirPJ: h.fotoSopirPJ || '', // << KEMBALIKAN KE CLIENT
         metodeKembali: h.metodeKembali,
         sopirKembali: h.sopirKembali,
         nopolKembali: h.nopolKembali,
         transporterKembali: h.transporterKembali,
         parafUser: h.parafUser,
         draftDeadline: h.draftDeadline,
+        lastStep: h.lastStep,
         mdStatusPenerimaan: h.mdStatusPenerimaan,
         mdJenisPerbaikan: h.mdJenisPerbaikan,
         mdTargetSelesai: h.mdTargetSelesai,
@@ -568,6 +572,82 @@ export const SpreadsheetDatabase = {
     return {
       success: true,
       data: fullClaims,
+    };
+  },
+
+  // 5b. Get Single Claim by ID (Untuk Public Receipt Link tanpa batas login)
+  getClaimById(idKlaim: string) {
+    const db = initDb();
+    const cleanId = (idKlaim || '').trim();
+    const h = db.klaimHeader.find((header) => header.idKlaim === cleanId);
+    if (!h) {
+      return { success: false, data: null, message: 'Klaim tidak ditemukan.' };
+    }
+
+    const items = db.klaimDetail
+      .filter((d) => d.idKlaim === h.idKlaim)
+      .map((d) => ({
+        indexMotor: d.indexMotor,
+        tipe: d.tipeMotor,
+        warna: d.warna,
+        noMesin: d.noMesin.replace(/^'/, ''),
+        noRangka: d.noRangka.replace(/^'/, ''),
+        namaPart: d.namaPart,
+        kerusakan: d.jenisKerusakan,
+        penyebab: d.penyebab,
+        fotoPart: d.fotoPart || '',
+      }));
+
+    const dateObj = new Date(h.timestamp || Date.now());
+    const dateFormatted = dateObj.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+    const timeFormatted = dateObj.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const claimItem = {
+      idKlaim: h.idKlaim,
+      rawTimestamp: dateObj.getTime(),
+      rawDate: h.tglPeriksa || h.tglDo || dateObj.toISOString().split('T')[0],
+      tgl: `${dateFormatted} ${timeFormatted} WIB`,
+      tglSelesai: h.tglSelesaiDealer || '',
+      status: h.status,
+      noSj: h.noSj.replace(/^'/, ''),
+      tglDo: h.tglDo,
+      tglPeriksa: h.tglPeriksa,
+      kodeAhm: h.kodeAhm,
+      namaDealer: h.namaDealer,
+      sopirPJ: h.sopirPJ,
+      nopolPJ: h.nopolPJ,
+      transporterPJ: h.transporterPJ,
+      parafSopirPJ: h.parafSopirPJ,
+      fotoSopirPJ: h.fotoSopirPJ || '',
+      metodeKembali: h.metodeKembali,
+      sopirKembali: h.sopirKembali,
+      nopolKembali: h.nopolKembali,
+      transporterKembali: h.transporterKembali,
+      parafUser: h.parafUser,
+      draftDeadline: h.draftDeadline,
+      lastStep: h.lastStep,
+      mdStatusPenerimaan: h.mdStatusPenerimaan,
+      mdJenisPerbaikan: h.mdJenisPerbaikan,
+      mdTargetSelesai: h.mdTargetSelesai,
+      mdApprovalKaGudang: h.mdApprovalKaGudang,
+      mdValidasiRepairman: h.mdValidasiRepairman,
+      mdSopirBalik: h.mdSopirBalik,
+      mdNopolBalik: h.mdNopolBalik,
+      mdTransporterBalik: h.mdTransporterBalik,
+      isUrgent: h.isUrgent === 'URGENT',
+      items,
+    };
+
+    return {
+      success: true,
+      data: claimItem,
     };
   },
 
@@ -623,20 +703,25 @@ export const SpreadsheetDatabase = {
 
     const existingHeaderIdx = db.klaimHeader.findIndex((h) => h.idKlaim === idKlaim);
 
+    const cleanMetode = (payload.step3?.metode || '').trim().toUpperCase();
+    const validMetode = (cleanMetode === 'DIKIRIM LANGSUNG' || cleanMetode === 'DITITIP') ? cleanMetode : '';
+
     const headerRecord: StoredClaimHeader = {
       idKlaim,
       timestamp: new Date().toISOString(),
       status,
+      lastStep: typeof payload.lastStep === 'number' ? payload.lastStep : undefined,
       noSj: "'" + (payload.step1?.noSj || ''),
       tglDo: payload.step1?.tglDo || '',
       tglPeriksa: payload.step1?.tglPemeriksaan || '',
-      kodeAhm: userKode, // Crucial FK to dealer identity
+      kodeAhm: userKode,
       namaDealer: userDealerName,
       sopirPJ: (payload.step1?.namaSopirPJ || '').toUpperCase(),
       nopolPJ: (payload.step1?.nopolPJ || '').toUpperCase(),
       transporterPJ: payload.step1?.transporterPJ || '',
       parafSopirPJ: payload.step1?.parafSopir || '',
-      metodeKembali: payload.step3?.metode || 'DIKIRIM LANGSUNG',
+      fotoSopirPJ: payload.step1?.fotoSopirPJ || '', // << BACA DARI PAYLOAD STEP 1
+      metodeKembali: validMetode,
       sopirKembali: (payload.step3?.namaSopirKembali || '').toUpperCase(),
       nopolKembali: (payload.step3?.nopolKembali || '').toUpperCase(),
       transporterKembali: payload.step3?.transporterKembali || '',
@@ -722,6 +807,126 @@ export const SpreadsheetDatabase = {
       return { success: true, message: 'Status klaim berhasil diperbarui menjadi Retur ke MD.' };
     }
     return { success: false, message: 'Klaim tidak ditemukan.' };
+  },
+
+  // 8c. Sinkronisasi Satu Arah (Mirroring) dari Google Spreadsheet ke Database Lokal
+  // Memastikan klaim yang sudah dihapus di Google Spreadsheet otomatis ikut terhapus dari spreadsheet_database.json
+  syncRemoteClaims(kodeAhm: string, remoteClaims: any[]) {
+    if (!kodeAhm) return;
+    try {
+      const db = initDb();
+      const safeRemote = Array.isArray(remoteClaims) ? remoteClaims : [];
+
+      // Hapus seluruh header & detail lama milik kodeAhm ini agar tidak menjadi data zombie
+      const oldHeaderIds = new Set(
+        db.klaimHeader
+          .filter((h) => isCodeMatch(h.kodeAhm, kodeAhm))
+          .map((h) => h.idKlaim)
+      );
+
+      db.klaimHeader = db.klaimHeader.filter((h) => !isCodeMatch(h.kodeAhm, kodeAhm));
+      db.klaimDetail = db.klaimDetail.filter((d) => !oldHeaderIds.has(d.idKlaim));
+
+      // Masukkan kembali hanya klaim yang benar-benar masih ada di Google Spreadsheet saat ini
+      const newHeaders: StoredClaimHeader[] = [];
+      const newDetails: StoredClaimDetail[] = [];
+
+      safeRemote.forEach((c: any) => {
+        if (!c || !c.idKlaim) return;
+        const cleanId = String(c.idKlaim).trim();
+        newHeaders.push({
+          idKlaim: cleanId,
+          timestamp: c.rawTimestamp ? new Date(c.rawTimestamp).toISOString() : new Date().toISOString(),
+          status: c.status || 'Draft',
+          lastStep: typeof c.lastStep === 'number' ? c.lastStep : undefined,
+          noSj: "'" + String(c.noSj || '').replace(/^'/, ''),
+          tglDo: c.tglDo || '',
+          tglPeriksa: c.tglPeriksa || '',
+          kodeAhm: c.kodeAhm || kodeAhm,
+          namaDealer: c.namaDealer || '',
+          sopirPJ: c.sopirPJ || '',
+          nopolPJ: c.nopolPJ || '',
+          transporterPJ: c.transporterPJ || '',
+          parafSopirPJ: c.parafSopirPJ || '',
+          fotoSopirPJ: c.fotoSopirPJ || '',
+          metodeKembali: c.metodeKembali || '',
+          sopirKembali: c.sopirKembali || '',
+          nopolKembali: c.nopolKembali || '',
+          transporterKembali: c.transporterKembali || '',
+          parafUser: c.parafUser || '',
+          draftDeadline: c.draftDeadline || '',
+          mdStatusPenerimaan: c.mdStatusPenerimaan || '',
+          mdJenisPerbaikan: c.mdJenisPerbaikan || '',
+          mdTargetSelesai: c.mdTargetSelesai || '',
+          mdApprovalKaGudang: c.mdApprovalKaGudang || '',
+          mdValidasiRepairman: c.mdValidasiRepairman || '',
+          mdSopirBalik: c.mdSopirBalik || '',
+          mdNopolBalik: c.mdNopolBalik || '',
+          mdTransporterBalik: c.mdTransporterBalik || '',
+          tglSelesaiDealer: c.tglSelesai || '',
+          isUrgent: c.isUrgent ? 'URGENT' : '',
+        });
+
+        if (Array.isArray(c.items)) {
+          c.items.forEach((item: any, idx: number) => {
+            newDetails.push({
+              idDetail: `${cleanId}-D${idx + 1}`,
+              idKlaim: cleanId,
+              indexMotor: item.indexMotor || 1,
+              tipeMotor: item.tipe || '',
+              warna: item.warna || '',
+              noMesin: "'" + String(item.noMesin || '').replace(/^'/, ''),
+              noRangka: "'" + String(item.noRangka || '').replace(/^'/, ''),
+              namaPart: item.namaPart || '',
+              jenisKerusakan: item.kerusakan || '',
+              penyebab: item.penyebab || '',
+              fotoPart: item.fotoPart || '',
+            });
+          });
+        }
+      });
+
+      db.klaimHeader.unshift(...newHeaders);
+      db.klaimDetail.push(...newDetails);
+      saveDb(db);
+    } catch (err) {
+      console.warn('[SpreadsheetDB] Gagal menyinkronkan klaim remote ke lokal:', err);
+    }
+  },
+
+  // 8d. Hapus Klaim / Draft secara Eksplisit dari Database Lokal
+  hapusKlaim(idKlaim: string, noSj?: string, kodeAhm?: string) {
+    const db = initDb();
+    const cleanId = (idKlaim || '').trim();
+    const cleanSj = (noSj || '').replace(/\D/g, '');
+
+    const removedHeaderIds = new Set<string>();
+
+    db.klaimHeader = db.klaimHeader.filter((h) => {
+      const matchId = cleanId && h.idKlaim === cleanId;
+      const hSj = (h.noSj || '').replace(/\D/g, '');
+      const matchSj =
+        cleanSj &&
+        hSj === cleanSj &&
+        (!kodeAhm || isCodeMatch(h.kodeAhm, kodeAhm));
+
+      if (matchId || matchSj) {
+        removedHeaderIds.add(h.idKlaim);
+        return false;
+      }
+      return true;
+    });
+
+    if (cleanId) removedHeaderIds.add(cleanId);
+
+    db.klaimDetail = db.klaimDetail.filter((d) => !removedHeaderIds.has(d.idKlaim));
+    saveDb(db);
+
+    return {
+      success: true,
+      idKlaim: cleanId,
+      message: 'Klaim berhasil dihapus secara permanen.',
+    };
   },
 
   // 9. Check Data Version
