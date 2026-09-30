@@ -948,8 +948,7 @@ export const App: React.FC = () => {
             />
           </div>
         </div>
-        <Loader2 className="w-6 h-6 animate-spin text-red-500 mb-2" />
-        <p className="text-xs font-semibold text-white/90">Memuat Kartu Resi Online ...</p>
+        <Loader2 className="w-6 h-6 animate-spin text-red-500" />
       </div>
     );
   }
@@ -1002,12 +1001,12 @@ export const App: React.FC = () => {
     );
   }
 
-  // IF VERIFYING SESSION ON APP LOAD: TAMPILKAN SPLASH KILATAN MODERN
+  // IF VERIFYING SESSION ON APP LOAD: TAMPILKAN ANIMASI VISUAL TANPA TEKS
   if (isVerifyingSession) {
     return (
       <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#3a0609] via-[#220406] to-[#0d0102] text-white font-sans antialiased">
-        <div className="mdc-flash-card relative px-7 py-6 rounded-3xl bg-white/[0.04] border border-white/15 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center max-w-xs w-full">
-          <div className="relative mx-auto w-14 h-14 rounded-full bg-gradient-to-b from-amber-400 via-red-500 to-red-700 p-0.5 shadow-lg shadow-red-950/80 flex items-center justify-center mb-3.5">
+        <div className="mdc-flash-card relative p-6 rounded-3xl bg-white/[0.04] border border-white/15 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center">
+          <div className="relative mx-auto w-14 h-14 rounded-full bg-gradient-to-b from-amber-400 via-red-500 to-red-700 p-0.5 shadow-lg shadow-red-950/80 flex items-center justify-center">
             <div className="absolute inset-0 rounded-full mdc-electric-ring" />
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-1.5 overflow-hidden relative z-10">
               <img
@@ -1018,12 +1017,7 @@ export const App: React.FC = () => {
               />
             </div>
           </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-bold mb-1.5">
-            <Zap className="w-3 h-3 fill-amber-300 text-amber-300 animate-pulse" />
-            <span>KILAT SINKRONISASI</span>
-          </div>
-          <p className="text-xs font-semibold text-white/90 tracking-wide">Memverifikasi Sesi Dealer...</p>
-          <div className="w-36 h-[2px] mt-3 rounded-full mdc-laser-beam" />
+          <div className="w-24 h-[2px] mt-3.5 rounded-full mdc-laser-beam" />
         </div>
       </div>
     );
@@ -1218,12 +1212,7 @@ export const App: React.FC = () => {
               </motion.div>
             </AnimatePresence>
 
-            {isLoadingData ? (
-              <span className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-300 bg-amber-500/15 border border-amber-400/30 px-2 py-0.5 rounded-full shadow-xs">
-                <Zap className="w-2.5 h-2.5 text-amber-300 fill-amber-300 animate-pulse" />
-                <span>Kilat Sinkron...</span>
-              </span>
-            ) : searchQuery ? (
+            {searchQuery ? (
               <span className="text-[9.5px] text-white/50 italic">Hasil pencarian</span>
             ) : null}
 
@@ -1262,28 +1251,7 @@ export const App: React.FC = () => {
                 </div>
               ) : isLoadingData ? (
                 <div className="h-full overflow-y-auto px-3.5 py-2.5 space-y-2.5 select-none">
-                  {/* Banner Splash Kilatan Modern */}
-                  <div className="mdc-flash-card rounded-2xl p-3.5 bg-gradient-to-r from-red-950/70 via-slate-900/90 to-amber-950/50 border border-red-500/30 shadow-lg flex items-center gap-3">
-                    <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-red-500 to-red-700 text-white shadow-md flex-shrink-0">
-                      <div className="absolute inset-0 rounded-xl mdc-electric-ring" />
-                      <Zap className="w-4 h-4 text-white fill-white relative z-10" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-extrabold text-white tracking-wide truncate">
-                          {loadingStatusText}
-                        </span>
-                        <span className="text-[8.5px] font-mono font-black uppercase px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                          TURBO
-                        </span>
-                      </div>
-                      <p className="text-[10.5px] text-white/65 truncate mt-0.5">
-                        Menarik riwayat klaim real-time dari Spreadsheet...
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Deretan Kartu Shimmer Kilatan Modern (Staggered Electric Flash Cards) */}
+                  {/* Deretan Kartu Shimmer Kilatan Modern (Tanpa Tulisan) */}
                   {[0, 1, 2].map((idx) => (
                     <div
                       key={idx}
@@ -1336,12 +1304,7 @@ export const App: React.FC = () => {
             }`}
           >
             {isSyncingMaster ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-red-400" />
-                <span className="tracking-wide text-white/80">
-                  {isLoadingData ? 'Menyelaraskan Data...' : 'Memuat Data Master...'}
-                </span>
-              </>
+              <Loader2 className="w-4 h-4 animate-spin text-red-400" />
             ) : (
               <>
                 <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 shadow-inner">

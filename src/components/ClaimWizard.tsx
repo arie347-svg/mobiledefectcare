@@ -848,7 +848,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
     // 1. Proteksi Anti-Double Submit jika mengklik "Kirim ke MD"
     if (status === 'Dikirim ke MD') {
-      if (isSubmitting || hasSubmittedRef.current || isDraftAlreadySubmitted(localDraftId)) {
+      if (isSubmitting || hasSubmittedRef.current || isDraftAlreadySubmitted(localDraftId).submitted) {
         setErrorMessage('Draft klaim ini sudah dikirim ke MD dan tidak dapat dikirim ulang.');
         return;
       }
