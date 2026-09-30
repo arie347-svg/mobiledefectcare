@@ -504,7 +504,12 @@ export const SpreadsheetDatabase = {
   // 5. Get Recent Claims Filtered by Kode AHM
   getRecentClaims(kodeAhm: string) {
     const db = initDb();
-    const matchingHeaders = db.klaimHeader.filter((h) => isCodeMatch(h.kodeAhm, kodeAhm));
+    const matchingHeaders = db.klaimHeader.filter(
+      (h) =>
+        isCodeMatch(h.kodeAhm, kodeAhm) &&
+        (h.status || '').toUpperCase() !== 'DIHAPUS' &&
+        String(h.kodeAhm || '').toUpperCase() !== 'DELETED'
+    );
 
     const fullClaims = matchingHeaders.map((h) => {
       const items = db.klaimDetail
@@ -654,7 +659,12 @@ export const SpreadsheetDatabase = {
   // 6. Get Dashboard Stats Filtered by Kode AHM
   getDashboardStats(kodeAhm: string) {
     const db = initDb();
-    const headers = db.klaimHeader.filter((h) => isCodeMatch(h.kodeAhm, kodeAhm));
+    const headers = db.klaimHeader.filter(
+      (h) =>
+        isCodeMatch(h.kodeAhm, kodeAhm) &&
+        (h.status || '').toUpperCase() !== 'DIHAPUS' &&
+        String(h.kodeAhm || '').toUpperCase() !== 'DELETED'
+    );
 
     let draft = 0;
     let kirimMD = 0;
@@ -695,13 +705,38 @@ export const SpreadsheetDatabase = {
 
   // 7. Save Claim: Links Kode AHM directly to Klaim_Header and Klaim_Detail
   simpanPengajuanKlaim(payload: any) {
+    // Jika payload adalah perintah Purge/Hapus (status DIHAPUS atau kodeAhm DELETED), hapus baris secara fisik
+    if (
+      String(payload?.status || '').toUpperCase() === 'DIHAPUS' ||
+      String(payload?.user?.kodeAhm || '').toUpperCase() === 'DELETED'
+    ) {
+      return this.hapusKlaim(payload?.idKlaim || '', payload?.step1?.noSj || '');
+    }
+
     const db = initDb();
     const userKode = cleanKodeAhm(payload.user?.kodeAhm);
     const userDealerName = payload.user?.namaDealer || 'Dealer Honda';
-    const idKlaim = payload.idKlaim || `CLM-${userKode}-${Date.now()}`;
+    let idKlaim = payload.idKlaim || `CLM-${Date.now()}`;
     const status = payload.status || 'Draft';
+    const cleanSj = String(payload.step1?.noSj || '').replace(/\D/g, '');
 
-    const existingHeaderIdx = db.klaimHeader.findIndex((h) => h.idKlaim === idKlaim);
+    let existingHeaderIdx = db.klaimHeader.findIndex((h) => h.idKlaim === idKlaim);
+
+    // Jika idKlaim belum ditemukan tetapi sudah ada Draft dengan No SJ & Dealer yang sama,
+    // gunakan idKlaim eksisting tersebut dan timpa (overwrite) barisnya agar tidak pernah menjadi 2 baris
+    if (existingHeaderIdx < 0 && cleanSj) {
+      existingHeaderIdx = db.klaimHeader.findIndex((h) => {
+        const hSj = String(h.noSj || '').replace(/\D/g, '');
+        return (
+          hSj === cleanSj &&
+          isCodeMatch(h.kodeAhm, userKode) &&
+          (h.status || '').toLowerCase().includes('draft')
+        );
+      });
+      if (existingHeaderIdx >= 0) {
+        idKlaim = db.klaimHeader[existingHeaderIdx].idKlaim;
+      }
+    }
 
     const cleanMetode = (payload.step3?.metode || '').trim().toUpperCase();
     const validMetode = (cleanMetode === 'DIKIRIM LANGSUNG' || cleanMetode === 'DITITIP') ? cleanMetode : '';
@@ -827,12 +862,18 @@ export const SpreadsheetDatabase = {
       db.klaimHeader = db.klaimHeader.filter((h) => !isCodeMatch(h.kodeAhm, kodeAhm));
       db.klaimDetail = db.klaimDetail.filter((d) => !oldHeaderIds.has(d.idKlaim));
 
-      // Masukkan kembali hanya klaim yang benar-benar masih ada di Google Spreadsheet saat ini
+      // Masukkan kembali hanya klaim yang benar-benar masih ada dan tidak bertanda DIHAPUS
       const newHeaders: StoredClaimHeader[] = [];
       const newDetails: StoredClaimDetail[] = [];
 
       safeRemote.forEach((c: any) => {
         if (!c || !c.idKlaim) return;
+        if (
+          String(c.status || '').toUpperCase() === 'DIHAPUS' ||
+          String(c.kodeAhm || '').toUpperCase() === 'DELETED'
+        ) {
+          return;
+        }
         const cleanId = String(c.idKlaim).trim();
         newHeaders.push({
           idKlaim: cleanId,

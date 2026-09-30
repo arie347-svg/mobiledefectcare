@@ -1344,24 +1344,13 @@ export const App: React.FC = () => {
                 </button>
               </div>
 
-              <div className="max-h-[70vh] overflow-hidden flex items-center justify-center bg-black/50 p-2">
+              <div className="max-h-[80vh] overflow-hidden flex items-center justify-center bg-black/50 p-3">
                 <img
                   src={previewPhoto.url}
                   referrerPolicy="no-referrer"
                   alt={previewPhoto.title}
-                  className="max-h-[68vh] w-auto object-contain rounded-lg"
+                  className="max-h-[76vh] w-auto object-contain rounded-lg"
                 />
-              </div>
-
-              <div className="p-2.5 text-center border-t border-white/10">
-                <a
-                  href={previewPhoto.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] text-amber-300 hover:underline inline-flex items-center gap-1 font-semibold"
-                >
-                  Buka Gambar di Tab Baru <ExternalLink className="w-3 h-3" />
-                </a>
               </div>
             </div>
           </div>

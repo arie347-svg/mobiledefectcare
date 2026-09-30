@@ -275,10 +275,14 @@ export const mergeClaimsWithLocalDrafts = (
   }
 
   const localDrafts = getLocalDrafts(kodeAhm);
-  // Saring klaim remote agar klaim yang baru saja dihapus di HP tidak muncul lagi akibat lag baca
-  const cleanRemoteList = (remoteClaims || []).filter(
-    (item) => !isClaimDeleted(item.idKlaim, item.noSj)
-  );
+  // Saring klaim remote agar klaim yang baru saja dihapus di HP atau bertanda DIHAPUS tidak muncul lagi
+  const cleanRemoteList = (remoteClaims || []).filter((item) => {
+    if (!item) return false;
+    const st = (item.status || '').toUpperCase();
+    const kd = String(item.kodeAhm || '').toUpperCase();
+    if (st === 'DIHAPUS' || kd === 'DELETED') return false;
+    return !isClaimDeleted(item.idKlaim, item.noSj);
+  });
 
   // 1. Terapkan Proteksi Mutation Lock pada data remote
   const guardedRemoteList = cleanRemoteList.map((remoteItem) => {
@@ -291,11 +295,13 @@ export const mergeClaimsWithLocalDrafts = (
       const remotePriority = STATUS_PRIORITY[remoteItem.status] || 0;
       const lockedPriority = STATUS_PRIORITY[lock.status] || 0;
 
-      // Jika data server membawa status yang lebih rendah dari aksi lokal terbaru pengguna, tahan dengan data lokal terbaru
-      if (lockedPriority > remotePriority) {
+      // Jika data server membawa status yang lebih rendah ATAU sedang meng-update Draft yang sama (lockedPriority === 1),
+      // pertahankan data lokal terbaru milik pengguna agar editan Draft tidak tertimpa data lama server
+      if (lockedPriority > remotePriority || (lockedPriority === remotePriority && lockedPriority === 1)) {
         return {
           ...remoteItem,
           ...lock.claim,
+          idKlaim: lock.claim.idKlaim || remoteItem.idKlaim,
           status: lock.status,
           tglSelesai: lock.claim.tglSelesai || remoteItem.tglSelesai,
           mdValidasiRepairman: lock.claim.mdValidasiRepairman || remoteItem.mdValidasiRepairman,
@@ -313,20 +319,22 @@ export const mergeClaimsWithLocalDrafts = (
   const validLocalDrafts = localDrafts.filter((ld) => {
     const cleanSj = normalizeSj(ld.noSj);
     const existsInRemote = (cleanSj && remoteSjMap.has(cleanSj)) || remoteIdMap.has(ld.idKlaim);
+    const hasActiveLock =
+      activeMutationLocks.has(ld.idKlaim) ||
+      (cleanSj ? activeMutationLocks.has(`sj_${cleanSj}`) : false);
 
     if (existsInRemote) {
-      // Jika sudah ada di respon server, tandai synced & bersihkan dari localStorage agar Single Source of Truth dari server
-      removeLocalDraft(kodeAhm, ld.idKlaim);
-      if (cleanSj) removeLocalDraft(kodeAhm, cleanSj);
+      // Jika sudah ada di respon server dan tidak sedang dalam proses edit aktif (atau sudah synced),
+      // bersihkan dari localStorage karena sudah diwakili oleh guardedRemoteList
+      if (ld.isSyncedToServer || !hasActiveLock) {
+        removeLocalDraft(kodeAhm, ld.idKlaim);
+        if (cleanSj) removeLocalDraft(kodeAhm, cleanSj);
+      }
       return false;
     }
 
     // Jika TIDAK ADA di respon server:
     // Cek apakah draft ini sedang berada dalam masa tenggang mutasi baru (< 15 detik)
-    const hasActiveLock =
-      activeMutationLocks.has(ld.idKlaim) ||
-      (cleanSj ? activeMutationLocks.has(`sj_${cleanSj}`) : false);
-
     if (hasActiveLock) {
       return true;
     }

@@ -29,7 +29,14 @@ import { SignaturePad } from './SignaturePad';
 import { BarcodeScannerModal } from './BarcodeScannerModal';
 import { compressImage } from '../utils/slaCalculator';
 import { compressClaimImage } from '../utils/imageCompressor';
-import { saveLocalDraft, removeLocalDraft, recordMutationLock, markDraftSyncedToServer } from '../utils/draftStorage';
+import {
+  saveLocalDraft,
+  removeLocalDraft,
+  recordMutationLock,
+  markDraftSyncedToServer,
+  getLocalDrafts,
+  normalizeSj,
+} from '../utils/draftStorage';
 
 // Manual transporter options when nopol is not in master spreadsheet list
 const MANUAL_TRANSPORTERS = ['TM', 'RJTM', 'JTM', 'WSS', 'YSS', 'SBR'];
@@ -800,8 +807,17 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
       clearInterval(preCompressTimer);
 
+      // Pastikan Id Klaim tunggal ditentukan SEBELUM membuat payload agar HP & Spreadsheet 100% menggunakan Id Klaim yang sama
+      const existingDraftForSj = getLocalDrafts(user.kodeAhm).find(
+        (d) => normalizeSj(d.noSj) === normalizeSj(noSj)
+      );
+      let createdId =
+        initialDraft?.idKlaim ||
+        existingDraftForSj?.idKlaim ||
+        `CLM-${Date.now()}`;
+
       const payload: SimpanKlaimPayload = {
-        idKlaim: initialDraft?.idKlaim,
+        idKlaim: createdId,
         user,
         status,
         lastStep: currentStep,
@@ -824,8 +840,6 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
           parafUser,
         },
       };
-
-      let createdId = initialDraft?.idKlaim || `CLM-${user.kodeAhm || 'DLR'}-${Date.now().toString().slice(-6)}`;
 
       const now = new Date();
       const dateFormatted = now.toLocaleDateString('id-ID', {
@@ -906,6 +920,9 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
             .then((res) => {
               console.log('[ClaimWizard] Background Draft sync sukses ke Spreadsheet:', res);
               const finalSyncedId = (res && res.idKlaim) ? res.idKlaim : createdId;
+              if (finalSyncedId !== createdId) {
+                saveLocalDraft(user.kodeAhm, { ...newClaimItem, idKlaim: finalSyncedId }, true);
+              }
               markDraftSyncedToServer(user.kodeAhm, finalSyncedId, noSj);
             })
             .catch((gasErr) => {

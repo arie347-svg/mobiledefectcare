@@ -1426,7 +1426,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                             />
                             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <ExternalLink className="w-3.5 h-3.5 text-white" />
+                              <Eye className="w-3.5 h-3.5 text-white" />
                             </div>
                           </div>
                         ) : (
@@ -1459,18 +1459,21 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
             </div>
 
             {/* BUKTI FOTO SOPIR LANGSUNG DI BAWAH SOPIR PJ DENGAN GARIS BAWAH */}
-            {claim.fotoSopirPJ && (
-              <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                <span className="text-white/60">Bukti Foto Sopir:</span>
-                <img
-                  src={claim.fotoSopirPJ}
-                  alt="Foto Sopir PJ"
-                  referrerPolicy="no-referrer"
-                  onClick={() => onPreviewPhoto(claim.fotoSopirPJ!, 'Foto Sopir PJ')}
-                  className="w-10 h-10 object-cover rounded-lg border border-white/20 cursor-pointer hover:scale-105 transition-transform shadow-xs"
-                />
-              </div>
-            )}
+            {claim.fotoSopirPJ && (() => {
+              const cleanSopirPhoto = getCleanPhotoUrl(claim.fotoSopirPJ);
+              return (
+                <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                  <span className="text-white/60">Bukti Foto Sopir:</span>
+                  <img
+                    src={cleanSopirPhoto}
+                    alt="Foto Sopir PJ"
+                    referrerPolicy="no-referrer"
+                    onClick={() => onPreviewPhoto(cleanSopirPhoto, 'Foto Sopir PJ')}
+                    className="w-10 h-10 object-cover rounded-lg border border-white/20 cursor-pointer hover:scale-105 transition-transform shadow-xs"
+                  />
+                </div>
+              );
+            })()}
 
             <div className="flex justify-between pt-0.5">
               <span className="text-white/60">Metode Pengembalian:</span>

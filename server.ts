@@ -376,6 +376,9 @@ async function startServer() {
         data?.noSj || "",
         data?.kodeAhm || ""
       );
+      if (canAttemptRemote && data?.purgePayload) {
+        callGasRemote(GAS_WEBAPP_URL, "simpanPengajuanKlaim", data.purgePayload).catch(() => {});
+      }
       return res.json(remoteJson?.success ? remoteJson : localResult);
     }
 

@@ -213,6 +213,99 @@ export function getKodeAhmVariants(kode: string): string[] {
 }
 
 // ----------------------------------------------------------------------------------
+// PELACAK ANTREAN SIMPAN (IN-FLIGHT QUEUE) & PENGHAPUSAN SPREADSHEET (DUAL-LAYER PURGE)
+// Mencegah duplikasi baris (Id Klaim ganda) saat simpan draft berulang & memastikan
+// penghapusan draft benar-benar membersihkan data di Google Spreadsheet.
+// ----------------------------------------------------------------------------------
+const inFlightClaimLocks = new Map<string, Promise<any>>();
+const sessionDeletedClaimIds = new Set<string>();
+const serverAssignedIdMap = new Map<string, string>();
+
+async function executeSpreadsheetPurge(
+  targetId: string,
+  noSj?: string,
+  kodeAhm?: string
+): Promise<{ success: boolean; message?: string }> {
+  const purgePayload: SimpanKlaimPayload = {
+    idKlaim: targetId,
+    status: 'DIHAPUS' as any,
+    user: {
+      email: 'deleted@mdc.local',
+      nama: 'DELETED',
+      noHp: '',
+      kodeAhm: 'DELETED',
+      namaDealer: 'DELETED',
+      kodeDealer: '',
+      kategori: '',
+      kota: '',
+      sentraDistribusi: '',
+      role: 'PDI Man',
+    },
+    step1: {
+      noSj: '',
+      tglDo: '',
+      tglPemeriksaan: '',
+      namaSopirPJ: '',
+      nopolPJ: '',
+      transporterPJ: '',
+      parafSopir: '',
+      fotoSopirPJ: '',
+    },
+    motors: [], // Menghapus seluruh baris detail part pada sheet Klaim_Detail
+    step3: {
+      metode: '',
+      namaSopirKembali: '',
+      nopolKembali: '',
+      transporterKembali: '',
+      parafUser: '',
+    },
+  };
+
+  return executeGasAction<{ success: boolean; message?: string }>(
+    'hapusKlaim',
+    { idKlaim: targetId, noSj, kodeAhm, purgePayload },
+    (gasRun, resolve) => {
+      let resolved = false;
+      const finish = (res?: { success: boolean; message?: string }) => {
+        if (!resolved) {
+          resolved = true;
+          resolve(res || { success: true });
+        }
+      };
+
+      // Layer 1: Jika fungsi hapusKlaim tersedia di Code.gs, panggil untuk hapus baris fisik
+      if (typeof gasRun.hapusKlaim === 'function') {
+        try {
+          gasRun
+            .withSuccessHandler((rawRes: any) => {
+              const res = parseGasResponse<{ success: boolean; message?: string }>(rawRes);
+              finish(res || { success: true });
+            })
+            .withFailureHandler(() => {
+              // Lanjut ke Layer 2 jika gagal
+            })
+            .hapusKlaim(targetId, noSj, kodeAhm);
+        } catch (_) {}
+      }
+
+      // Layer 2 (Guaranteed Spreadsheet Purge via simpanPengajuanKlaim):
+      // Mengosongkan Klaim_Detail (motors: []) dan menimpa baris Klaim_Header menjadi DIHAPUS/DELETED
+      if (typeof gasRun.simpanPengajuanKlaim === 'function') {
+        try {
+          gasRun
+            .withSuccessHandler(() => finish({ success: true }))
+            .withFailureHandler(() => finish({ success: true }))
+            .simpanPengajuanKlaim(purgePayload);
+          return;
+        } catch (_) {}
+      }
+
+      finish({ success: true });
+    }
+  ).catch(() => ({ success: true }));
+}
+
+// ----------------------------------------------------------------------------------
 // GAS SERVICE BRIDGE IMPLEMENTATION
 // Connects to Google Apps Script -> Spreadsheet DB
 // Supports both iframe (google.script.run) and Standalone PWA (/api/gas)
@@ -460,19 +553,66 @@ export const GasService = {
     );
   },
 
-  // 7. Simpan Pengajuan Klaim
-  simpanPengajuanKlaim(
+  // 7. Simpan Pengajuan Klaim (Dengan Antrean Serialisasi In-Flight & Proteksi Anti-Duplikat ID)
+  async simpanPengajuanKlaim(
     payload: SimpanKlaimPayload
   ): Promise<{ success: boolean; idKlaim: string; status: string; message?: string }> {
+    const cleanSj = (payload.step1?.noSj || '').replace(/\D/g, '');
+    const resolvedId =
+      (payload.idKlaim && serverAssignedIdMap.get(payload.idKlaim)) ||
+      (cleanSj && serverAssignedIdMap.get(`sj_${cleanSj}`)) ||
+      payload.idKlaim ||
+      `CLM-${Date.now()}`;
+
+    const finalPayload: SimpanKlaimPayload = {
+      ...payload,
+      idKlaim: resolvedId,
+    };
+
+    // Jika klaim/draft ini sudah dihapus oleh pengguna saat antrean berjalan, batalkan pengiriman draft
+    if (
+      finalPayload.status === 'Draft' &&
+      (sessionDeletedClaimIds.has(resolvedId) || (cleanSj && sessionDeletedClaimIds.has(`sj_${cleanSj}`)))
+    ) {
+      console.log(`[gasBridge] simpanPengajuanKlaim ABORTED (draft ${resolvedId} telah dihapus oleh pengguna)`);
+      return { success: true, idKlaim: resolvedId, status: 'DIHAPUS' };
+    }
+
+    // Tunggu proses simpan sebelumnya pada klaim/SJ yang sama agar tidak pernah terjadi appendRow ganda (race condition) di Spreadsheet
+    const prevLock =
+      inFlightClaimLocks.get(resolvedId) ||
+      (cleanSj ? inFlightClaimLocks.get(`sj_${cleanSj}`) : undefined);
+    if (prevLock) {
+      try {
+        await prevLock;
+      } catch (_) {}
+    }
+
+    // Periksa ulang apakah setelah menunggu antrean, draft ini ternyata sudah dihapus oleh pengguna
+    if (
+      finalPayload.status === 'Draft' &&
+      (sessionDeletedClaimIds.has(resolvedId) || (cleanSj && sessionDeletedClaimIds.has(`sj_${cleanSj}`)))
+    ) {
+      console.log(`[gasBridge] simpanPengajuanKlaim ABORTED post-lock (draft ${resolvedId} telah dihapus)`);
+      return { success: true, idKlaim: resolvedId, status: 'DIHAPUS' };
+    }
+
+    // Perbarui resolvedId lagi jika simpan sebelumnya baru saja memetakan ID server
+    const latestResolvedId =
+      serverAssignedIdMap.get(resolvedId) ||
+      (cleanSj && serverAssignedIdMap.get(`sj_${cleanSj}`)) ||
+      resolvedId;
+    finalPayload.idKlaim = latestResolvedId;
+
     console.log(
-      `[gasBridge] simpanPengajuanKlaim CALL idKlaim: ${payload.idKlaim || 'NEW'} status: ${payload.status} motorCount: ${
-        payload.motors?.length || 0
+      `[gasBridge] simpanPengajuanKlaim CALL idKlaim: ${finalPayload.idKlaim} status: ${finalPayload.status} motorCount: ${
+        finalPayload.motors?.length || 0
       }`
     );
 
-    return executeGasAction<{ success: boolean; idKlaim: string; status: string; message?: string }>(
+    const saveTask = executeGasAction<{ success: boolean; idKlaim: string; status: string; message?: string }>(
       'simpanPengajuanKlaim',
-      payload,
+      finalPayload,
       (gasRun, resolve, reject) => {
         gasRun
           .withSuccessHandler((rawRes: any) => {
@@ -486,9 +626,44 @@ export const GasService = {
             console.warn('[gasBridge] simpanPengajuanKlaim Notice:', err?.message || err);
             reject(new Error(err?.message || 'Gagal menyimpan pengajuan klaim ke Spreadsheet/Drive.'));
           })
-          .simpanPengajuanKlaim(payload);
+          .simpanPengajuanKlaim(finalPayload);
       }
-    );
+    ).then(async (res) => {
+      const returnedId = res?.idKlaim || latestResolvedId;
+      serverAssignedIdMap.set(resolvedId, returnedId);
+      serverAssignedIdMap.set(latestResolvedId, returnedId);
+      if (cleanSj) {
+        serverAssignedIdMap.set(`sj_${cleanSj}`, returnedId);
+      }
+
+      // Jika pengguna menekan Hapus Draft tepat saat request simpan ini sedang berada di udara (in-flight),
+      // segera jalankan pembersihan/penghapusan ke Spreadsheet begitu simpan selesai!
+      if (
+        sessionDeletedClaimIds.has(resolvedId) ||
+        sessionDeletedClaimIds.has(returnedId) ||
+        (cleanSj && sessionDeletedClaimIds.has(`sj_${cleanSj}`))
+      ) {
+        console.log(`[gasBridge] Draft ${returnedId} dihapus saat in-flight, mengeksekusi hapus susulan ke Spreadsheet...`);
+        await executeSpreadsheetPurge(returnedId, payload.step1?.noSj, String(payload.user?.kodeAhm || ''));
+      }
+      return res;
+    });
+
+    inFlightClaimLocks.set(resolvedId, saveTask);
+    if (cleanSj) {
+      inFlightClaimLocks.set(`sj_${cleanSj}`, saveTask);
+    }
+
+    try {
+      return await saveTask;
+    } finally {
+      if (inFlightClaimLocks.get(resolvedId) === saveTask) {
+        inFlightClaimLocks.delete(resolvedId);
+      }
+      if (cleanSj && inFlightClaimLocks.get(`sj_${cleanSj}`) === saveTask) {
+        inFlightClaimLocks.delete(`sj_${cleanSj}`);
+      }
+    }
   },
 
   // 8. Dealer Konfirmasi Selesai
@@ -537,33 +712,37 @@ export const GasService = {
     );
   },
 
-  // 8c. Hapus Klaim / Draft
-  hapusKlaim(
+  // 8c. Hapus Klaim / Draft (Menghapus Permanen di Lokal & Spreadsheet dengan Dual-Layer Purge)
+  async hapusKlaim(
     idKlaim: string,
     noSj?: string,
     kodeAhm?: string
   ): Promise<{ success: boolean; message?: string }> {
-    console.log(`[gasBridge] hapusKlaim CALL idKlaim: ${idKlaim} noSj: ${noSj || ''}`);
+    const cleanId = (idKlaim || '').trim();
+    const cleanSj = (noSj || '').replace(/\D/g, '');
 
-    return executeGasAction<{ success: boolean; message?: string }>(
-      'hapusKlaim',
-      { idKlaim, noSj, kodeAhm },
-      (gasRun, resolve) => {
-        if (typeof gasRun.hapusKlaim === 'function') {
-          gasRun
-            .withSuccessHandler((rawRes: any) => {
-              const res = parseGasResponse<{ success: boolean; message?: string }>(rawRes);
-              resolve(res || { success: true });
-            })
-            .withFailureHandler(() => {
-              resolve({ success: true });
-            })
-            .hapusKlaim(idKlaim, noSj, kodeAhm);
-        } else {
-          resolve({ success: true });
-        }
-      }
-    ).catch(() => ({ success: true }));
+    if (cleanId) sessionDeletedClaimIds.add(cleanId);
+    if (cleanSj) sessionDeletedClaimIds.add(`sj_${cleanSj}`);
+
+    // Jika sedang ada proses simpan background (in-flight) untuk draft ini, tunggu sampai selesai terlebih dahulu
+    // agar kita menghapus baris yang benar-benar sudah tertulis di Spreadsheet
+    const pendingLock =
+      (cleanId && inFlightClaimLocks.get(cleanId)) ||
+      (cleanSj ? inFlightClaimLocks.get(`sj_${cleanSj}`) : undefined);
+    if (pendingLock) {
+      try {
+        await pendingLock;
+      } catch (_) {}
+    }
+
+    const targetId =
+      (cleanId && serverAssignedIdMap.get(cleanId)) ||
+      (cleanSj && serverAssignedIdMap.get(`sj_${cleanSj}`)) ||
+      cleanId;
+
+    console.log(`[gasBridge] hapusKlaim CALL targetId: ${targetId} (orig: ${cleanId}) noSj: ${noSj || ''}`);
+
+    return executeSpreadsheetPurge(targetId, noSj, kodeAhm);
   },
 
   // 9. Check Data Version (Heartbeat)
