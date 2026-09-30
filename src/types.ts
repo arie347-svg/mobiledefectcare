@@ -61,6 +61,11 @@ export interface ClaimPartDetail {
 
 export interface ClaimItem {
   idKlaim: string;
+  localDraftId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  isLocalDraft?: boolean;
+  submittedClaimId?: string;
   rawTimestamp: number;
   rawDate: string;
   tgl: string;
@@ -119,6 +124,7 @@ export interface PayloadMotorItem {
 
 export interface SimpanKlaimPayload {
   idKlaim?: string;
+  localDraftId?: string;
   user: UserProfile;
   status: 'Draft' | 'Dikirim ke MD';
   lastStep?: number;

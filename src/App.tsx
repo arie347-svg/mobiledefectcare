@@ -29,8 +29,12 @@ import {
   mergeClaimsWithLocalDrafts,
   getLocalDrafts,
   recordMutationLock,
-  removeLocalDraft,
+  deleteLocalDraft,
   recordDeletedClaim,
+  isLocalDraftIdentifier,
+  getActiveWizardSession,
+  saveActiveWizardSession,
+  hydrateLocalDraftsFromIdb,
 } from './utils/draftStorage';
 import {
   Plus,
@@ -77,17 +81,14 @@ export const App: React.FC = () => {
   });
 
   const [isVerifyingSession, setIsVerifyingSession] = useState<boolean>(() => {
-    // Bersihkan cache lama klaim & residu zombie draft secara proaktif tanpa menyentuh token sesi auth utama
+    // Bersihkan cache lama klaim tanpa pernah menghapus mdc_local_drafts_ milik user
     try {
       const hasCleanedZombie = localStorage.getItem(ZOMBIE_CLEANUP_FLAG);
       localStorage.removeItem('mdc_mobile_session_user');
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
         if (!key) continue;
-        if (
-          key.startsWith('mdc_claims_') ||
-          (!hasCleanedZombie && key.startsWith('mdc_local_drafts_'))
-        ) {
+        if (key.startsWith('mdc_claims_')) {
           localStorage.removeItem(key);
         }
       }
@@ -220,8 +221,24 @@ export const App: React.FC = () => {
     sessionStorage.setItem('mdc_active_filter', activeFilter);
   }, [activeFilter]);
 
-  // Modals & Navigation Views
-  const [draftToContinue, setDraftToContinue] = useState<ClaimItem | null>(null);
+  // Modals & Navigation Views (pulihkan draft yang sedang diedit jika halaman di-refresh)
+  const [draftToContinue, setDraftToContinue] = useState<ClaimItem | null>(() => {
+    return getActiveWizardSession(user?.kodeAhm);
+  });
+
+  // Sinkronisasi cadangan draft dari IndexedDB jika localStorage kosong
+  useEffect(() => {
+    if (!user?.kodeAhm) return;
+    hydrateLocalDraftsFromIdb(user.kodeAhm).then((restored) => {
+      if (restored && restored.length > 0) {
+        setClaims((prev) => {
+          const merged = mergeClaimsWithLocalDrafts(prev, user.kodeAhm);
+          setDashboardStats(calculateDashboardStats(merged));
+          return merged;
+        });
+      }
+    });
+  }, [user?.kodeAhm]);
   const [selectedClaimForDetail, setSelectedClaimForDetail] = useState<ClaimItem | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<{ url: string; title: string } | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -625,7 +642,7 @@ export const App: React.FC = () => {
       localStorage.removeItem('mdc_mobile_session_user');
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('mdc_claims_') || key.startsWith('mdc_local_drafts_'))) {
+        if (key && key.startsWith('mdc_claims_')) {
           localStorage.removeItem(key);
         }
       }
@@ -676,11 +693,17 @@ export const App: React.FC = () => {
   // Claim Wizard Handlers
   const handleOpenNewClaim = () => {
     if (isSyncingMaster) return;
+    if (user?.kodeAhm) {
+      saveActiveWizardSession(user.kodeAhm, null);
+    }
     setDraftToContinue(null);
     setIsWizardOpen(true);
   };
 
   const handleEditDraft = (draftClaim: ClaimItem) => {
+    if (user?.kodeAhm) {
+      saveActiveWizardSession(user.kodeAhm, draftClaim);
+    }
     setDraftToContinue(draftClaim);
     setIsWizardOpen(true);
   };
@@ -688,13 +711,14 @@ export const App: React.FC = () => {
   const handleDeleteClaim = useCallback(async (targetClaim: ClaimItem) => {
     if (!targetClaim) return;
     const kode = user?.kodeAhm || targetClaim.kodeAhm || '';
+    const draftKey = targetClaim.localDraftId || targetClaim.idKlaim;
+    const isLocalOnly = isLocalDraftIdentifier(draftKey) || Boolean(targetClaim.isLocalDraft);
 
-    // 1. Catat ke daftar hitam (Tombstone) & bersihkan dari localStorage secara instan (0ms)
-    recordDeletedClaim(targetClaim.idKlaim, targetClaim.noSj);
+    // 1. Hapus dari penyimpanan draft lokal (localStorage + IndexedDB)
     if (kode) {
-      removeLocalDraft(kode, targetClaim.idKlaim);
-      if (targetClaim.noSj) {
-        removeLocalDraft(kode, targetClaim.noSj);
+      deleteLocalDraft(kode, draftKey);
+      if (targetClaim.idKlaim && targetClaim.idKlaim !== draftKey) {
+        deleteLocalDraft(kode, targetClaim.idKlaim);
       }
     }
 
@@ -702,16 +726,21 @@ export const App: React.FC = () => {
     setSelectedClaimForDetail(null);
     setClaims((prev) => {
       const updated = prev.filter(
-        (c) => c.idKlaim !== targetClaim.idKlaim && (!targetClaim.noSj || c.noSj !== targetClaim.noSj)
+        (c) =>
+          (c.localDraftId || c.idKlaim) !== draftKey &&
+          c.idKlaim !== targetClaim.idKlaim
       );
       setDashboardStats(calculateDashboardStats(updated));
       return updated;
     });
 
-    // 3. Hapus dari server lokal (spreadsheet_database.json) & Google Apps Script
-    try {
-      await GasService.hapusKlaim(targetClaim.idKlaim, targetClaim.noSj, kode);
-    } catch (_) {}
+    // 3. Hanya panggil hapusKlaim ke backend/Spreadsheet jika klaim BUKAN local-only draft (memiliki CLM-xxx resmi)
+    if (!isLocalOnly && !isLocalDraftIdentifier(targetClaim.idKlaim)) {
+      recordDeletedClaim(targetClaim.idKlaim, targetClaim.noSj);
+      try {
+        await GasService.hapusKlaim(targetClaim.idKlaim, targetClaim.noSj, kode);
+      } catch (_) {}
+    }
   }, [user]);
 
   // Handler Tutup Resi Pengiriman & Kembali Bersih ke Halaman Utama
@@ -724,6 +753,9 @@ export const App: React.FC = () => {
   }, []);
 
   const handleSubmitSuccess = (_idKlaim: string, status: string, claimItem?: ClaimItem) => {
+    if (user?.kodeAhm) {
+      saveActiveWizardSession(user.kodeAhm, null);
+    }
     setIsWizardOpen(false);
     setDraftToContinue(null);
     setActiveFilter('ALL');
@@ -738,6 +770,21 @@ export const App: React.FC = () => {
       });
     } catch (_) {}
 
+    // Jika klaim disimpan sebagai Draft lokal: perbarui state langsung dari local storage tanpa request ke Spreadsheet
+    if (status === 'Draft') {
+      if (user?.kodeAhm) {
+        setClaims((prev) => {
+          const remoteOnly = prev.filter(
+            (c) => c.status !== 'Draft' && !c.isLocalDraft && !isLocalDraftIdentifier(c.localDraftId || c.idKlaim)
+          );
+          const merged = mergeClaimsWithLocalDrafts(remoteOnly, user.kodeAhm);
+          setDashboardStats(calculateDashboardStats(merged));
+          return merged;
+        });
+      }
+      return;
+    }
+
     // Jika klaim berstatus "Dikirim ke MD", munculkan layar Resi Pengiriman Layar Penuh
     if (status === 'Dikirim ke MD' && claimItem) {
       setSubmittedReceiptClaim(claimItem);
@@ -746,7 +793,12 @@ export const App: React.FC = () => {
     if (claimItem) {
       recordMutationLock(claimItem);
       setClaims((prev) => {
-        const filtered = prev.filter((c) => c.idKlaim !== claimItem.idKlaim && c.noSj !== claimItem.noSj);
+        const filtered = prev.filter(
+          (c) =>
+            c.idKlaim !== claimItem.idKlaim &&
+            (c.localDraftId || c.idKlaim) !== (claimItem.localDraftId || '') &&
+            !(c.status === 'Draft' && c.noSj && claimItem.noSj && c.noSj === claimItem.noSj)
+        );
         const updated = [claimItem, ...filtered];
         setDashboardStats(calculateDashboardStats(updated));
         return updated;

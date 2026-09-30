@@ -553,33 +553,53 @@ export const GasService = {
     );
   },
 
-  // 7. Simpan Pengajuan Klaim (Dengan Antrean Serialisasi In-Flight & Proteksi Anti-Duplikat ID)
+  // 7. Simpan Pengajuan Klaim (HANYA untuk "Dikirim ke MD" - Draft 100% disimpan lokal di perangkat)
   async simpanPengajuanKlaim(
     payload: SimpanKlaimPayload
   ): Promise<{ success: boolean; idKlaim: string; status: string; message?: string }> {
+    // PROTEKSI MUTLAK: Draft TIDAK BOLEH dikirim ke backend / Google Spreadsheet
+    if (String(payload.status || '').trim().toLowerCase() === 'draft') {
+      const localId = payload.localDraftId || payload.idKlaim || `DRAFT-${Date.now()}`;
+      console.log(`[gasBridge] simpanPengajuanKlaim SKIPPED (Draft ${localId} hanya disimpan di local storage)`);
+      return {
+        success: true,
+        idKlaim: localId,
+        status: 'Draft',
+        message: 'Draft disimpan secara lokal di perangkat (tidak dikirim ke Spreadsheet).',
+      };
+    }
+
     const cleanSj = (payload.step1?.noSj || '').replace(/\D/g, '');
+    const draftKey = payload.localDraftId ? `draft_${payload.localDraftId}` : '';
+
+    // Cek apakah localDraftId ini sudah pernah berhasil dikirim ke MD di sesi ini (Anti-Double Submit)
+    if (draftKey && serverAssignedIdMap.has(draftKey)) {
+      const existingOfficialId = serverAssignedIdMap.get(draftKey)!;
+      console.log(`[gasBridge] Anti-Double Submit: ${payload.localDraftId} sudah terkirim sebagai ${existingOfficialId}`);
+      return {
+        success: true,
+        idKlaim: existingOfficialId,
+        status: 'Dikirim ke MD',
+        message: 'Klaim sudah berhasil dikirim ke MD.',
+      };
+    }
+
     const resolvedId =
-      (payload.idKlaim && serverAssignedIdMap.get(payload.idKlaim)) ||
+      (draftKey && serverAssignedIdMap.get(draftKey)) ||
+      (payload.idKlaim && !String(payload.idKlaim).startsWith('DRAFT-') && serverAssignedIdMap.get(payload.idKlaim)) ||
       (cleanSj && serverAssignedIdMap.get(`sj_${cleanSj}`)) ||
-      payload.idKlaim ||
+      (payload.idKlaim && !String(payload.idKlaim).startsWith('DRAFT-') ? payload.idKlaim : '') ||
       `CLM-${Date.now()}`;
 
     const finalPayload: SimpanKlaimPayload = {
       ...payload,
       idKlaim: resolvedId,
+      status: 'Dikirim ke MD',
     };
 
-    // Jika klaim/draft ini sudah dihapus oleh pengguna saat antrean berjalan, batalkan pengiriman draft
-    if (
-      finalPayload.status === 'Draft' &&
-      (sessionDeletedClaimIds.has(resolvedId) || (cleanSj && sessionDeletedClaimIds.has(`sj_${cleanSj}`)))
-    ) {
-      console.log(`[gasBridge] simpanPengajuanKlaim ABORTED (draft ${resolvedId} telah dihapus oleh pengguna)`);
-      return { success: true, idKlaim: resolvedId, status: 'DIHAPUS' };
-    }
-
-    // Tunggu proses simpan sebelumnya pada klaim/SJ yang sama agar tidak pernah terjadi appendRow ganda (race condition) di Spreadsheet
+    // Tunggu proses simpan sebelumnya pada klaim/SJ/localDraftId yang sama agar tidak pernah terjadi appendRow ganda (race condition) di Spreadsheet
     const prevLock =
+      (draftKey ? inFlightClaimLocks.get(draftKey) : undefined) ||
       inFlightClaimLocks.get(resolvedId) ||
       (cleanSj ? inFlightClaimLocks.get(`sj_${cleanSj}`) : undefined);
     if (prevLock) {
@@ -588,13 +608,14 @@ export const GasService = {
       } catch (_) {}
     }
 
-    // Periksa ulang apakah setelah menunggu antrean, draft ini ternyata sudah dihapus oleh pengguna
-    if (
-      finalPayload.status === 'Draft' &&
-      (sessionDeletedClaimIds.has(resolvedId) || (cleanSj && sessionDeletedClaimIds.has(`sj_${cleanSj}`)))
-    ) {
-      console.log(`[gasBridge] simpanPengajuanKlaim ABORTED post-lock (draft ${resolvedId} telah dihapus)`);
-      return { success: true, idKlaim: resolvedId, status: 'DIHAPUS' };
+    // Jika setelah lock selesai ternyata sudah tercatat di serverAssignedIdMap, kembalikan langsung tanpa kirim ulang
+    if (draftKey && serverAssignedIdMap.has(draftKey)) {
+      const existingOfficialId = serverAssignedIdMap.get(draftKey)!;
+      return {
+        success: true,
+        idKlaim: existingOfficialId,
+        status: 'Dikirim ke MD',
+      };
     }
 
     // Perbarui resolvedId lagi jika simpan sebelumnya baru saja memetakan ID server
@@ -632,24 +653,30 @@ export const GasService = {
       const returnedId = res?.idKlaim || latestResolvedId;
       serverAssignedIdMap.set(resolvedId, returnedId);
       serverAssignedIdMap.set(latestResolvedId, returnedId);
+      if (draftKey) {
+        serverAssignedIdMap.set(draftKey, returnedId);
+      }
       if (cleanSj) {
         serverAssignedIdMap.set(`sj_${cleanSj}`, returnedId);
       }
 
-      // Jika pengguna menekan Hapus Draft tepat saat request simpan ini sedang berada di udara (in-flight),
+      // Jika pengguna menekan Hapus tepat saat request simpan ini sedang berada di udara (in-flight),
       // segera jalankan pembersihan/penghapusan ke Spreadsheet begitu simpan selesai!
       if (
         sessionDeletedClaimIds.has(resolvedId) ||
         sessionDeletedClaimIds.has(returnedId) ||
         (cleanSj && sessionDeletedClaimIds.has(`sj_${cleanSj}`))
       ) {
-        console.log(`[gasBridge] Draft ${returnedId} dihapus saat in-flight, mengeksekusi hapus susulan ke Spreadsheet...`);
+        console.log(`[gasBridge] Klaim ${returnedId} dihapus saat in-flight, mengeksekusi hapus susulan ke Spreadsheet...`);
         await executeSpreadsheetPurge(returnedId, payload.step1?.noSj, String(payload.user?.kodeAhm || ''));
       }
       return res;
     });
 
     inFlightClaimLocks.set(resolvedId, saveTask);
+    if (draftKey) {
+      inFlightClaimLocks.set(draftKey, saveTask);
+    }
     if (cleanSj) {
       inFlightClaimLocks.set(`sj_${cleanSj}`, saveTask);
     }
@@ -659,6 +686,9 @@ export const GasService = {
     } finally {
       if (inFlightClaimLocks.get(resolvedId) === saveTask) {
         inFlightClaimLocks.delete(resolvedId);
+      }
+      if (draftKey && inFlightClaimLocks.get(draftKey) === saveTask) {
+        inFlightClaimLocks.delete(draftKey);
       }
       if (cleanSj && inFlightClaimLocks.get(`sj_${cleanSj}`) === saveTask) {
         inFlightClaimLocks.delete(`sj_${cleanSj}`);

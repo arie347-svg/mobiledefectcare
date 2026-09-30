@@ -508,6 +508,7 @@ export const SpreadsheetDatabase = {
       (h) =>
         isCodeMatch(h.kodeAhm, kodeAhm) &&
         (h.status || '').toUpperCase() !== 'DIHAPUS' &&
+        (h.status || '').trim().toLowerCase() !== 'draft' &&
         String(h.kodeAhm || '').toUpperCase() !== 'DELETED'
     );
 
@@ -704,6 +705,7 @@ export const SpreadsheetDatabase = {
   },
 
   // 7. Save Claim: Links Kode AHM directly to Klaim_Header and Klaim_Detail
+  // PENTING: Draft hanya disimpan di local storage browser dan TIDAK disimpan ke Spreadsheet/Server DB.
   simpanPengajuanKlaim(payload: any) {
     // Jika payload adalah perintah Purge/Hapus (status DIHAPUS atau kodeAhm DELETED), hapus baris secara fisik
     if (
@@ -713,11 +715,24 @@ export const SpreadsheetDatabase = {
       return this.hapusKlaim(payload?.idKlaim || '', payload?.step1?.noSj || '');
     }
 
+    // Jika status Draft, tolak penyimpanan ke database server karena Draft 100% Local-Only
+    if (String(payload?.status || '').trim().toLowerCase() === 'draft') {
+      return {
+        success: true,
+        idKlaim: payload?.localDraftId || payload?.idKlaim || `DRAFT-${Date.now()}`,
+        status: 'Draft',
+        message: 'Draft hanya disimpan di penyimpanan lokal perangkat.',
+      };
+    }
+
     const db = initDb();
     const userKode = cleanKodeAhm(payload.user?.kodeAhm);
     const userDealerName = payload.user?.namaDealer || 'Dealer Honda';
-    let idKlaim = payload.idKlaim || `CLM-${Date.now()}`;
-    const status = payload.status || 'Draft';
+    let idKlaim =
+      payload.idKlaim && !String(payload.idKlaim).startsWith('DRAFT-')
+        ? payload.idKlaim
+        : `CLM-${Date.now()}`;
+    const status = payload.status || 'Dikirim ke MD';
     const cleanSj = String(payload.step1?.noSj || '').replace(/\D/g, '');
 
     let existingHeaderIdx = db.klaimHeader.findIndex((h) => h.idKlaim === idKlaim);

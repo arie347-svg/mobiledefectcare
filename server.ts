@@ -186,6 +186,19 @@ async function startServer() {
       });
     }
 
+    // PROTEKSI SERVER: Jika simpanPengajuanKlaim berstatus Draft, JANGAN teruskan ke Google Spreadsheet (Draft 100% Local-Only)
+    if (action === "simpanPengajuanKlaim") {
+      const targetPayload = data?.payload || data || {};
+      if (String(targetPayload?.status || "").trim().toLowerCase() === "draft") {
+        return res.json({
+          success: true,
+          idKlaim: targetPayload?.localDraftId || targetPayload?.idKlaim || `DRAFT-${Date.now()}`,
+          status: "Draft",
+          message: "Draft disimpan secara lokal di perangkat (tidak dikirim ke Spreadsheet).",
+        });
+      }
+    }
+
     // Try remote GAS first with sufficient timeout for Google Sheets querying (45s for master data)
     let remoteJson: any = null;
     if (canAttemptRemote) {
@@ -355,10 +368,12 @@ async function startServer() {
 
     if (action === "getRecentClaims") {
       // Jika remote GAS merespons (sukses baik berisi data maupun array kosong []),
-      // sinkronkan (overwrite) basis data lokal untuk kodeAhm ini agar data yang sudah dihapus di Spreadsheet
-      // ikut terhapus secara permanen dari spreadsheet_database.json, lalu kembalikan data remote tersebut.
+      // sinkronkan (overwrite) basis data lokal untuk kodeAhm ini (hanya klaim yang sudah dikirim ke MD, bukan Draft)
       if (remoteJson && (remoteJson.success || Array.isArray(remoteJson.data))) {
-        const remoteList = Array.isArray(remoteJson.data) ? remoteJson.data : [];
+        const rawRemoteList = Array.isArray(remoteJson.data) ? remoteJson.data : [];
+        const remoteList = rawRemoteList.filter(
+          (item: any) => String(item?.status || "").trim().toLowerCase() !== "draft"
+        );
         SpreadsheetDatabase.syncRemoteClaims(data?.kodeAhm || "", remoteList);
         return res.json({
           success: true,

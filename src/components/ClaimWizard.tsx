@@ -30,11 +30,16 @@ import { BarcodeScannerModal } from './BarcodeScannerModal';
 import { compressImage } from '../utils/slaCalculator';
 import { compressClaimImage } from '../utils/imageCompressor';
 import {
+  generateLocalDraftId,
+  generateOfficialClaimId,
+  isLocalDraftIdentifier,
   saveLocalDraft,
-  removeLocalDraft,
-  recordMutationLock,
-  markDraftSyncedToServer,
+  updateLocalDraft,
   getLocalDrafts,
+  clearSubmittedDraft,
+  isDraftAlreadySubmitted,
+  recordMutationLock,
+  saveActiveWizardSession,
   normalizeSj,
 } from '../utils/draftStorage';
 
@@ -716,10 +721,144 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
     }
   };
 
+  // Unique Local Draft Identifier (DRAFT-xxx) - digunakan khusus untuk penyimpanan draft di browser/perangkat
+  const [localDraftId] = useState<string>(() => {
+    if (initialDraft?.localDraftId && isLocalDraftIdentifier(initialDraft.localDraftId)) {
+      return initialDraft.localDraftId;
+    }
+    if (initialDraft?.idKlaim && isLocalDraftIdentifier(initialDraft.idKlaim)) {
+      return initialDraft.idKlaim;
+    }
+    return generateLocalDraftId();
+  });
+
+  // Proteksi anti-double submit pada sesi aktif
+  const hasSubmittedRef = React.useRef<boolean>(false);
+  const pendingOfficialIdRef = React.useRef<string | null>(
+    initialDraft?.idKlaim && !isLocalDraftIdentifier(initialDraft.idKlaim)
+      ? initialDraft.idKlaim
+      : null
+  );
+
+  // Auto-save sesi aktif di browser agar jika user melakukan Refresh (F5) atau keluar halaman, data & localDraftId tetap terjaga
+  useEffect(() => {
+    if (hasSubmittedRef.current) return;
+
+    const finalNamaSopirKembali =
+      metodeKembali === 'DIKIRIM LANGSUNG'
+        ? (namaSopirKembali || namaSopirPJ)
+        : namaSopirKembali;
+    const finalNopolKembali =
+      metodeKembali === 'DIKIRIM LANGSUNG'
+        ? (nopolKembali || nopolPJ)
+        : nopolKembali;
+    const finalTransporterKembali =
+      metodeKembali === 'DIKIRIM LANGSUNG'
+        ? (transporterKembali || transporterPJ)
+        : transporterKembali;
+
+    const now = new Date();
+    const dateFormatted = now.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+    const timeFormatted = now.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const snapshotDraft: ClaimItem = {
+      idKlaim: localDraftId,
+      localDraftId,
+      isLocalDraft: true,
+      createdAt: initialDraft?.createdAt || now.toISOString(),
+      updatedAt: now.toISOString(),
+      rawTimestamp: Date.now(),
+      rawDate: tglPemeriksaan || now.toISOString().split('T')[0],
+      tgl: `${dateFormatted} ${timeFormatted} WIB`,
+      tglSelesai: '',
+      status: 'Draft',
+      lastStep: currentStep,
+      noSj,
+      tglDo,
+      tglPeriksa: tglPemeriksaan,
+      kodeAhm: user.kodeAhm,
+      kodeDealer: user.kodeDealer || initialDraft?.kodeDealer,
+      namaDealer: user.namaDealer,
+      sopirPJ: namaSopirPJ,
+      nopolPJ,
+      transporterPJ,
+      parafSopirPJ: parafSopir,
+      fotoSopirPJ,
+      metodeKembali,
+      sopirKembali: finalNamaSopirKembali,
+      nopolKembali: finalNopolKembali,
+      transporterKembali: finalTransporterKembali,
+      parafUser,
+      draftDeadline: initialDraft?.draftDeadline || new Date(Date.now() + 24 * 3600000).toISOString(),
+      kontakPengurusPJ: '',
+      kontakPengurusKembali: '',
+      kontakRepairman: '',
+      kontakKaGudang: '',
+      noHpPdi: user.noHp,
+      items: motors.flatMap((m, mIdx) =>
+        m.parts.map((p) => ({
+          indexMotor: mIdx + 1,
+          tipe: m.tipeMotor,
+          warna: m.warna,
+          noMesin: m.noMesin,
+          noRangka: m.noRangka,
+          namaPart: p.namaPart,
+          kerusakan: p.jenisKerusakan,
+          penyebab: p.penyebab,
+          fotoPart: p.fotoPart,
+        }))
+      ),
+    };
+
+    saveActiveWizardSession(user.kodeAhm, snapshotDraft);
+
+    // Jika ini adalah draft lokal yang sudah pernah disimpan sebelumnya, sinkronkan perubahan ke record localDraftId yang sama
+    const existingList = getLocalDrafts(user.kodeAhm);
+    const alreadyExistsInLocal = existingList.some(
+      (d) => (d.localDraftId || d.idKlaim) === localDraftId
+    );
+    if (alreadyExistsInLocal) {
+      updateLocalDraft(user.kodeAhm, localDraftId, snapshotDraft);
+    }
+  }, [
+    localDraftId,
+    currentStep,
+    noSj,
+    tglDo,
+    tglPemeriksaan,
+    namaSopirPJ,
+    nopolPJ,
+    transporterPJ,
+    parafSopir,
+    fotoSopirPJ,
+    motors,
+    metodeKembali,
+    namaSopirKembali,
+    nopolKembali,
+    transporterKembali,
+    parafUser,
+    user,
+    initialDraft,
+  ]);
+
   const handleSaveClaim = async (status: 'Draft' | 'Dikirim ke MD') => {
     setErrorMessage(null);
 
+    // 1. Proteksi Anti-Double Submit jika mengklik "Kirim ke MD"
     if (status === 'Dikirim ke MD') {
+      if (isSubmitting || hasSubmittedRef.current || isDraftAlreadySubmitted(localDraftId)) {
+        setErrorMessage('Draft klaim ini sudah dikirim ke MD dan tidak dapat dikirim ulang.');
+        return;
+      }
+
+      // Validasi seluruh data wajib (Step 1, Step 2, Step 3) sebelum kirim ke MD
       const err1 = validateStep1();
       if (err1) {
         setErrorMessage(err1);
@@ -738,10 +877,10 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
         setCurrentStep(3);
         return;
       }
-    } else {
-      if (!noSj.trim() || noSj.trim().length !== 11) {
-        setErrorMessage('Untuk simpan Draft, minimal Nomor Surat Jalan harus diisi lengkap (11 digit angka)!');
-        setCurrentStep(1);
+
+      // Cek koneksi internet ketika menekan "Kirim ke MD"
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        setErrorMessage('Tidak dapat mengirim ke MD. Silakan periksa koneksi internet.');
         return;
       }
     }
@@ -807,19 +946,109 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
       clearInterval(preCompressTimer);
 
-      // Pastikan Id Klaim tunggal ditentukan SEBELUM membuat payload agar HP & Spreadsheet 100% menggunakan Id Klaim yang sama
-      const existingDraftForSj = getLocalDrafts(user.kodeAhm).find(
-        (d) => normalizeSj(d.noSj) === normalizeSj(noSj)
-      );
-      let createdId =
-        initialDraft?.idKlaim ||
-        existingDraftForSj?.idKlaim ||
-        `CLM-${Date.now()}`;
+      const now = new Date();
+      const dateFormatted = now.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+      const timeFormatted = now.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      // ============================================================================
+      // JIKA STATUS DRAFT: 100% LOCAL SAJA (TIDAK ADA REQUEST KE SPREADSHEET/BACKEND)
+      // - Gunakan localDraftId (DRAFT-xxx)
+      // - JANGAN generate Id Klaim resmi (CLM-xxx)
+      // - Jika mengedit draft existing, UPDATE record localDraftId yang sama
+      // ============================================================================
+      if (status === 'Draft') {
+        const localDraftClaimItem: ClaimItem = {
+          idKlaim: localDraftId,
+          localDraftId,
+          isLocalDraft: true,
+          createdAt: initialDraft?.createdAt || now.toISOString(),
+          updatedAt: now.toISOString(),
+          rawTimestamp: Date.now(),
+          rawDate: tglPemeriksaan || now.toISOString().split('T')[0],
+          tgl: `${dateFormatted} ${timeFormatted} WIB`,
+          tglSelesai: '',
+          status: 'Draft',
+          lastStep: currentStep,
+          noSj,
+          tglDo,
+          tglPeriksa: tglPemeriksaan,
+          kodeAhm: user.kodeAhm,
+          kodeDealer: user.kodeDealer || initialDraft?.kodeDealer,
+          namaDealer: user.namaDealer,
+          sopirPJ: namaSopirPJ,
+          nopolPJ,
+          transporterPJ,
+          parafSopirPJ: parafSopir,
+          fotoSopirPJ: sanitizedFotoSopir,
+          metodeKembali,
+          sopirKembali: finalNamaSopirKembali,
+          nopolKembali: finalNopolKembali,
+          transporterKembali: finalTransporterKembali,
+          parafUser,
+          draftDeadline: initialDraft?.draftDeadline || new Date(Date.now() + 24 * 3600000).toISOString(),
+          kontakPengurusPJ: '',
+          kontakPengurusKembali: '',
+          kontakRepairman: '',
+          kontakKaGudang: '',
+          noHpPdi: user.noHp,
+          items: sanitizedMotors.flatMap((m, mIdx) =>
+            m.parts.map((p) => ({
+              indexMotor: mIdx + 1,
+              tipe: m.tipeMotor,
+              warna: m.warna,
+              noMesin: m.noMesin,
+              noRangka: m.noRangka,
+              namaPart: p.namaPart,
+              kerusakan: p.jenisKerusakan,
+              penyebab: p.penyebab,
+              fotoPart: p.fotoPart,
+            }))
+          ),
+        };
+
+        // Simpan / update ke Local Storage + IndexedDB (tanpa panggil backend/spreadsheet)
+        saveLocalDraft(user.kodeAhm, localDraftClaimItem);
+        saveActiveWizardSession(user.kodeAhm, null);
+
+        // Animasi persentase mulus menuju 100% (~180ms)
+        setSubmitProgress(70);
+        await new Promise((r) => setTimeout(r, 50));
+        setSubmitProgress(90);
+        await new Promise((r) => setTimeout(r, 50));
+        setSubmitProgress(100);
+        await new Promise((r) => setTimeout(r, 60));
+
+        setIsSubmitting(false);
+        setSubmittingStatus(null);
+        setSubmitProgress(0);
+        onSubmitSuccess(localDraftId, 'Draft', localDraftClaimItem);
+        return;
+      }
+
+      // ============================================================================
+      // JIKA STATUS DIKIRIM KE MD:
+      // 1. Generate Official Id Klaim (CLM-xxx) hanya pada titik ini
+      // 2. Kirim data ke backend / Google Spreadsheet (INSERT)
+      // 3. Tandai localDraftId sebagai SUBMITTED & hapus dari daftar draft aktif
+      // 4. Jika gagal/offline, pertahankan draft lokal & tampilkan pesan error
+      // ============================================================================
+      if (!pendingOfficialIdRef.current) {
+        pendingOfficialIdRef.current = generateOfficialClaimId();
+      }
+      let officialClaimId = pendingOfficialIdRef.current;
 
       const payload: SimpanKlaimPayload = {
-        idKlaim: createdId,
+        idKlaim: officialClaimId,
+        localDraftId,
         user,
-        status,
+        status: 'Dikirim ke MD',
         lastStep: currentStep,
         step1: {
           noSj,
@@ -841,24 +1070,17 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
         },
       };
 
-      const now = new Date();
-      const dateFormatted = now.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
-      const timeFormatted = now.toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-
       const newClaimItem: ClaimItem = {
-        idKlaim: createdId,
+        idKlaim: officialClaimId,
+        localDraftId,
+        isLocalDraft: false,
+        createdAt: initialDraft?.createdAt || now.toISOString(),
+        updatedAt: now.toISOString(),
         rawTimestamp: Date.now(),
         rawDate: payload.step1.tglPemeriksaan || now.toISOString().split('T')[0],
         tgl: `${dateFormatted} ${timeFormatted} WIB`,
         tglSelesai: '',
-        status: status,
+        status: 'Dikirim ke MD',
         lastStep: currentStep,
         noSj: payload.step1.noSj,
         tglDo: payload.step1.tglDo,
@@ -876,7 +1098,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
         nopolKembali: payload.step3.nopolKembali,
         transporterKembali: payload.step3.transporterKembali,
         parafUser: payload.step3.parafUser,
-        draftDeadline: status === 'Draft' ? new Date(Date.now() + 24 * 3600000).toISOString() : '',
+        draftDeadline: '',
         kontakPengurusPJ: '',
         kontakPengurusKembali: '',
         kontakRepairman: '',
@@ -897,42 +1119,6 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
         ),
       };
 
-      // JIKA STATUS DRAFT: Simpan instan ke lokal (0ms) + Animasi Persentase Kilatan Menuju 100% + Silent Background Sync ke Spreadsheet
-      if (status === 'Draft') {
-        saveLocalDraft(user.kodeAhm, newClaimItem);
-
-        // Lanjutkan animasi persentase mulus menuju 100% (~200ms)
-        setSubmitProgress(65);
-        await new Promise((r) => setTimeout(r, 55));
-        setSubmitProgress(88);
-        await new Promise((r) => setTimeout(r, 55));
-        setSubmitProgress(100);
-        await new Promise((r) => setTimeout(r, 75));
-
-        setIsSubmitting(false);
-        setSubmittingStatus(null);
-        setSubmitProgress(0);
-        onSubmitSuccess(createdId, status, newClaimItem);
-
-        // Background Sync (Asinkron Tanpa Memblokir UI Pengguna)
-        import('../services/gasBridge').then(({ GasService }) => {
-          GasService.simpanPengajuanKlaim(payload)
-            .then((res) => {
-              console.log('[ClaimWizard] Background Draft sync sukses ke Spreadsheet:', res);
-              const finalSyncedId = (res && res.idKlaim) ? res.idKlaim : createdId;
-              if (finalSyncedId !== createdId) {
-                saveLocalDraft(user.kodeAhm, { ...newClaimItem, idKlaim: finalSyncedId }, true);
-              }
-              markDraftSyncedToServer(user.kodeAhm, finalSyncedId, noSj);
-            })
-            .catch((gasErr) => {
-              console.warn('[ClaimWizard] Background Draft sync ditunda (data aman tersimpan lokal):', gasErr);
-            });
-        });
-        return;
-      }
-
-      // JIKA STATUS DIKIRIM KE MD: Lanjutkan animasi progress dinamis menuju 100%
       setSubmitProgress((prev) => Math.max(prev, 52));
       const progressInterval = setInterval(() => {
         setSubmitProgress((prev) => {
@@ -944,39 +1130,51 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
       try {
         const { GasService } = await import('../services/gasBridge');
         const res = await GasService.simpanPengajuanKlaim(payload);
-        if (res && res.idKlaim) {
-          createdId = res.idKlaim;
+        if (!res || res.success === false) {
+          throw new Error(res?.message || 'Gagal menyimpan klaim ke Google Spreadsheet.');
+        }
+
+        if (res.idKlaim) {
+          officialClaimId = res.idKlaim;
           newClaimItem.idKlaim = res.idKlaim;
         }
 
+        hasSubmittedRef.current = true;
         clearInterval(progressInterval);
         setSubmitProgress(100);
 
-        // Hapus dari draft lokal jika ada
-        removeLocalDraft(user.kodeAhm, createdId);
-        removeLocalDraft(user.kodeAhm, noSj);
+        // Tandai local draft sebagai SUBMITTED dan hapus dari daftar draft aktif
+        clearSubmittedDraft(user.kodeAhm, localDraftId, officialClaimId, noSj);
+        saveActiveWizardSession(user.kodeAhm, null);
         recordMutationLock(newClaimItem);
 
         setTimeout(() => {
           setIsSubmitting(false);
           setSubmittingStatus(null);
           setSubmitProgress(0);
-          onSubmitSuccess(createdId, status, newClaimItem);
+          onSubmitSuccess(officialClaimId, 'Dikirim ke MD', newClaimItem);
         }, 150);
-      } catch (err) {
+      } catch (err: any) {
         clearInterval(progressInterval);
-        console.warn('[ClaimWizard] GAS submit notice (fallback ke optimis):', err);
-        setSubmitProgress(100);
-        removeLocalDraft(user.kodeAhm, createdId);
-        removeLocalDraft(user.kodeAhm, noSj);
-        recordMutationLock(newClaimItem);
+        console.error('[ClaimWizard] Gagal mengirim ke MD:', err);
 
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setSubmittingStatus(null);
-          setSubmitProgress(0);
-          onSubmitSuccess(createdId, status, newClaimItem);
-        }, 150);
+        // Pastikan draft lokal tetap tersimpan utuh dan TIDAK dihapus / TIDAK ditandai SUBMITTED
+        saveLocalDraft(user.kodeAhm, {
+          ...newClaimItem,
+          idKlaim: localDraftId,
+          localDraftId,
+          isLocalDraft: true,
+          status: 'Draft',
+          draftDeadline: initialDraft?.draftDeadline || new Date(Date.now() + 24 * 3600000).toISOString(),
+        });
+
+        setIsSubmitting(false);
+        setSubmittingStatus(null);
+        setSubmitProgress(0);
+        setErrorMessage(
+          err?.message ||
+            'Tidak dapat mengirim ke MD. Silakan periksa koneksi internet. Draft Anda tetap aman tersimpan di perangkat lokal.'
+        );
       }
     } catch (err) {
       clearInterval(preCompressTimer);
@@ -2608,12 +2806,12 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
           ) : (
             <>
               {metodeKembali === 'DITITIP' ? (
-                !initialDraft ? (
+                <>
                   <button
                     type="button"
                     onClick={() => handleSaveClaim('Draft')}
                     disabled={isSubmitting}
-                    className={`relative overflow-hidden w-full py-3 rounded-xl border text-amber-100 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer disabled:cursor-not-allowed ${
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-amber-100 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer disabled:cursor-not-allowed ${
                       isSubmitting && submittingStatus === 'Draft'
                         ? 'border-amber-400/60 bg-amber-900/90 mdc-btn-flash-amber cursor-wait'
                         : 'border-amber-500/30 bg-amber-950/60 hover:bg-amber-900/70 active:scale-98'
@@ -2633,7 +2831,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                           ) : (
                             <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
                           )}
-                          <span>{submitProgress >= 100 ? 'Titipan Tersimpan!' : 'Menyimpan Titipan'}</span>
+                          <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan'}</span>
                           <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
                             {submitProgress}%
                           </span>
@@ -2641,90 +2839,50 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       ) : (
                         <>
                           <Save className="w-4 h-4 text-amber-300" />
-                          <span>Simpan Titipan (Draft 24 Jam)</span>
+                          <span>Simpan Draft</span>
                         </>
                       )}
                     </div>
                   </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => handleSaveClaim('Draft')}
-                      disabled={isSubmitting}
-                      className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
-                        isSubmitting && submittingStatus === 'Draft'
-                          ? 'border-amber-400/60 bg-amber-950/85 mdc-btn-flash-amber cursor-wait'
-                          : 'border-white/20 bg-white/10 hover:bg-white/15 active:scale-98'
-                      }`}
-                    >
-                      {isSubmitting && submittingStatus === 'Draft' && (
-                        <div
-                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
-                          style={{ width: `${submitProgress}%` }}
-                        />
-                      )}
-                      <div className="relative z-10 flex items-center justify-center gap-1.5">
-                        {isSubmitting && submittingStatus === 'Draft' ? (
-                          <>
-                            {submitProgress >= 100 ? (
-                              <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
-                            ) : (
-                              <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
-                            )}
-                            <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan'}</span>
-                            <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
-                              {submitProgress}%
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4 text-amber-300" />
-                            <span>Simpan Draft</span>
-                          </>
-                        )}
-                      </div>
-                    </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleSaveClaim('Dikirim ke MD')}
-                      disabled={isSubmitting}
-                      className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
-                        isSubmitting && submittingStatus === 'Dikirim ke MD'
-                          ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50 cursor-wait'
-                          : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-900/50'
-                      }`}
-                    >
-                      {isSubmitting && submittingStatus === 'Dikirim ke MD' && (
-                        <div
-                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
-                          style={{ width: `${submitProgress}%` }}
-                        />
+                  <button
+                    type="button"
+                    onClick={() => handleSaveClaim('Dikirim ke MD')}
+                    disabled={isSubmitting}
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                      isSubmitting && submittingStatus === 'Dikirim ke MD'
+                        ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50 cursor-wait'
+                        : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-900/50'
+                    }`}
+                  >
+                    {isSubmitting && submittingStatus === 'Dikirim ke MD' && (
+                      <div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
+                        style={{ width: `${submitProgress}%` }}
+                      />
+                    )}
+                    <div className="relative z-10 flex items-center justify-center gap-1.5">
+                      {isSubmitting && submittingStatus === 'Dikirim ke MD' ? (
+                        <>
+                          {submitProgress >= 100 ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                          ) : (
+                            <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+                          )}
+                          <span>{submitProgress >= 100 ? 'Terkirim!' : 'Mengirim ke MD'}</span>
+                          <span className="font-mono font-extrabold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                            {submitProgress}%
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          <span>Kirim ke MD</span>
+                        </>
                       )}
-                      <div className="relative z-10 flex items-center justify-center gap-1.5">
-                        {isSubmitting && submittingStatus === 'Dikirim ke MD' ? (
-                          <>
-                            {submitProgress >= 100 ? (
-                              <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
-                            ) : (
-                              <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
-                            )}
-                            <span>{submitProgress >= 100 ? 'Terkirim!' : 'Mengirim ke MD'}</span>
-                            <span className="font-mono font-extrabold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
-                              {submitProgress}%
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4" />
-                            <span>Kirim ke MD</span>
-                          </>
-                        )}
-                      </div>
-                    </button>
-                  </>
-                )
+                    </div>
+                  </button>
+                </>
               ) : metodeKembali === 'DIKIRIM LANGSUNG' ? (
                 <>
                   <button
@@ -2889,6 +3047,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 type="button"
                 onClick={() => {
                   setShowCancelModal(false);
+                  saveActiveWizardSession(user.kodeAhm, null);
                   onCancel();
                 }}
                 className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:brightness-110 active:scale-95 text-xs font-bold text-white shadow-md shadow-red-950/80 transition-all cursor-pointer"
