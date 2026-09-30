@@ -31,6 +31,7 @@ import {
   isHariLiburAtauMinggu,
 } from '../utils/slaCalculator';
 import {
+  getCleanPhotoUrl,
   generateLkuatPdf,
   generateLkuatPdfBlob,
   getLkuatPdfFilename,
@@ -47,64 +48,6 @@ interface ClaimDetailModalProps {
   onConfirmRetur?: (claimId: string, alasan: string) => void;
   onPreviewPhoto: (url: string, title: string) => void;
 }
-
-// Helper untuk membersihkan URL foto Google Drive menjadi direct link
-const getCleanPhotoUrl = (url?: string): string => {
-  if (!url) return '';
-  if (url.startsWith('data:image')) return url;
-  const match = url.match(/[-\w]{25,}/);
-  if (match) return `https://lh3.googleusercontent.com/d/${match[0]}`;
-  return url;
-};
-
-// Helper untuk konversi URL foto menjadi Base64 (untuk jsPDF)
-const loadImgBase64 = (url: string): Promise<string> => {
-  return new Promise((resolve) => {
-    if (!url) return resolve('');
-    if (url.startsWith('data:image')) return resolve(url);
-    const cleanUrl = getCleanPhotoUrl(url);
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.referrerPolicy = 'no-referrer';
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth || img.width;
-        canvas.height = img.naturalHeight || img.height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL('image/jpeg', 0.85));
-          return;
-        }
-      } catch (e) {
-        console.warn('Canvas toDataURL warning:', e);
-      }
-      resolve('');
-    };
-    img.onerror = () => resolve('');
-    setTimeout(() => resolve(''), 3500); // 3.5s timeout fallback
-    img.src = cleanUrl;
-  });
-};
-
-// Helper memastikan modul jsPDF & autoTable termuat
-const ensureJsPdfLoaded = async (): Promise<any> => {
-  if ((window as any).jspdf?.jsPDF) return (window as any).jspdf;
-  return new Promise((resolve, reject) => {
-    const s1 = document.createElement('script');
-    s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s1.onload = () => {
-      const s2 = document.createElement('script');
-      s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
-      s2.onload = () => resolve((window as any).jspdf);
-      s2.onerror = () => reject(new Error('Gagal memuat autoTable CDN'));
-      document.head.appendChild(s2);
-    };
-    s1.onerror = () => reject(new Error('Gagal memuat jsPDF CDN'));
-    document.head.appendChild(s1);
-  });
-};
 
 export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
   claim,

@@ -293,19 +293,10 @@ export const SpreadsheetDatabase = {
     transporterList?: any[];
     motorList?: any[];
     partList?: any[];
+    kerusakanList?: string[];
+    penyebabList?: string[];
   }) {
-    if (!data) return;
-    const db = initDb();
-    if (Array.isArray(data.transporterList) && data.transporterList.length > 0) {
-      db.masterTransporter = data.transporterList;
-    }
-    if (Array.isArray(data.motorList) && data.motorList.length > 0) {
-      db.masterMotor = data.motorList;
-    }
-    if (Array.isArray(data.partList) && data.partList.length > 0) {
-      db.masterPart = data.partList;
-    }
-    saveDb(db);
+    this.saveMasterData(data);
   },
 
   // 1. Lookup Kode AHM in Master_Dealer
@@ -786,6 +777,7 @@ export const SpreadsheetDatabase = {
       headerRecord.mdStatusPenerimaan = prev.mdStatusPenerimaan;
       headerRecord.mdJenisPerbaikan = prev.mdJenisPerbaikan;
       headerRecord.mdTargetSelesai = prev.mdTargetSelesai;
+      headerRecord.mdKomentarSLA = prev.mdKomentarSLA;
       headerRecord.mdApprovalKaGudang = prev.mdApprovalKaGudang;
       headerRecord.mdValidasiRepairman = prev.mdValidasiRepairman;
       headerRecord.mdSopirBalik = prev.mdSopirBalik;
@@ -914,6 +906,7 @@ export const SpreadsheetDatabase = {
           mdStatusPenerimaan: c.mdStatusPenerimaan || '',
           mdJenisPerbaikan: c.mdJenisPerbaikan || '',
           mdTargetSelesai: c.mdTargetSelesai || '',
+          mdKomentarSLA: c.mdKomentarSLA || '',
           mdApprovalKaGudang: c.mdApprovalKaGudang || '',
           mdValidasiRepairman: c.mdValidasiRepairman || '',
           mdSopirBalik: c.mdSopirBalik || '',

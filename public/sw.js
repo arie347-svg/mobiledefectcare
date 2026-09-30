@@ -18,7 +18,6 @@ const PRECACHE_ASSETS = [
   '/icon-512.png',
   '/apple-touch-icon.png',
   MDC_LOGO_URL,
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
   'https://unpkg.com/@zxing/library@0.23.0',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
@@ -61,10 +60,10 @@ self.addEventListener('install', (event) => {
       // Step 2: Deep precache actual font files (.woff2) from Google Fonts for instant typography on slow networks
       try {
         const fontCache = await caches.open(FONT_CACHE);
-        const fontCssRes = await fetch('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap', { mode: 'cors' });
+        const fontCssRes = await fetch('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap', { mode: 'cors' });
         if (fontCssRes && fontCssRes.ok) {
           const cssText = await fontCssRes.clone().text();
-          await fontCache.put('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap', fontCssRes);
+          await fontCache.put('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap', fontCssRes);
 
           const fontMatches = cssText.match(/https:\/\/fonts\.gstatic\.com\/[^\)]+/g) || [];
           const uniqueFonts = Array.from(new Set(fontMatches)).slice(0, 6);

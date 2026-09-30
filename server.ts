@@ -9,9 +9,6 @@ const GAS_WEBAPP_URL =
   process.env.VITE_GAS_URL ||
   "https://script.google.com/macros/s/AKfycbyPMN2vvUNysv-Tn_2YCfzNcBLHC8FluGF0BwdHt07YrKT4lHMxQqkKjYsPd2DJ2v9ekQ/exec";
 
-// Google Apps Script developer endpoint with live registerUser function
-const GAS_DEV_URL = GAS_WEBAPP_URL.replace(/\/exec(\?.*)?$/, "/dev$1");
-
 // Helper for invoking Google Apps Script endpoints safely with timeout
 async function callGasRemote(url: string, action: string, data: any): Promise<any> {
   try {
@@ -199,6 +196,69 @@ async function startServer() {
       }
     }
 
+    // Fast-Local First Optimization untuk loginUser (Mencegah double HTTP POST ke GAS)
+    if (action === "loginUser") {
+      const cleanEmail = (data?.email || "").trim().toLowerCase();
+      const cleanKode = (data?.kodeAhm || "").trim();
+
+      const digits = cleanKode.replace(/\D/g, '');
+      const variants: string[] = [];
+      if (digits) {
+        if (digits.length <= 5) {
+          variants.push(digits.padStart(5, '0'));
+        }
+        if (!variants.includes(cleanKode)) {
+          variants.push(cleanKode);
+        }
+        const noZero = digits.replace(/^0+/, '');
+        if (noZero && !variants.includes(noZero)) {
+          variants.push(noZero);
+        }
+      } else if (cleanKode) {
+        variants.push(cleanKode);
+      }
+
+      // 1. Cek database lokal terlebih dahulu (0ms latency)
+      const finalAuthResult = SpreadsheetDatabase.loginUser(cleanEmail, cleanKode);
+      if (finalAuthResult && finalAuthResult.status === "SUCCESS") {
+        console.log(`[API /api/gas] loginUser sukses ditemukan di database lokal secara instan.`);
+        return res.json(finalAuthResult);
+      }
+
+      // 2. Jika tidak ditemukan di lokal, panggil remote GAS tepat 1 kali
+      if (canAttemptRemote) {
+        const primaryVariant = variants[0] || cleanKode;
+        const remoteRes = await callGasRemote(GAS_WEBAPP_URL, "loginUser", {
+          email: cleanEmail,
+          kodeAhm: primaryVariant,
+        });
+
+        if (remoteRes && remoteRes.status === "SUCCESS" && remoteRes.user) {
+          try {
+            SpreadsheetDatabase.registerUser({
+              email: remoteRes.user.email,
+              namaLengkap: remoteRes.user.nama || remoteRes.user.namaLengkap || "",
+              noHp: remoteRes.user.noHp || "",
+              kodeAhm: remoteRes.user.kodeAhm || "",
+              namaDealer: remoteRes.user.namaDealer || "",
+              kodeDealer: remoteRes.user.kodeDealer || "",
+              kategori: remoteRes.user.kategori || "",
+              kota: remoteRes.user.kota || "",
+              sentraDistribusi: remoteRes.user.sentraDistribusi || "",
+              role: remoteRes.user.role || "PDI Man",
+            });
+          } catch (_) {}
+
+          console.log(`[API /api/gas] loginUser sukses dari remote GAS.`);
+          return res.json(remoteRes);
+        }
+
+        return res.json(remoteRes || finalAuthResult);
+      }
+
+      return res.json(finalAuthResult);
+    }
+
     // Try remote GAS first with sufficient timeout for Google Sheets querying (45s for master data)
     let remoteJson: any = null;
     if (canAttemptRemote) {
@@ -219,7 +279,6 @@ async function startServer() {
         clearTimeout(timeoutId);
 
         const responseText = await gasResponse.text();
-        // If GAS returned valid JSON, parse it (handle possible double-stringified JSON)
         if (
           !responseText.includes("<!DOCTYPE") &&
           !responseText.includes("<!doctype") &&
@@ -239,26 +298,23 @@ async function startServer() {
       }
     }
 
-    // Handle specific actions with intelligent synchronization
+    // Fallback remote untuk lookupKodeAhm jika belum ditemukan di lokal
     if (action === "lookupKodeAhm") {
       const targetKode =
         typeof data === "string"
           ? data
           : data?.kodeAhm || data?.code || data?.kode || "";
 
-      // If remote GAS returned dealer data
       if (remoteJson && remoteJson.found) {
         SpreadsheetDatabase.upsertDealer(remoteJson);
         return res.json(remoteJson);
       }
 
-      // Check local database (already pre-seeded with real master dealers)
       const localResult = SpreadsheetDatabase.lookupKodeAhm(targetKode);
       if (localResult && localResult.found) {
         return res.json(localResult);
       }
 
-      // If remote explicitly returned not found, return remote message
       if (remoteJson && remoteJson.found === false) {
         return res.json(remoteJson);
       }
@@ -266,109 +322,7 @@ async function startServer() {
       return res.json(localResult);
     }
 
-    if (action === "loginUser") {
-      const cleanEmail = (data?.email || "").trim().toLowerCase();
-      const cleanKode = (data?.kodeAhm || "").trim();
-
-      // Bangun variasi kode AHM (prioritaskan 5 digit resmi: misal 123 -> [00123, 123])
-      const digits = cleanKode.replace(/\D/g, '');
-      const variants: string[] = [];
-      if (digits) {
-        if (digits.length <= 5) {
-          const padded = digits.padStart(5, '0');
-          variants.push(padded);
-        }
-        if (!variants.includes(cleanKode)) {
-          variants.push(cleanKode);
-        }
-        const noZero = digits.replace(/^0+/, '');
-        if (noZero && !variants.includes(noZero)) {
-          variants.push(noZero);
-        }
-      } else if (cleanKode) {
-        variants.push(cleanKode);
-      }
-
-      console.log(`[API /api/gas] loginUser verifikasi email: ${cleanEmail} dengan variasi kode:`, variants);
-
-      // 1. LANGKAH PERTAMA: Cek database lokal terlebih dahulu (0ms latency)
-      const finalAuthResult = SpreadsheetDatabase.loginUser(cleanEmail, cleanKode);
-
-      if (finalAuthResult && finalAuthResult.status === "SUCCESS") {
-        console.log(`[API /api/gas] loginUser sukses ditemukan di database lokal secara instan.`);
-        return res.json(finalAuthResult);
-      }
-
-      // 2. Jika tidak ditemukan di lokal, lakukan pemanggilan remote GAS
-      const primaryVariant = variants[0] || cleanKode;
-      const remoteRes = await callGasRemote(GAS_WEBAPP_URL, "loginUser", {
-        email: cleanEmail,
-        kodeAhm: primaryVariant,
-      });
-
-      if (remoteRes && remoteRes.status === "SUCCESS" && remoteRes.user) {
-        try {
-          SpreadsheetDatabase.registerUser({
-            email: remoteRes.user.email,
-            namaLengkap: remoteRes.user.nama || remoteRes.user.namaLengkap || "",
-            noHp: remoteRes.user.noHp || "",
-            kodeAhm: remoteRes.user.kodeAhm || "",
-            namaDealer: remoteRes.user.namaDealer || "",
-            kodeDealer: remoteRes.user.kodeDealer || "",
-            kategori: remoteRes.user.kategori || "",
-            kota: remoteRes.user.kota || "",
-            sentraDistribusi: remoteRes.user.sentraDistribusi || "",
-            role: remoteRes.user.role || "PDI Man",
-          });
-        } catch (_) {}
-        
-        console.log(`[API /api/gas] loginUser sukses dari remote GAS.`);
-        return res.json(remoteRes);
-      }
-
-      // Jika remote menolak atau gagal, kembalikan respons terakhir
-      console.log(`[API /api/gas] Login ditolak untuk email: ${cleanEmail}`);
-      return res.json(remoteRes || finalAuthResult);
-    }
-
-    if (action === "registerUser") {
-      const payloadData = data?.formData || data || {};
-
-      // If remote GAS responded
-      if (remoteJson && typeof remoteJson.success === "boolean") {
-        if (remoteJson.success) {
-          try {
-            SpreadsheetDatabase.registerUser(payloadData);
-          } catch (_) {}
-          // Ensure user object is present in success response for seamless login
-          const userObj = remoteJson.user || {
-            email: payloadData.email,
-            nama: payloadData.namaLengkap || payloadData.nama,
-            noHp: payloadData.noHp,
-            kodeAhm: payloadData.kodeAhm,
-            namaDealer: payloadData.namaDealer,
-            kodeDealer: payloadData.kodeDealer,
-            kategori: payloadData.kategori,
-            kota: payloadData.kota,
-            sentraDistribusi: payloadData.sentraDistribusi,
-            role: payloadData.role || "PDI Man",
-          };
-          return res.json({
-            ...remoteJson,
-            user: userObj,
-          });
-        }
-        return res.json(remoteJson);
-      }
-
-      // Fallback local registration if remote is unreachable
-      const localResult = SpreadsheetDatabase.registerUser(payloadData);
-      return res.json(localResult);
-    }
-
     if (action === "getRecentClaims") {
-      // Jika remote GAS merespons (sukses baik berisi data maupun array kosong []),
-      // sinkronkan (overwrite) basis data lokal untuk kodeAhm ini (hanya klaim yang sudah dikirim ke MD, bukan Draft)
       if (remoteJson && (remoteJson.success || Array.isArray(remoteJson.data))) {
         const rawRemoteList = Array.isArray(remoteJson.data) ? remoteJson.data : [];
         const remoteList = rawRemoteList.filter(
@@ -380,7 +334,6 @@ async function startServer() {
           data: remoteList,
         });
       }
-      // Jika remote GAS unreachable/offline, fallback ke local db (yang sudah bersih & tersinkron)
       const localResult = SpreadsheetDatabase.getRecentClaims(data?.kodeAhm || "");
       return res.json(localResult);
     }
@@ -431,7 +384,6 @@ async function startServer() {
 
     if (action === "getMasterDataKlaim") {
       if (remoteJson && remoteJson.success) {
-        // Simpan hasil dari Spreadsheet ke database lokal agar tersedia offline & instan
         try {
           SpreadsheetDatabase.saveMasterData(remoteJson);
         } catch (_) {}
@@ -446,7 +398,6 @@ async function startServer() {
         });
       }
 
-      // Jika remote gagal atau timeout, gunakan basis data lokal yang sudah ter-cache
       const localData = SpreadsheetDatabase.getMasterDataKlaim();
       if (localData && Array.isArray(localData.motorList) && localData.motorList.length > 0) {
         console.log(`[API /api/gas] Menggunakan master data lokal (Motor: ${localData.motorList.length})`);
@@ -469,12 +420,11 @@ async function startServer() {
     return res.json(remoteJson || defaultResult);
   });
 
-  // Health check endpoint
+  // Health check endpoint (Tanpa mengekspos ID Spreadsheet atau URL internal)
   app.get("/api/health", (_req, res) => {
     res.json({
       status: "ok",
-      spreadsheetId: SPREADSHEET_ID,
-      gasTarget: GAS_WEBAPP_URL,
+      configured: Boolean(SPREADSHEET_ID && GAS_WEBAPP_URL),
     });
   });
 

@@ -501,6 +501,23 @@ export const getAllLocalDrafts = (kodeAhm?: string): LocalDraftEntry[] => {
   const normKode = normalizeDraftKodeAhm(kodeAhm);
   const combinedMap = new Map<string, LocalDraftEntry>();
 
+  // 0. Ambil juga active wizard session dari sessionStorage / localStorage jika ada agar tidak pernah hilang saat background API sync
+  try {
+    const activeSession = getActiveWizardSession(normKode);
+    if (activeSession) {
+      const dId = activeSession.localDraftId || activeSession.idKlaim;
+      if (dId) {
+        combinedMap.set(dId, {
+          ...activeSession,
+          localDraftId: dId,
+          idKlaim: dId,
+          isLocalDraft: true,
+          status: 'Draft',
+        } as LocalDraftEntry);
+      }
+    }
+  } catch (_) {}
+
   // 1. Ambil dari RAM (In-Memory Cache) terlebih dahulu
   const memList = memoryDraftsByKode.get(normKode) || [];
   for (const item of memList) {

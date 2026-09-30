@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import { SignaturePad } from './SignaturePad';
 import { BarcodeScannerModal } from './BarcodeScannerModal';
-import { compressImage } from '../utils/slaCalculator';
 import { compressClaimImage } from '../utils/imageCompressor';
 import {
   generateLocalDraftId,
@@ -58,22 +57,22 @@ interface ClaimWizardProps {
 export const determineDraftResumeStep = (draft?: ClaimItem | null): number => {
   if (!draft) return 1;
 
-  // 1. Jika draft memiliki catatan eksplisit lastStep
-  if (draft.lastStep && draft.lastStep >= 1 && draft.lastStep <= 3) {
-    return draft.lastStep;
-  }
-
-  // 2. Evaluasi bertahap:
-  // Step 1: No SJ, data sopir, nopol, transporter, paraf sopir
+  // 1. Evaluasi bertahap:
+  // Step 1: No SJ, foto sopir PJ, data sopir, nopol, transporter, paraf sopir
   const isStep1Complete = Boolean(
     draft.noSj &&
       draft.noSj.replace(/\D/g, '').length === 11 &&
+      draft.fotoSopirPJ?.trim() &&
       draft.sopirPJ?.trim() &&
       draft.nopolPJ?.trim() &&
       draft.transporterPJ?.trim() &&
       draft.parafSopirPJ
   );
   if (!isStep1Complete) return 1;
+
+  if (draft.lastStep && draft.lastStep >= 1 && draft.lastStep <= 3) {
+    return draft.lastStep;
+  }
 
   // Step 2: Harus ada minimal 1 item, dan seluruh item terisi lengkap (namaPart, kerusakan, penyebab, fotoPart)
   const hasItems = Array.isArray(draft.items) && draft.items.length > 0;
@@ -819,12 +818,8 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
     saveActiveWizardSession(user.kodeAhm, snapshotDraft);
 
-    // Jika ini adalah draft lokal yang sudah pernah disimpan sebelumnya, sinkronkan perubahan ke record localDraftId yang sama
-    const existingList = getLocalDrafts(user.kodeAhm);
-    const alreadyExistsInLocal = existingList.some(
-      (d) => (d.localDraftId || d.idKlaim) === localDraftId
-    );
-    if (alreadyExistsInLocal) {
+    // Selalu sinkronkan perubahan secara otomatis ke penyimpanan lokal (localStorage & IndexedDB) seketika
+    if (user?.kodeAhm) {
       updateLocalDraft(user.kodeAhm, localDraftId, snapshotDraft);
     }
   }, [
