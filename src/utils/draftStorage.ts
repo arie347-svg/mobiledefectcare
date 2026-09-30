@@ -93,14 +93,15 @@ const openDraftIdb = (): Promise<IDBDatabase | null> => {
 
 const syncDraftListToIdb = async (kodeAhm: string, drafts: LocalDraftEntry[]): Promise<void> => {
   if (!kodeAhm) return;
+  const normKode = normalizeDraftKodeAhm(kodeAhm);
   try {
     const db = await openDraftIdb();
     if (!db) return;
     const tx = db.transaction(IDB_STORE_DRAFTS, 'readwrite');
     const store = tx.objectStore(IDB_STORE_DRAFTS);
     store.put({
-      storageKey: `${DRAFT_STORAGE_PREFIX}${kodeAhm.trim()}`,
-      kodeAhm: kodeAhm.trim(),
+      storageKey: `${DRAFT_STORAGE_PREFIX}${normKode}`,
+      kodeAhm: normKode,
       updatedAt: Date.now(),
       drafts,
     });
@@ -112,10 +113,11 @@ const syncDraftListToIdb = async (kodeAhm: string, drafts: LocalDraftEntry[]): P
  */
 export const hydrateLocalDraftsFromIdb = async (kodeAhm?: string): Promise<LocalDraftEntry[]> => {
   if (typeof window === 'undefined' || !kodeAhm) return [];
-  const key = `${DRAFT_STORAGE_PREFIX}${kodeAhm.trim()}`;
+  const normKode = normalizeDraftKodeAhm(kodeAhm);
+  const key = `${DRAFT_STORAGE_PREFIX}${normKode}`;
   try {
     const db = await openDraftIdb();
-    if (!db) return getAllLocalDrafts(kodeAhm);
+    if (!db) return getAllLocalDrafts(normKode);
 
     return await new Promise<LocalDraftEntry[]>((resolve) => {
       try {
@@ -125,11 +127,11 @@ export const hydrateLocalDraftsFromIdb = async (kodeAhm?: string): Promise<Local
         getReq.onsuccess = () => {
           const idbRecord = getReq.result;
           const idbDrafts: LocalDraftEntry[] = Array.isArray(idbRecord?.drafts) ? idbRecord.drafts : [];
-          const lsDrafts = getAllLocalDrafts(kodeAhm);
+          const lsDrafts = getAllLocalDrafts(normKode);
 
           if (idbDrafts.length === 0) {
             if (lsDrafts.length > 0) {
-              void syncDraftListToIdb(kodeAhm, lsDrafts);
+              void syncDraftListToIdb(normKode, lsDrafts);
             }
             resolve(lsDrafts);
             return;
@@ -159,18 +161,17 @@ export const hydrateLocalDraftsFromIdb = async (kodeAhm?: string): Promise<Local
             (a, b) => (b.rawTimestamp || 0) - (a.rawTimestamp || 0)
           );
 
-          try {
-            localStorage.setItem(key, JSON.stringify(mergedList));
-          } catch (_) {}
+          memoryDraftsByKode.set(normKode, mergedList);
+          safeWriteLocalStorageDrafts(normKode, mergedList);
           resolve(mergedList);
         };
-        getReq.onerror = () => resolve(getAllLocalDrafts(kodeAhm));
+        getReq.onerror = () => resolve(getAllLocalDrafts(normKode));
       } catch (_) {
-        resolve(getAllLocalDrafts(kodeAhm));
+        resolve(getAllLocalDrafts(normKode));
       }
     });
   } catch (_) {
-    return getAllLocalDrafts(kodeAhm);
+    return getAllLocalDrafts(normKode);
   }
 };
 
@@ -440,43 +441,124 @@ const normalizeToLocalDraftEntry = (
  * 1. getAllLocalDrafts: Mengambil seluruh draft lokal milik dealer dari localStorage.
  * Draft lokal tetap tersedia selama belum dihapus atau belum dikirim ke MD (SUBMITTED).
  */
+// In-memory cache sebagai pengaman utama di RAM (tidak pernah gagal meskipun kuota localStorage 5MB penuh karena foto Base64)
+const memoryDraftsByKode = new Map<string, LocalDraftEntry[]>();
+
+// Normalisasi kodeAhm (misal "8099" dan "08099" selalu mengarah ke key yang sama: "08099")
+export const normalizeDraftKodeAhm = (kodeAhm?: string): string => {
+  if (!kodeAhm) return '';
+  const clean = String(kodeAhm).replace(/['"\s]/g, '').trim().toUpperCase();
+  const digits = clean.replace(/\D/g, '');
+  if (digits && digits.length > 0 && digits.length <= 5) {
+    return digits.padStart(5, '0');
+  }
+  return clean;
+};
+
+const getKodeAhmStorageKeys = (kodeAhm?: string): string[] => {
+  if (!kodeAhm) return [];
+  const raw = String(kodeAhm).trim();
+  const norm = normalizeDraftKodeAhm(raw);
+  const noZero = raw.replace(/^0+/, '');
+  const set = new Set<string>();
+  if (norm) set.add(`${DRAFT_STORAGE_PREFIX}${norm}`);
+  if (raw) set.add(`${DRAFT_STORAGE_PREFIX}${raw}`);
+  if (noZero) set.add(`${DRAFT_STORAGE_PREFIX}${noZero}`);
+  return Array.from(set);
+};
+
+const safeWriteLocalStorageDrafts = (kodeAhm: string, list: LocalDraftEntry[]): void => {
+  if (typeof window === 'undefined' || !kodeAhm) return;
+  const primaryKey = `${DRAFT_STORAGE_PREFIX}${normalizeDraftKodeAhm(kodeAhm)}`;
+  const serialized = JSON.stringify(list);
+  try {
+    localStorage.setItem(primaryKey, serialized);
+  } catch (quotaErr) {
+    // Jika kuota 5MB localStorage penuh (misal tertimbun cache master data atau foto besar),
+    // bersihkan cache non-esensial lalu coba simpan ulang agar localStorage tetap menyimpan draft
+    try {
+      localStorage.removeItem('mdc_master_data_cache');
+      localStorage.removeItem(ACTIVE_WIZARD_DRAFT_KEY);
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('mdc_claims_')) {
+          localStorage.removeItem(k);
+        }
+      }
+      localStorage.setItem(primaryKey, serialized);
+    } catch (retryErr) {
+      console.warn('[DraftStorage] Kuota localStorage penuh, draft tetap aman di RAM & IndexedDB:', retryErr);
+    }
+  }
+};
+
+/**
+ * 1. getAllLocalDrafts: Mengambil seluruh draft lokal milik dealer dari RAM + localStorage (semua variasi kodeAhm).
+ * Draft lokal tetap tersedia selama belum dihapus atau belum dikirim ke MD (SUBMITTED).
+ */
 export const getAllLocalDrafts = (kodeAhm?: string): LocalDraftEntry[] => {
   if (typeof window === 'undefined' || !kodeAhm) return [];
-  try {
-    const raw = localStorage.getItem(`${DRAFT_STORAGE_PREFIX}${kodeAhm.trim()}`);
-    if (!raw) return [];
-    const list = JSON.parse(raw);
-    if (!Array.isArray(list)) return [];
+  const normKode = normalizeDraftKodeAhm(kodeAhm);
+  const combinedMap = new Map<string, LocalDraftEntry>();
 
-    return list
-      .filter((item: LocalDraftEntry) => {
-        if (!item) return false;
-        const dId = item.localDraftId || item.idKlaim;
-        if (!dId) return false;
-        if (String(item.status || '').toUpperCase() === 'SUBMITTED') return false;
-        if (isDraftAlreadySubmitted(dId).submitted) return false;
-        if (isClaimDeleted(dId, undefined)) return false;
-        return true;
-      })
-      .map((item: LocalDraftEntry) => {
-        const dId =
-          item.localDraftId && isLocalDraftIdentifier(item.localDraftId)
-            ? item.localDraftId
-            : isLocalDraftIdentifier(item.idKlaim)
-            ? item.idKlaim
-            : `DRAFT-${item.rawTimestamp || Date.now()}`;
-        return {
-          ...item,
-          idKlaim: dId,
-          localDraftId: dId,
-          isLocalDraft: true,
-          status: 'Draft',
-        };
-      });
-  } catch (e) {
-    console.warn('[DraftStorage] Gagal membaca daftar draft lokal:', e);
-    return [];
+  // 1. Ambil dari RAM (In-Memory Cache) terlebih dahulu
+  const memList = memoryDraftsByKode.get(normKode) || [];
+  for (const item of memList) {
+    const dId = item?.localDraftId || item?.idKlaim;
+    if (dId) combinedMap.set(dId, item);
   }
+
+  // 2. Gabungkan dengan semua variasi key di localStorage ("08099", "8099", dll.)
+  const storageKeys = getKodeAhmStorageKeys(kodeAhm);
+  for (const key of storageKeys) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) continue;
+      for (const item of parsed) {
+        const dId = item?.localDraftId || item?.idKlaim;
+        if (!dId) continue;
+        const existing = combinedMap.get(dId);
+        if (!existing || (item.rawTimestamp || 0) >= (existing.rawTimestamp || 0)) {
+          combinedMap.set(dId, item);
+        }
+      }
+    } catch (e) {
+      console.warn('[DraftStorage] Gagal membaca daftar draft lokal dari key:', key, e);
+    }
+  }
+
+  const result = Array.from(combinedMap.values())
+    .filter((item: LocalDraftEntry) => {
+      if (!item) return false;
+      const dId = item.localDraftId || item.idKlaim;
+      if (!dId) return false;
+      if (String(item.status || '').toUpperCase() === 'SUBMITTED') return false;
+      if (isDraftAlreadySubmitted(dId).submitted) return false;
+      if (isClaimDeleted(dId, undefined)) return false;
+      return true;
+    })
+    .map((item: LocalDraftEntry) => {
+      const dId =
+        item.localDraftId && isLocalDraftIdentifier(item.localDraftId)
+          ? item.localDraftId
+          : isLocalDraftIdentifier(item.idKlaim)
+          ? item.idKlaim
+          : `DRAFT-${item.rawTimestamp || Date.now()}`;
+      return {
+        ...item,
+        idKlaim: dId,
+        localDraftId: dId,
+        kodeAhm: normKode || item.kodeAhm,
+        isLocalDraft: true,
+        status: 'Draft',
+      };
+    })
+    .sort((a, b) => (b.rawTimestamp || 0) - (a.rawTimestamp || 0));
+
+  memoryDraftsByKode.set(normKode, result);
+  return result;
 };
 
 // Alias untuk kompatibilitas dengan pemanggil yang sudah ada
@@ -528,8 +610,9 @@ export const updateLocalDraft = (
   localDraftId: string,
   updatedData: Partial<ClaimItem>
 ): LocalDraftEntry => {
+  const normKode = normalizeDraftKodeAhm(kodeAhm);
   const cleanDraftId = (localDraftId || '').trim() || generateLocalDraftId();
-  const currentList = getAllLocalDrafts(kodeAhm);
+  const currentList = getAllLocalDrafts(normKode);
   const existing = currentList.find(
     (d) => d.localDraftId === cleanDraftId || d.idKlaim === cleanDraftId
   );
@@ -537,6 +620,7 @@ export const updateLocalDraft = (
   const updatedEntry = normalizeToLocalDraftEntry(
     {
       ...updatedData,
+      kodeAhm: normKode || updatedData.kodeAhm,
       localDraftId: cleanDraftId,
       idKlaim: cleanDraftId,
     },
@@ -548,17 +632,14 @@ export const updateLocalDraft = (
   );
   const nextList = [updatedEntry, ...remaining];
 
-  if (typeof window !== 'undefined' && kodeAhm) {
-    try {
-      unmarkDeletedClaim(cleanDraftId, updatedEntry.noSj);
-      localStorage.setItem(
-        `${DRAFT_STORAGE_PREFIX}${kodeAhm.trim()}`,
-        JSON.stringify(nextList)
-      );
-    } catch (e) {
-      console.warn('[DraftStorage] Kuota localStorage penuh, menyimpan ke IndexedDB:', e);
-    }
-    void syncDraftListToIdb(kodeAhm, nextList);
+  // 1. Simpan ke RAM seketika (0ms, kebal terhadap masalah kuota localStorage)
+  memoryDraftsByKode.set(normKode, nextList);
+
+  // 2. Simpan ke localStorage (dengan auto-evict cache jika penuh) & IndexedDB
+  if (typeof window !== 'undefined' && normKode) {
+    unmarkDeletedClaim(cleanDraftId, updatedEntry.noSj);
+    safeWriteLocalStorageDrafts(normKode, nextList);
+    void syncDraftListToIdb(normKode, nextList);
   }
 
   return updatedEntry;
@@ -594,31 +675,36 @@ export const markDraftSyncedToServer = (
 };
 
 /**
- * 6. deleteLocalDraft: Menghapus draft klaim dari localStorage & IndexedDB berdasarkan localDraftId.
+ * 6. deleteLocalDraft: Menghapus draft klaim dari RAM, localStorage, & IndexedDB berdasarkan localDraftId.
  */
 export const deleteLocalDraft = (kodeAhm: string, localDraftIdOrNoSj: string): void => {
   if (typeof window === 'undefined' || !kodeAhm || !localDraftIdOrNoSj) return;
   try {
+    const normKode = normalizeDraftKodeAhm(kodeAhm);
     const cleanTarget = localDraftIdOrNoSj.trim();
     const cleanSj = isLocalDraftIdentifier(cleanTarget) ? '' : normalizeSj(cleanTarget);
-    const current = getAllLocalDrafts(kodeAhm);
+    const current = getAllLocalDrafts(normKode);
     const updated = current.filter((d) => {
       if (d.localDraftId === cleanTarget || d.idKlaim === cleanTarget) return false;
       if (cleanSj && normalizeSj(d.noSj) === cleanSj) return false;
       return true;
     });
-    localStorage.setItem(
-      `${DRAFT_STORAGE_PREFIX}${kodeAhm.trim()}`,
-      JSON.stringify(updated)
-    );
-    void syncDraftListToIdb(kodeAhm, updated);
 
-    const activeWizard = getActiveWizardSession(kodeAhm);
+    memoryDraftsByKode.set(normKode, updated);
+
+    for (const key of getKodeAhmStorageKeys(kodeAhm)) {
+      try {
+        localStorage.setItem(key, JSON.stringify(updated));
+      } catch (_) {}
+    }
+    void syncDraftListToIdb(normKode, updated);
+
+    const activeWizard = getActiveWizardSession(normKode);
     if (
       activeWizard &&
       (activeWizard.localDraftId === cleanTarget || activeWizard.idKlaim === cleanTarget)
     ) {
-      saveActiveWizardSession(null);
+      saveActiveWizardSession(normKode, null);
     }
   } catch (e) {
     console.warn('[DraftStorage] Gagal menghapus draft lokal:', e);
@@ -631,17 +717,22 @@ export const removeLocalDraft = deleteLocalDraft;
 // ============================================================================
 // SESSION RECOVERY UNTUK FORM WIZARD AKTIF (TAHAN REFRESH & KAMERA RELOAD)
 // ============================================================================
-export const saveActiveWizardSession = (draft: ClaimItem | null): void => {
+export const saveActiveWizardSession = (
+  kodeAhmOrDraft: string | ClaimItem | null,
+  maybeDraft?: ClaimItem | null
+): void => {
   if (typeof window === 'undefined') return;
   try {
-    if (!draft) {
+    const draft: ClaimItem | null =
+      typeof kodeAhmOrDraft === 'string' ? (maybeDraft ?? null) : kodeAhmOrDraft;
+
+    if (!draft || typeof draft !== 'object') {
       sessionStorage.removeItem(ACTIVE_WIZARD_DRAFT_KEY);
       localStorage.removeItem(ACTIVE_WIZARD_DRAFT_KEY);
       return;
     }
     const serialized = JSON.stringify(draft);
     sessionStorage.setItem(ACTIVE_WIZARD_DRAFT_KEY, serialized);
-    localStorage.setItem(ACTIVE_WIZARD_DRAFT_KEY, serialized);
   } catch (_) {}
 };
 
@@ -653,8 +744,12 @@ export const getActiveWizardSession = (kodeAhm?: string): ClaimItem | null => {
       localStorage.getItem(ACTIVE_WIZARD_DRAFT_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ClaimItem;
-    if (!parsed) return null;
-    if (kodeAhm && parsed.kodeAhm && parsed.kodeAhm.trim() !== kodeAhm.trim()) {
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (
+      kodeAhm &&
+      parsed.kodeAhm &&
+      normalizeDraftKodeAhm(parsed.kodeAhm) !== normalizeDraftKodeAhm(kodeAhm)
+    ) {
       return null;
     }
     const dId = parsed.localDraftId || parsed.idKlaim;
