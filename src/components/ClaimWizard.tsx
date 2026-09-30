@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   UserProfile,
   MasterDataResponse,
@@ -399,12 +399,14 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
   );
   const isManualNopolPJ = nopolPJ.trim().length > 0 && !matchedTransporterPJ;
 
-  const filteredNopolList = transporterList.filter((item) => {
-    if (!nopolPJ.trim()) return true;
+  const filteredNopolList = useMemo(() => {
+    if (!nopolPJ.trim()) return transporterList;
     const cleanSearch = nopolPJ.toUpperCase().replace(/\s/g, '');
-    const cleanItem = item.nopol.toUpperCase().replace(/\s/g, '');
-    return cleanItem.includes(cleanSearch);
-  });
+    return transporterList.filter((item) => {
+      const cleanItem = item.nopol.toUpperCase().replace(/\s/g, '');
+      return cleanItem.includes(cleanSearch);
+    });
+  }, [transporterList, nopolPJ]);
 
   const handleNopolPJInput = (val: string) => {
     const clean = val.toUpperCase();
@@ -456,12 +458,14 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
   );
   const isManualNopolKembali = nopolKembali.trim().length > 0 && !matchedTransporterKembali;
 
-  const filteredNopolKembaliList = transporterList.filter((item) => {
-    if (!nopolKembali.trim()) return true;
+  const filteredNopolKembaliList = useMemo(() => {
+    if (!nopolKembali.trim()) return transporterList;
     const cleanSearch = nopolKembali.toUpperCase().replace(/\s/g, '');
-    const cleanItem = item.nopol.toUpperCase().replace(/\s/g, '');
-    return cleanItem.includes(cleanSearch);
-  });
+    return transporterList.filter((item) => {
+      const cleanItem = item.nopol.toUpperCase().replace(/\s/g, '');
+      return cleanItem.includes(cleanSearch);
+    });
+  }, [transporterList, nopolKembali]);
 
   const handleNopolKembaliInput = (val: string) => {
     const clean = val.toUpperCase();
@@ -816,12 +820,17 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
       ),
     };
 
-    saveActiveWizardSession(user.kodeAhm, snapshotDraft);
+    // Gunakan debounce 500ms agar pengetikan cepat di HP tidak mengalami jeda/lag akibat I/O storage
+    const debounceTimer = setTimeout(() => {
+      saveActiveWizardSession(user.kodeAhm, snapshotDraft);
 
-    // Selalu sinkronkan perubahan secara otomatis ke penyimpanan lokal (localStorage & IndexedDB) seketika
-    if (user?.kodeAhm) {
-      updateLocalDraft(user.kodeAhm, localDraftId, snapshotDraft);
-    }
+      // Selalu sinkronkan perubahan secara otomatis ke penyimpanan lokal (localStorage & IndexedDB)
+      if (user?.kodeAhm) {
+        updateLocalDraft(user.kodeAhm, localDraftId, snapshotDraft);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
   }, [
     localDraftId,
     currentStep,

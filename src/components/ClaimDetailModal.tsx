@@ -1364,6 +1364,8 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                           >
                             <img
                               src={photoSrc}
+                              loading="lazy"
+                              decoding="async"
                               referrerPolicy="no-referrer"
                               alt={item.namaPart}
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform"
@@ -1409,6 +1411,8 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                   <span className="text-white/60">Bukti Foto Sopir:</span>
                   <img
                     src={cleanSopirPhoto}
+                    loading="lazy"
+                    decoding="async"
                     alt="Foto Sopir PJ"
                     referrerPolicy="no-referrer"
                     onClick={() => onPreviewPhoto(cleanSopirPhoto, 'Foto Sopir PJ')}

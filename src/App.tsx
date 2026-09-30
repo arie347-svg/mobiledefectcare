@@ -154,9 +154,8 @@ export const App: React.FC = () => {
   });
   
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [loadingStatusText, setLoadingStatusText] = useState<string>('Menyinkronkan data klaim...');
   const [dataFetchError, setDataFetchError] = useState<string | null>(null);
-  const [liveTime, setLiveTime] = useState<string>('');
+  const [visibleCount, setVisibleCount] = useState<number>(20);
   
   // Status konektivitas online/offline & performa responsif aset statis
   const [isOnline, setIsOnline] = useState<boolean>(() => {
@@ -282,30 +281,6 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Live Digital Clock (WIB)
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
-      const dateStr = now.toLocaleDateString('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
-      setLiveTime(`${dateStr} • ${timeStr} WIB`);
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Monitor status koneksi & lakukan precache strategi aset kritis (logo MDC, Google Fonts, PWA icons)
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -394,11 +369,6 @@ export const App: React.FC = () => {
     lastClaimsFetchAtRef.current = Date.now();
     setIsLoadingData(true);
     setDataFetchError(null);
-    setLoadingStatusText(
-      forceRefreshMaster
-        ? 'Kilatan sinkronisasi master & klaim...'
-        : 'Menyinkronkan klaim kecepatan tinggi...'
-    );
 
     // Langkah A: Gunakan SWR Cache Master Data segera (0 milidetik UI ready)
     const localMaster = GasCache.getMasterData();
@@ -546,6 +516,11 @@ export const App: React.FC = () => {
     if (!user) return;
 
     const pollClaims = () => {
+      // Jangan jalankan polling jika tab/layar sedang tidak aktif/terkunci (menghemat baterai & kuota HP)
+      if (typeof document !== 'undefined' && document.hidden) {
+        return;
+      }
+
       // Cegah tabrakan request (race condition) jika fetchAllData sedang aktif atau baru saja selesai (< 8 detik)
       if (isFetchingClaimsRef.current || Date.now() - lastClaimsFetchAtRef.current < 8000) {
         return;
@@ -583,16 +558,20 @@ export const App: React.FC = () => {
 
     const intervalId = setInterval(pollClaims, 60000);
 
-    // Jalankan juga saat pengguna kembali membuka/fokus ke tab aplikasi
-    const handleFocus = () => {
-      pollClaims();
+    // Jalankan saat pengguna kembali membuka/fokus ke aplikasi jika sudah > 30 detik sejak fetch terakhir
+    const handleFocusOrVisible = () => {
+      if (typeof document !== 'undefined' && !document.hidden && Date.now() - lastClaimsFetchAtRef.current > 30000) {
+        pollClaims();
+      }
     };
 
-    window.addEventListener('focus', handleFocus);
+    window.addEventListener('focus', handleFocusOrVisible);
+    document.addEventListener('visibilitychange', handleFocusOrVisible);
 
     return () => {
       clearInterval(intervalId);
-      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('focus', handleFocusOrVisible);
+      document.removeEventListener('visibilitychange', handleFocusOrVisible);
     };
   }, [user]);
 
@@ -685,6 +664,16 @@ export const App: React.FC = () => {
       return true;
     });
   }, [claims, activeFilter, searchQuery]);
+
+  // Reset batas pagination saat filter atau pencarian berubah
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [activeFilter, searchQuery]);
+
+  // Windowing daftar klaim agar render DOM di HP tetap ringan & responsif
+  const visibleClaims = useMemo(() => {
+    return filteredClaims.slice(0, visibleCount);
+  }, [filteredClaims, visibleCount]);
 
   // Master data readiness & syncing flags (Tombol Klaim Baru langsung aktif 0ms selama Master Data siap)
   const isMasterReady = Boolean(masterData?.success && masterData?.motorList && masterData.motorList.length > 0);
@@ -1065,7 +1054,6 @@ export const App: React.FC = () => {
           {/* Header Profile Section (Header Berwarna Merah) */}
           <HeaderProfile
             user={user}
-            liveTime={liveTime}
             onLogout={handleLogout}
             notificationSlot={
               <NotificationCenter
@@ -1238,8 +1226,16 @@ export const App: React.FC = () => {
               className="h-full w-full"
             >
               {filteredClaims.length > 0 ? (
-                <div className={`h-full overflow-y-auto px-3.5 py-1.5 space-y-1.5 overscroll-contain ${isLoadingData ? 'mdc-flash-card' : ''}`}>
-                  {filteredClaims.map((claim) => (
+                <div
+                  onScroll={(e) => {
+                    const el = e.currentTarget;
+                    if (el.scrollHeight - el.scrollTop <= el.clientHeight + 160) {
+                      setVisibleCount((prev) => (prev < filteredClaims.length ? Math.min(prev + 15, filteredClaims.length) : prev));
+                    }
+                  }}
+                  className={`h-full overflow-y-auto px-3.5 py-1.5 space-y-1.5 overscroll-contain ${isLoadingData ? 'mdc-flash-card' : ''}`}
+                >
+                  {visibleClaims.map((claim) => (
                     <ClaimCard
                       key={claim.idKlaim}
                       claim={claim}
@@ -1248,6 +1244,17 @@ export const App: React.FC = () => {
                       onClick={() => setSelectedClaimForDetail(claim)}
                     />
                   ))}
+                  {visibleCount < filteredClaims.length && (
+                    <div className="text-center py-2">
+                      <button
+                        type="button"
+                        onClick={() => setVisibleCount((prev) => Math.min(prev + 20, filteredClaims.length))}
+                        className="text-[10.5px] font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-full transition-all cursor-pointer border border-white/10 shadow-xs active:scale-95"
+                      >
+                        Tampilkan lebih banyak ({filteredClaims.length - visibleCount} klaim lagi)
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : isLoadingData ? (
                 <div className="h-full overflow-y-auto px-3.5 py-2.5 space-y-2.5 select-none">

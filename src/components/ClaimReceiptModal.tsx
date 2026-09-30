@@ -213,6 +213,8 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
               <div className="flex justify-center my-1">
                 <img
                   src={claim.fotoSopirPJ}
+                  loading="lazy"
+                  decoding="async"
                   alt="Bukti Foto Sopir"
                   referrerPolicy="no-referrer"
                   className="w-14 h-14 object-cover rounded-xl border border-slate-200 shadow-xs"

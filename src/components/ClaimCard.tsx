@@ -23,20 +23,27 @@ interface ContactOption {
   label: string;
   phone: string;
 }
-
-export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, viewMode, currentUserRole, onClick }) => {
+ 
+export const ClaimCard = React.memo<ClaimCardProps>(({ claim, viewMode, currentUserRole, onClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    if (!isDropdownOpen) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   const motorSummary = React.useMemo(() => {
     if (claim.items && claim.items.length > 0) {
@@ -236,7 +243,7 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, viewMode, currentUs
     return (
       <div
         onClick={onClick}
-        className="group relative flex items-center justify-between px-3 py-2 mb-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-[0.99] border border-white/15 backdrop-blur-md shadow-xs transition-all cursor-pointer text-white"
+        className="group relative flex items-center justify-between px-3 py-2 mb-1 rounded-xl bg-slate-900/85 hover:bg-slate-800/90 active:scale-[0.99] border border-white/15 shadow-xs transition-all cursor-pointer text-white"
       >
         {/* Sisi Kiri: Nama motor + jumlah part di atas, Sopir + Transporter di bawah */}
         <div className="min-w-0 flex-1 pr-2.5">
@@ -273,7 +280,7 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, viewMode, currentUs
   return (
     <div
       onClick={onClick}
-      className="group relative rounded-xl p-2.5 mb-1.5 bg-gradient-to-b from-white/12 to-white/5 hover:from-white/15 hover:to-white/8 active:scale-[0.99] border border-white/20 backdrop-blur-md shadow-sm transition-all cursor-pointer text-white"
+      className="group relative rounded-xl p-2.5 mb-1.5 bg-gradient-to-b from-slate-900/90 to-slate-950/95 hover:from-slate-800/95 hover:to-slate-900/95 active:scale-[0.99] border border-white/20 shadow-sm transition-all cursor-pointer text-white"
     >
       {/* Baris Atas: Ringkasan Motor & Status Badge */}
       <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -388,4 +395,4 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, viewMode, currentUs
       </div>
     </div>
   );
-};
+});

@@ -4,7 +4,6 @@ import { LogOut, Building2, MapPin, Shield } from 'lucide-react';
 
 interface HeaderProfileProps {
   user: UserProfile;
-  liveTime?: string;
   onLogout: () => void;
   notificationSlot?: React.ReactNode;
 }
