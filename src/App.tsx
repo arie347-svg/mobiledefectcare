@@ -116,6 +116,18 @@ export const App: React.FC = () => {
     }
   });
   const [sessionVerifyError, setSessionVerifyError] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState<boolean>(true);
+
+  // Efek dismiss splash screen awal dengan animasi transisi mulus
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).dismissMdcSplash) {
+      (window as any).dismissMdcSplash();
+    }
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Master Data & Claims State: Gunakan SWR (Stale-While-Revalidate) Cache Lokal untuk Master Data (0ms)
   const [masterData, setMasterData] = useState<MasterDataResponse>(() => {
@@ -989,38 +1001,66 @@ export const App: React.FC = () => {
     );
   }
 
-  // IF VERIFYING SESSION ON APP LOAD: TAMPILKAN ANIMASI VISUAL TANPA TEKS
-  if (isVerifyingSession) {
+  // IF SPLASH / VERIFYING SESSION ON APP LOAD: TAMPILKAN ANIMASI VISUAL BERLATAR PUTIH
+  if (showSplash || isVerifyingSession) {
     return (
-      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-[#f8fafc] text-slate-800 font-sans antialiased">
-        <div className="mdc-flash-card relative p-6 rounded-3xl bg-white border border-slate-200 shadow-xl flex flex-col items-center justify-center">
-          <div className="relative mx-auto w-14 h-14 rounded-full bg-gradient-to-b from-red-600 to-red-700 p-0.5 shadow-md shadow-red-600/20 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full mdc-electric-ring" />
-            <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-1.5 overflow-hidden relative z-10">
+      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-white text-slate-800 font-sans antialiased animate-in fade-in duration-300">
+        <div className="relative flex flex-col items-center justify-center">
+          {/* Logo Container with Soft Pulse Animation */}
+          <div className="relative mx-auto w-16 h-16 rounded-3xl bg-gradient-to-tr from-red-600 via-red-500 to-amber-500 p-0.5 shadow-xl shadow-red-600/25 flex items-center justify-center animate-pulse">
+            <div className="w-full h-full rounded-[22px] bg-white flex items-center justify-center p-2 overflow-hidden">
               <img
-                src="https://lh3.googleusercontent.com/d/1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1"
+                src="/icon-192.png"
                 alt="MDC Pin"
-                className="w-full h-full object-contain"
-                referrerPolicy="no-referrer"
+                className="w-10 h-10 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLElement).setAttribute(
+                    'src',
+                    'https://lh3.googleusercontent.com/d/1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1'
+                  );
+                }}
               />
             </div>
           </div>
-          <div className="w-24 h-[2px] mt-3.5 rounded-full mdc-laser-beam" />
+
+          <div className="mt-4 text-center">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">MDC Mobile</h2>
+            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
+              Mobile Defect Care &bull; Honda
+            </p>
+          </div>
+
+          {/* Laser Accent Beam on Pure White Background */}
+          <div className="w-24 h-1 bg-slate-100 rounded-full mt-5 overflow-hidden relative">
+            <div className="w-1/2 h-full bg-gradient-to-r from-transparent via-red-600 to-transparent rounded-full animate-[mdcLaserBeam_1.4s_ease-in-out_infinite]" />
+          </div>
+
+          <div className="mt-3 flex items-center gap-1.5 text-[10px] font-medium text-slate-400">
+            <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping" />
+            <span>Memuat Sistem...</span>
+          </div>
         </div>
       </div>
     );
   }
 
-  // IF NOT AUTHENTICATED: SHOW AUTH MODAL
+  // IF NOT AUTHENTICATED: SHOW AUTH MODAL & INSTALL PROMPT
   if (!user) {
     return (
-      <>
+      <div className="min-h-[100dvh] w-full bg-slate-100 flex justify-center">
         <AuthModal
           onLoginSuccess={handleLoginSuccess}
           externalErrorMessage={sessionVerifyError}
         />
-        <InstallPrompt isAuthScreen={true} />
-      </>
+        <InstallPrompt
+          isAuthScreen={true}
+          onProceedToLogin={() => {
+            try {
+              sessionStorage.setItem('mdc_pwa_bottom_dismissed', 'true');
+            } catch (_) {}
+          }}
+        />
+      </div>
     );
   }
 

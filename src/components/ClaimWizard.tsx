@@ -28,6 +28,7 @@ import {
 import { SignaturePad } from './SignaturePad';
 import { BarcodeScannerModal } from './BarcodeScannerModal';
 import { compressClaimImage } from '../utils/imageCompressor';
+import { ActionLoadingSplash } from './ActionLoadingSplash';
 import {
   generateLocalDraftId,
   generateOfficialClaimId,
@@ -109,6 +110,23 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
   const [submitProgress, setSubmitProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
+
+  // Splash Screen State untuk Aksi Kirim ke MD
+  const [splashState, setSplashState] = useState<{
+    show: boolean;
+    title: string;
+    subtitle?: string;
+    status: 'LOADING' | 'SUCCESS' | 'ERROR';
+    isExiting: boolean;
+    progress?: number;
+  }>({
+    show: false,
+    title: '',
+    subtitle: '',
+    status: 'LOADING',
+    isExiting: false,
+    progress: 0,
+  });
 
   // Master data dengan proteksi fallback offline lengkap (0ms jaminan ada data referensi)
   const effectiveMasterData = useMemo(() => {
@@ -926,9 +944,26 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
     setSubmittingStatus(status);
     setSubmitProgress(18);
 
+    if (status === 'Dikirim ke MD') {
+      setSplashState({
+        show: true,
+        title: 'Mengirim Klaim ke MD...',
+        subtitle: 'Mengompresi foto & menyiapkan berkas klaim',
+        status: 'LOADING',
+        isExiting: false,
+        progress: 18,
+      });
+    }
+
     // Jalankan animasi progres aktif sejak tahap kompresi foto agar tidak membeku di 0%
     const preCompressTimer = setInterval(() => {
-      setSubmitProgress((prev) => (prev < 48 ? prev + 4 : prev));
+      setSubmitProgress((prev) => {
+        const next = prev < 48 ? prev + 4 : prev;
+        if (status === 'Dikirim ke MD') {
+          setSplashState((s) => ({ ...s, progress: next }));
+        }
+        return next;
+      });
     }, 45);
 
     try {
@@ -1144,10 +1179,19 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
       };
 
       setSubmitProgress((prev) => Math.max(prev, 52));
+      setSplashState((s) => ({
+        ...s,
+        title: 'Mengirim Klaim ke MD...',
+        subtitle: 'Menyimpan berkas klaim ke basis data...',
+        progress: 52,
+      }));
+
       const progressInterval = setInterval(() => {
         setSubmitProgress((prev) => {
           if (prev >= 92) return prev;
-          return prev + Math.floor(Math.random() * 9) + 5;
+          const next = prev + Math.floor(Math.random() * 9) + 5;
+          setSplashState((s) => ({ ...s, progress: next }));
+          return next;
         });
       }, 45);
 
@@ -1172,12 +1216,24 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
         saveActiveWizardSession(user.kodeAhm, null);
         recordMutationLock(newClaimItem);
 
+        setSplashState((prev) => ({
+          ...prev,
+          status: 'SUCCESS',
+          title: 'Klaim Berhasil Dikirim!',
+          subtitle: `Nomor Resmi: ${officialClaimId}`,
+          progress: 100,
+        }));
+
         setTimeout(() => {
-          setIsSubmitting(false);
-          setSubmittingStatus(null);
-          setSubmitProgress(0);
-          onSubmitSuccess(officialClaimId, 'Dikirim ke MD', newClaimItem);
-        }, 150);
+          setSplashState((prev) => ({ ...prev, isExiting: true }));
+          setTimeout(() => {
+            setIsSubmitting(false);
+            setSubmittingStatus(null);
+            setSubmitProgress(0);
+            setSplashState({ show: false, title: '', subtitle: '', status: 'LOADING', isExiting: false, progress: 0 });
+            onSubmitSuccess(officialClaimId, 'Dikirim ke MD', newClaimItem);
+          }, 450);
+        }, 400);
       } catch (err: any) {
         clearInterval(progressInterval);
         console.error('[ClaimWizard] Gagal mengirim ke MD:', err);
@@ -1192,21 +1248,29 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
           draftDeadline: initialDraft?.draftDeadline || new Date(Date.now() + 24 * 3600000).toISOString(),
         });
 
-        setIsSubmitting(false);
-        setSubmittingStatus(null);
-        setSubmitProgress(0);
-        setErrorMessage(
-          err?.message ||
-            'Tidak dapat mengirim ke MD. Silakan periksa koneksi internet. Draft Anda tetap aman tersimpan di perangkat lokal.'
-        );
+        setSplashState((prev) => ({ ...prev, isExiting: true }));
+        setTimeout(() => {
+          setSplashState({ show: false, title: '', subtitle: '', status: 'LOADING', isExiting: false, progress: 0 });
+          setIsSubmitting(false);
+          setSubmittingStatus(null);
+          setSubmitProgress(0);
+          setErrorMessage(
+            err?.message ||
+              'Tidak dapat mengirim ke MD. Silakan periksa koneksi internet. Draft Anda tetap aman tersimpan di perangkat lokal.'
+          );
+        }, 250);
       }
     } catch (err) {
       clearInterval(preCompressTimer);
       console.error('[ClaimWizard] Save error:', err);
-      setErrorMessage('Terjadi kesalahan saat memproses data klaim. Silakan coba lagi.');
-      setIsSubmitting(false);
-      setSubmittingStatus(null);
-      setSubmitProgress(0);
+      setSplashState((prev) => ({ ...prev, isExiting: true }));
+      setTimeout(() => {
+        setSplashState({ show: false, title: '', subtitle: '', status: 'LOADING', isExiting: false, progress: 0 });
+        setErrorMessage('Terjadi kesalahan saat memproses data klaim. Silakan coba lagi.');
+        setIsSubmitting(false);
+        setSubmittingStatus(null);
+        setSubmitProgress(0);
+      }, 250);
     }
   };
 
@@ -2789,8 +2853,8 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
       {/* Floating Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 shadow-lg">
-        {/* Progress Bar */}
-        {isSubmitting && (
+        {/* Progress Bar (Hanya untuk simpan draft lokal) */}
+        {isSubmitting && submittingStatus === 'Draft' && (
           <div className="max-w-md mx-auto mb-2 overflow-hidden rounded-full bg-slate-100 h-1.5 border border-slate-200 p-[1px]">
             <div
               className="bg-gradient-to-r from-red-600 via-amber-500 to-emerald-500 h-full transition-all duration-75 ease-out rounded-full shadow-xs"
@@ -2895,38 +2959,10 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     type="button"
                     onClick={() => handleSaveClaim('Dikirim ke MD')}
                     disabled={isSubmitting}
-                    className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-md shadow-red-900/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
-                      isSubmitting && submittingStatus === 'Dikirim ke MD'
-                        ? 'bg-red-800 cursor-wait'
-                        : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98'
-                    }`}
+                    className="relative overflow-hidden flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white text-xs font-bold shadow-md shadow-red-900/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting && submittingStatus === 'Dikirim ke MD' && (
-                      <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700/80 via-red-600/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
-                        style={{ width: `${submitProgress}%` }}
-                      />
-                    )}
-                    <div className="relative z-10 flex items-center justify-center gap-1.5">
-                      {isSubmitting && submittingStatus === 'Dikirim ke MD' ? (
-                        <>
-                          {submitProgress >= 100 ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
-                          ) : (
-                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
-                          )}
-                          <span>{submitProgress >= 100 ? 'Terkirim!' : 'Mengirim ke MD'}</span>
-                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
-                            {submitProgress}%
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          <span>Kirim ke MD</span>
-                        </>
-                      )}
-                    </div>
+                    <Send className="w-4 h-4" />
+                    <span>Kirim ke MD</span>
                   </button>
                 </>
               ) : metodeKembali === 'DIKIRIM LANGSUNG' ? (
@@ -2973,38 +3009,10 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     type="button"
                     onClick={() => handleSaveClaim('Dikirim ke MD')}
                     disabled={isSubmitting}
-                    className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-md shadow-red-900/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
-                      isSubmitting && submittingStatus === 'Dikirim ke MD'
-                        ? 'bg-red-800 cursor-wait'
-                        : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98'
-                    }`}
+                    className="relative overflow-hidden flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white text-xs font-bold shadow-md shadow-red-900/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting && submittingStatus === 'Dikirim ke MD' && (
-                      <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700/80 via-red-600/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
-                        style={{ width: `${submitProgress}%` }}
-                      />
-                    )}
-                    <div className="relative z-10 flex items-center justify-center gap-1.5">
-                      {isSubmitting && submittingStatus === 'Dikirim ke MD' ? (
-                        <>
-                          {submitProgress >= 100 ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
-                          ) : (
-                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
-                          )}
-                          <span>{submitProgress >= 100 ? 'Terkirim!' : 'Mengirim ke MD'}</span>
-                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
-                            {submitProgress}%
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          <span>Kirim ke MD</span>
-                        </>
-                      )}
-                    </div>
+                    <Send className="w-4 h-4" />
+                    <span>Kirim ke MD</span>
                   </button>
                 </>
               ) : (
@@ -3104,6 +3112,16 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Full-Screen Pure White Action Splash Overlay */}
+      <ActionLoadingSplash
+        show={splashState.show}
+        title={splashState.title}
+        subtitle={splashState.subtitle}
+        status={splashState.status}
+        isExiting={splashState.isExiting}
+        progress={splashState.progress}
+      />
     </div>
   );
 };

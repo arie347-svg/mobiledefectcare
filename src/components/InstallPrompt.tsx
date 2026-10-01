@@ -13,6 +13,7 @@ import {
 
 interface InstallPromptProps {
   isAuthScreen?: boolean;
+  onProceedToLogin?: () => void;
 }
 
 export type DevicePlatform = 'ios' | 'android' | 'desktop';
@@ -36,7 +37,10 @@ const detectPlatform = (): DevicePlatform => {
   }
 };
 
-export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = false }) => {
+export const InstallPrompt: React.FC<InstallPromptProps> = ({
+  isAuthScreen = false,
+  onProceedToLogin,
+}) => {
   const [platform, setPlatform] = useState<DevicePlatform>('android');
   const [deferredPrompt, setDeferredPrompt] = useState<any>(() => {
     if (typeof window !== 'undefined' && (window as any).deferredInstallPrompt) {
@@ -130,7 +134,8 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
       } catch (_) {}
       setTimeout(() => {
         setShowPopup(false);
-      }, 2500);
+        onProceedToLogin?.();
+      }, 1800);
     };
 
     const handleOpenManual = () => {
@@ -163,6 +168,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
     } catch (_) {}
     setShowPopup(false);
     setShowIosGuide(false);
+    onProceedToLogin?.();
   };
 
   const handleInstallAction = async () => {
@@ -195,7 +201,8 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
           } catch (_) {}
           setTimeout(() => {
             setShowPopup(false);
-          }, 2000);
+            onProceedToLogin?.();
+          }, 1500);
         }
         setDeferredPrompt(null);
         if (typeof window !== 'undefined') {
@@ -353,14 +360,14 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
               Pasang ke Layar Utama HP untuk akses cepat 1-ketuk, navigasi layar penuh tanpa bilah URL browser, dan performa pemindaian barcode optimal.
             </p>
 
-            {/* Tombol Aksi: Pasang Aplikasi (Primary) & Nanti Saja (Secondary) */}
+            {/* Tombol Aksi: Pasang Aplikasi (Primary) & Nanti Saja / Lanjut ke Login (Secondary) */}
             <div className="flex items-center gap-2 pt-1">
               <button
                 type="button"
                 onClick={handleDismiss}
                 className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-98 text-xs font-semibold text-slate-700 transition-all border border-slate-200 text-center cursor-pointer"
               >
-                Nanti Saja
+                {isAuthScreen ? 'Lanjut ke Login' : 'Nanti Saja'}
               </button>
 
               <button

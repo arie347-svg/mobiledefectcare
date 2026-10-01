@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UserProfile } from '../types';
 import { GasService, isGasEnvironment } from '../services/gasBridge';
+import { ActionLoadingSplash } from './ActionLoadingSplash';
 import {
   LogIn,
   AlertCircle,
@@ -23,17 +24,30 @@ interface AuthModalProps {
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   onLoginSuccess,
-  initialTab = 'REGISTER',
+  initialTab = 'LOGIN',
   externalErrorMessage,
 }) => {
   const [activeTab, setActiveTab] = useState<'LOGIN' | 'REGISTER'>(initialTab);
+
+  // Splash Screen State untuk Masuk & Daftar
+  const [splashState, setSplashState] = useState<{
+    show: boolean;
+    title: string;
+    subtitle?: string;
+    status: 'LOADING' | 'SUCCESS' | 'ERROR';
+    isExiting: boolean;
+  }>({
+    show: false,
+    title: '',
+    subtitle: '',
+    status: 'LOADING',
+    isExiting: false,
+  });
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
   const [loginKodeAhm, setLoginKodeAhm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [loginProgress, setLoginProgress] = useState(0);
-  const [registerProgress, setRegisterProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(externalErrorMessage || null);
 
   React.useEffect(() => {
@@ -165,41 +179,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     setIsLoading(true);
-    setLoginProgress(15);
-
-    // Animasi dinamis persentase login (0% -> 100%)
-    const loginInterval = setInterval(() => {
-      setLoginProgress((prev) => {
-        if (prev >= 92) return prev;
-        return prev + Math.floor(Math.random() * 8) + 10;
-      });
-    }, 40);
+    setSplashState({
+      show: true,
+      title: 'Memverifikasi Akses Masuk...',
+      subtitle: 'Memeriksa akun resmi PDI Man & dealer Honda',
+      status: 'LOADING',
+      isExiting: false,
+    });
 
     try {
       const res = await GasService.loginUser(loginEmail, loginKodeAhm);
-      clearInterval(loginInterval);
 
       if (res && res.status === 'SUCCESS' && res.user) {
-        setLoginProgress(100);
+        setSplashState((prev) => ({
+          ...prev,
+          status: 'SUCCESS',
+          title: 'Berhasil Masuk!',
+          subtitle: `Selamat datang, ${res.user?.nama || 'PDI Man'}`,
+        }));
         setTimeout(() => {
-          onLoginSuccess(res.user);
-          setIsLoading(false);
-          setLoginProgress(0);
-        }, 180);
+          setSplashState((prev) => ({ ...prev, isExiting: true }));
+          setTimeout(() => {
+            onLoginSuccess(res.user);
+            setIsLoading(false);
+            setSplashState({ show: false, title: '', subtitle: '', status: 'LOADING', isExiting: false });
+          }, 450);
+        }, 350);
         return;
       } else {
-        setLoginProgress(0);
-        setIsLoading(false);
-        setErrorMessage(
-          res?.message ||
-            'Kombinasi Email dan Kode AHM tidak ditemukan. Pastikan akun telah terdaftar.'
-        );
+        setSplashState((prev) => ({ ...prev, isExiting: true }));
+        setTimeout(() => {
+          setSplashState({ show: false, title: '', subtitle: '', status: 'LOADING', isExiting: false });
+          setIsLoading(false);
+          setErrorMessage(
+            res?.message ||
+              'Kombinasi Email dan Kode AHM tidak ditemukan. Pastikan akun telah terdaftar.'
+          );
+        }, 250);
       }
     } catch (err: any) {
-      clearInterval(loginInterval);
-      setLoginProgress(0);
-      setIsLoading(false);
-      setErrorMessage(err?.message || 'Gagal terhubung ke server GAS.');
+      setSplashState((prev) => ({ ...prev, isExiting: true }));
+      setTimeout(() => {
+        setSplashState({ show: false, title: '', subtitle: '', status: 'LOADING', isExiting: false });
+        setIsLoading(false);
+        setErrorMessage(err?.message || 'Gagal terhubung ke server GAS.');
+      }, 250);
     }
   };
 
@@ -223,12 +247,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     if (!isValidEmail(regEmail)) {
-      setErrorMessage('Format email belum benar (contoh: namaanda@gmail.com).');
+      setErrorMessage('Format email belum benar (contoh : namaanda@gmail.com).');
       return;
     }
 
     if (!isValidHp(regHp)) {
-      setErrorMessage('Format No. HP belum sesuai (contoh: 08xx / 628xx, 10-13 digit angka).');
+      setErrorMessage('Format No. HP belum sesuai (contoh : 08xx / 628xx, 10-13 digit angka).');
       return;
     }
 
@@ -244,15 +268,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     isRegisteringRef.current = true;
     setIsLoading(true);
-    setRegisterProgress(15);
-
-    // Animasi dinamis persentase pendaftaran (0% -> 100%)
-    const regInterval = setInterval(() => {
-      setRegisterProgress((prev) => {
-        if (prev >= 92) return prev;
-        return prev + Math.floor(Math.random() * 8) + 10;
-      });
-    }, 40);
+    setSplashState({
+      show: true,
+      title: 'Mendaftarkan Akun Dealer...',
+      subtitle: 'Menyimpan profil resmi PDI Man ke basis data AHM',
+      status: 'LOADING',
+      isExiting: false,
+    });
 
     try {
       const payload = {
@@ -269,11 +291,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       };
 
       const res = await GasService.registerUser(payload);
-      clearInterval(regInterval);
 
       if (res && res.success) {
-        setRegisterProgress(100);
-        // Gunakan objek user yang langsung dikembalikan dari server pendaftaran
         const loggedUser: UserProfile = res.user || {
           email: payload.email,
           nama: payload.namaLengkap,
@@ -287,72 +306,91 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           role: payload.role || 'PDI Man',
         };
 
-        // Langsung arahkan masuk ke aplikasi tanpa jeda kedip tombol
+        setSplashState((prev) => ({
+          ...prev,
+          status: 'SUCCESS',
+          title: 'Pendaftaran Berhasil!',
+          subtitle: `Akun ${loggedUser.nama} resmi terdaftar`,
+        }));
         setTimeout(() => {
-          onLoginSuccess(loggedUser);
-          setIsLoading(false);
-          isRegisteringRef.current = false;
-          setRegisterProgress(0);
-        }, 160);
+          setSplashState((prev) => ({ ...prev, isExiting: true }));
+          setTimeout(() => {
+            onLoginSuccess(loggedUser);
+            setIsLoading(false);
+            isRegisteringRef.current = false;
+            setSplashState({ show: false, title: '', subtitle: '', status: 'LOADING', isExiting: false });
+          }, 450);
+        }, 350);
         return;
       } else {
-        setRegisterProgress(0);
-        setIsLoading(false);
-        isRegisteringRef.current = false;
-        setErrorMessage(res?.message || 'Pendaftaran gagal. Silakan coba kembali.');
+        setSplashState((prev) => ({ ...prev, isExiting: true }));
+        setTimeout(() => {
+          setSplashState({ show: false, title: '', subtitle: '', status: 'LOADING', isExiting: false });
+          setIsLoading(false);
+          isRegisteringRef.current = false;
+          setErrorMessage(res?.message || 'Pendaftaran gagal. Silakan coba kembali.');
+        }, 250);
       }
     } catch (err: any) {
-      clearInterval(regInterval);
-      setRegisterProgress(0);
-      setIsLoading(false);
-      isRegisteringRef.current = false;
-      setErrorMessage(err?.message || 'Gagal menghubungi server GAS.');
+      setSplashState((prev) => ({ ...prev, isExiting: true }));
+      setTimeout(() => {
+        setSplashState({ show: false, title: '', subtitle: '', status: 'LOADING', isExiting: false });
+        setIsLoading(false);
+        isRegisteringRef.current = false;
+        setErrorMessage(err?.message || 'Gagal menghubungi server GAS.');
+      }, 250);
     }
   };
 
   const isGas = isGasEnvironment();
 
   return (
-    <div className="h-full min-h-[100dvh] w-full flex items-center justify-center p-3 sm:p-4 bg-[#f8fafc] overflow-y-auto font-sans antialiased text-slate-800 selection:bg-red-500 selection:text-white">
-      <div className="w-full max-w-[360px] my-auto">
+    <div className="min-h-[100dvh] w-full bg-slate-100 flex justify-center selection:bg-red-500 selection:text-white font-sans antialiased text-slate-800">
+      {/* Mobile Shell Frame (Full Viewport on Phone) */}
+      <div className="w-full max-w-md bg-white min-h-[100dvh] flex flex-col justify-between shadow-2xl relative border-x border-slate-200/60 overflow-hidden">
         
-        {/* Header: Logo Pin & Judul Halaman Ramping & Ringkas */}
-        <div className="text-center mb-3">
-          <div className="mx-auto w-10 h-10 rounded-full bg-gradient-to-b from-red-600 to-red-700 p-0.5 shadow-md shadow-red-600/20 flex items-center justify-center mb-2">
-            <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-1.5 overflow-hidden">
-              <img
-                src="https://lh3.googleusercontent.com/d/1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1"
-                alt="MDC Pin"
-                className="w-full h-full object-contain"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-          </div>
-          <h1 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">
-            {activeTab === 'REGISTER' ? 'Verifikasi Akun Dealer' : 'MDC - Dealer'}
-          </h1>
-          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
-            {activeTab === 'REGISTER'
-              ? 'Pendaftaran Pengguna Resmi PDI Man'
-              : 'PDI Man Access'}
-          </p>
-        </div>
-
-        {/* Backend GAS Connection Indicator (jika standalone) */}
-        {!isGas && (
-          <div className="mb-2.5 p-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 text-[10px] font-medium flex items-center gap-1.5 shadow-2xs">
-            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-amber-600" />
-            <span>Mode Standalone (terhubung via proxy API).</span>
-          </div>
-        )}
-
-        {/* Kotak Card Formulir Utama (Didesain Pas 1 Layar Penuh) */}
-        <div className="relative w-full rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-sm space-y-2.5">
+        {/* ======================================================== */}
+        {/* MAIN BODY (FULL VIEWPORT ON PHONE, CENTERED HERO)        */}
+        {/* ======================================================== */}
+        <div className="flex-1 px-5 py-6 overflow-y-auto flex flex-col justify-center">
           
+          {/* Centered App Icon & Title */}
+          <div className="text-center mb-6 pt-[max(1rem,env(safe-area-inset-top))]">
+            <div className="mx-auto w-16 h-16 rounded-3xl bg-gradient-to-tr from-red-600 via-red-500 to-amber-500 p-0.5 shadow-xl shadow-red-600/25 flex items-center justify-center mb-3">
+              <div className="w-full h-full rounded-[22px] bg-white flex items-center justify-center p-2 overflow-hidden">
+                <img
+                  src="/icon-192.png"
+                  alt="MDC Pin"
+                  className="w-10 h-10 object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLElement).setAttribute(
+                      'src',
+                      'https://lh3.googleusercontent.com/d/1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1'
+                    );
+                  }}
+                />
+              </div>
+            </div>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+              MDC Mobile
+            </h1>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
+              PDI Man Access
+            </p>
+
+            {/* Backend GAS Connection Indicator (jika standalone) */}
+            {!isGas && (
+              <div className="mt-3 mx-auto max-w-xs p-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 text-[10px] font-medium flex items-center justify-center gap-1.5 shadow-2xs">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-amber-600" />
+                <span>Mode Standalone (terhubung via proxy API).</span>
+              </div>
+            )}
+          </div>
+
           {/* Notifikasi Pesan Validasi / Error Global */}
           {errorMessage && (
-            <div className="p-2 px-2.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-[11px] font-medium flex items-center gap-2 shadow-2xs animate-in fade-in duration-200">
-              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-red-600" />
+            <div className="mb-4 p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-medium flex items-center gap-2.5 shadow-2xs animate-in fade-in duration-200">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
               <span className="leading-tight flex-1">{errorMessage}</span>
             </div>
           )}
@@ -361,18 +399,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {/* TAB FORMULIR VERIFIKASI / DAFTAR BARU                    */}
           {/* ======================================================== */}
           {activeTab === 'REGISTER' && (
-            <form onSubmit={handleRegister} className="space-y-2.5">
+            <form onSubmit={handleRegister} className="space-y-3.5">
               
               {/* Field 1: Alamat Email Google (Gmail) * */}
               <div>
-                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1 mb-1.5">
                   Alamat Email Google (Gmail) <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
-                  <Mail className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 focus-within:ring-2 focus-within:ring-red-500/20 focus-within:border-red-500 focus-within:bg-white shadow-2xs h-11 transition-all">
+                  <Mail className="w-4 h-4 text-red-600 flex-shrink-0 mr-2.5" />
                   <input
                     type="email"
                     required
+                    inputMode="email"
+                    autoCapitalize="none"
+                    autoCorrect="off"
                     value={regEmail}
                     onBlur={() => setEmailTouched(true)}
                     onChange={(e) => {
@@ -380,12 +421,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       if (errorMessage) setErrorMessage(null);
                     }}
                     placeholder="contoh: namaanda@gmail.com"
-                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
+                    className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                   />
                 </div>
                 {emailTouched && regEmail && !isValidEmail(regEmail) && (
-                  <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                  <p className="text-[11px] text-red-600 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                     Format email tidak valid
                   </p>
                 )}
@@ -393,11 +434,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Field 2: Nama Lengkap * */}
               <div>
-                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1 mb-1.5">
                   Nama Lengkap <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
-                  <User className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 focus-within:ring-2 focus-within:ring-red-500/20 focus-within:border-red-500 focus-within:bg-white shadow-2xs h-11 transition-all">
+                  <User className="w-4 h-4 text-red-600 flex-shrink-0 mr-2.5" />
                   <input
                     type="text"
                     required
@@ -407,38 +448,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       if (errorMessage) setErrorMessage(null);
                     }}
                     placeholder="MASUKKAN NAMA LENGKAP"
-                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal uppercase outline-none tracking-wide"
+                    className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal uppercase outline-none tracking-wide"
                   />
                 </div>
               </div>
 
               {/* Field 3: No. HP / WhatsApp * */}
               <div>
-                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1 mb-1.5">
                   No. HP / WhatsApp <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
-                  <MessageCircle className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 focus-within:ring-2 focus-within:ring-red-500/20 focus-within:border-red-500 focus-within:bg-white shadow-2xs h-11 transition-all">
+                  <MessageCircle className="w-4 h-4 text-red-600 flex-shrink-0 mr-2.5" />
                   <input
                     type="tel"
                     required
+                    inputMode="tel"
                     value={regHp}
                     onBlur={() => setHpTouched(true)}
                     onChange={(e) => {
                       setRegHp(e.target.value);
                       if (errorMessage) setErrorMessage(null);
                     }}
-                    placeholder="Contoh: 081234567890"
-                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
+                    placeholder="Contoh : 081234567890"
+                    className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                   />
                 </div>
                 {hpTouched && regHp && !isValidHp(regHp) ? (
-                  <p className="text-[10px] text-red-600 mt-0.5 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                  <p className="text-[11px] text-red-600 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                     Harus format 08xx atau 628xx (10-13 digit)
                   </p>
                 ) : (
-                  <p className="text-[10px] text-slate-500 mt-0.5 font-normal">
+                  <p className="text-[11px] text-slate-500 mt-1 font-normal">
                     Format: 08xx atau 628xx (10-13 digit angka)
                   </p>
                 )}
@@ -446,19 +488,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Field 4: Kode AHM Dealer * + Tombol Cari */}
               <div>
-                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1 mb-1.5">
                   Kode AHM Dealer <span className="text-red-500">*</span>
                 </label>
-                <div className="flex rounded-xl overflow-hidden shadow-2xs border border-slate-200 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 h-[34px] transition-all">
-                  <div className="flex items-center flex-1 bg-slate-50 focus-within:bg-white px-2.5">
-                    <Building2 className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
+                <div className="flex gap-2">
+                  <div className="flex-1 flex items-center rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 focus-within:ring-2 focus-within:ring-red-500/20 focus-within:border-red-500 focus-within:bg-white shadow-2xs h-11 transition-all">
+                    <Building2 className="w-4 h-4 text-red-600 flex-shrink-0 mr-2.5" />
                     <input
                       type="text"
                       required
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       value={regKodeAhm}
                       onChange={(e) => {
-                        setRegKodeAhm(e.target.value.trim());
-                        setRegDealerInfo(null);
+                        const val = e.target.value;
+                        setRegKodeAhm(val);
+                        if (regDealerInfo) setRegDealerInfo(null);
                         if (errorMessage) setErrorMessage(null);
                       }}
                       onKeyDown={(e) => {
@@ -468,20 +513,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         }
                       }}
                       placeholder="Contoh : 12345"
-                      className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
+                      className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                     />
                   </div>
                   <button
                     type="button"
                     disabled={regLookupLoading}
                     onClick={() => handleSearchKodeAhm()}
-                    className={`px-3 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer flex-shrink-0 min-w-[82px] ${
+                    className={`h-11 px-4 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer flex-shrink-0 min-w-[82px] ${
                       regLookupLoading ? 'mdc-btn-flash-red bg-red-700' : ''
                     }`}
                   >
                     {regLookupLoading ? (
                       <span className="relative z-10 flex items-center gap-1 font-mono font-bold text-amber-200 tracking-wider">
-                        <Zap className="w-3 h-3 text-amber-300 fill-amber-300 animate-pulse" />
+                        <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300 animate-pulse" />
                         {lookupProgress}%
                       </span>
                     ) : (
@@ -519,119 +564,83 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
 
               {/* Sub-Card: Kotak Informasi Dealer Terdaftar (Kompak) */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 space-y-1.5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
                 <div>
-                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     NAMA DEALER TERDAFTAR
                   </div>
-                  <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center overflow-hidden text-ellipsis whitespace-nowrap shadow-2xs">
+                  <div className="w-full rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-800 min-h-[32px] flex items-center overflow-hidden text-ellipsis whitespace-nowrap shadow-2xs">
                     {regDealerInfo?.namaDealer || (
                       <span className="text-slate-400 font-normal">Otomatis terisi...</span>
                     )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                       KODE DEALER
                     </div>
-                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center shadow-2xs">
+                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-800 min-h-[32px] flex items-center shadow-2xs">
                       {regDealerInfo?.kodeDealer || <span className="text-slate-400">-</span>}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                       KATEGORI
                     </div>
-                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center shadow-2xs">
+                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-800 min-h-[32px] flex items-center shadow-2xs">
                       {regDealerInfo?.kategori || <span className="text-slate-400">-</span>}
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                       KOTA
                     </div>
-                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center shadow-2xs">
+                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-800 min-h-[32px] flex items-center shadow-2xs">
                       {regDealerInfo?.kota || <span className="text-slate-400">-</span>}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                       SENTRA DISTRIBUSI
                     </div>
-                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center shadow-2xs">
+                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-800 min-h-[32px] flex items-center shadow-2xs">
                       {regDealerInfo?.sentraDistribusi || <span className="text-slate-400">-</span>}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Tombol Kirim Verifikasi Akun (Animasi Kilatan Modern + Dynamic Progress Fill) */}
-              <div>
+              {/* Tombol Kirim Verifikasi Akun */}
+              <div className="pt-1">
                 <button
                   type="submit"
-                  disabled={isLoading}
-                  className={`relative overflow-hidden w-full py-2.5 px-4 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-wait shadow-sm ${
-                    isLoading
-                      ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50'
-                      : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-600/20'
-                  }`}
+                  disabled={isLoading || !regDealerInfo?.found}
+                  className="w-full h-11 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white font-bold text-sm shadow-md shadow-red-600/20 flex items-center justify-center transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isLoading && (
-                    <div
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
-                      style={{ width: `${registerProgress}%` }}
-                    />
-                  )}
-                  <div className="relative z-10 flex items-center justify-center gap-2">
-                    {isLoading ? (
-                      <>
-                        {registerProgress >= 100 ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
-                        ) : (
-                          <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
-                        )}
-                        <span className="tracking-wide font-semibold">
-                          {registerProgress >= 100 ? 'Akun Terverifikasi!' : 'Memverifikasi Akun'}
-                        </span>
-                        <span className="font-mono font-bold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded-md text-[11px] border border-amber-300/40 shadow-inner">
-                          {registerProgress}%
-                        </span>
-                      </>
-                    ) : (
-                      <span>DAFTAR</span>
-                    )}
-                  </div>
+                  <span>DAFTAR</span>
                 </button>
-
-                {/* Progress Bar Laser Bawah Tombol Pendaftaran */}
-                {isLoading && (
-                  <div className="mt-1.5 overflow-hidden rounded-full bg-slate-200 h-1.5 border border-red-500/30 p-[1px]">
-                    <div
-                      className="bg-gradient-to-r from-red-500 via-amber-400 to-emerald-500 h-full transition-all duration-100 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
-                      style={{ width: `${registerProgress}%` }}
-                    />
-                  </div>
-                )}
               </div>
 
               {/* Link Sudah Punya Akun */}
-              <div className="text-center pt-0.5">
-                <p className="text-[11px] text-slate-500 font-medium">Sudah punya akun terdaftar?</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('LOGIN');
-                    setErrorMessage(null);
-                  }}
-                  className="inline-flex items-center text-red-600 hover:text-red-700 active:scale-95 font-semibold text-xs mt-0.5 transition-colors cursor-pointer"
-                >
-                  <span>Masuk disini</span>
-                </button>
+              <div className="text-center pt-2">
+                <p className="text-xs text-slate-500 font-medium">
+                  Sudah punya akun terdaftar?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('LOGIN');
+                      setErrorMessage(null);
+                    }}
+                    className="inline-block text-red-600 hover:text-red-700 active:scale-95 font-bold underline transition-colors cursor-pointer"
+                  >
+                    Masuk disini
+                  </button>
+                </p>
               </div>
             </form>
           )}
@@ -640,116 +649,106 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {/* TAB MASUK AKUN (KONSISTEN RINGKAS & PAS 1 LAYAR)        */}
           {/* ======================================================== */}
           {activeTab === 'LOGIN' && (
-            <form onSubmit={handleLogin} className="space-y-3">
+            <form onSubmit={handleLogin} className="space-y-3.5">
               <div>
-                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1 mb-1.5">
                   Alamat Email Terdaftar <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
-                  <Mail className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 focus-within:ring-2 focus-within:ring-red-500/20 focus-within:border-red-500 focus-within:bg-white shadow-2xs h-11 transition-all">
+                  <Mail className="w-4 h-4 text-red-600 flex-shrink-0 mr-2.5" />
                   <input
                     type="email"
                     required
+                    inputMode="email"
+                    autoCapitalize="none"
+                    autoCorrect="off"
                     value={loginEmail}
                     onChange={(e) => {
                       setLoginEmail(e.target.value);
                       if (errorMessage) setErrorMessage(null);
                     }}
-                    placeholder="nama@dealerhonda.com"
-                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
+                    placeholder="alamat@gmail.com"
+                    className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1 mb-1.5">
                   Kode AHM Dealer <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
-                  <Building2 className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 focus-within:ring-2 focus-within:ring-red-500/20 focus-within:border-red-500 focus-within:bg-white shadow-2xs h-11 transition-all">
+                  <Building2 className="w-4 h-4 text-red-600 flex-shrink-0 mr-2.5" />
                   <input
                     type="text"
                     required
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={loginKodeAhm}
                     onChange={(e) => {
                       setLoginKodeAhm(e.target.value.trim());
                       if (errorMessage) setErrorMessage(null);
                     }}
-                    placeholder="Contoh: 123 atau 00123"
-                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
+                    placeholder="Contoh : 123 atau 00123"
+                    className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                   />
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1 font-normal">
-                  Bisa diketik dengan atau tanpa awalan nol
+                <p className="text-[11px] text-slate-500 mt-1 font-normal">
+                  Bisa diketik dengan atau tanpa awalan angka nol
                 </p>
               </div>
 
-              {/* Tombol Masuk (Animasi Kilatan Modern + Dynamic Progress Fill) */}
-              <div>
+              {/* Tombol Masuk */}
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`relative overflow-hidden w-full py-2.5 px-4 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-wait shadow-sm ${
-                    isLoading
-                      ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50'
-                      : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-600/20'
-                  }`}
+                  className="w-full h-11 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white font-bold text-sm shadow-md shadow-red-600/20 flex items-center justify-center transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isLoading && (
-                    <div
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
-                      style={{ width: `${loginProgress}%` }}
-                    />
-                  )}
-                  <div className="relative z-10 flex items-center justify-center gap-2">
-                    {isLoading ? (
-                      <>
-                        {loginProgress >= 100 ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
-                        ) : (
-                          <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
-                        )}
-                        <span className="tracking-wide font-semibold">
-                          {loginProgress >= 100 ? 'Akses Diterima!' : 'Memverifikasi Akun'}
-                        </span>
-                        <span className="font-mono font-bold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded-md text-[11px] border border-amber-300/40 shadow-inner">
-                          {loginProgress}%
-                        </span>
-                      </>
-                    ) : (
-                      <span>MASUK</span>
-                    )}
-                  </div>
+                  <span>MASUK</span>
                 </button>
-
-                {/* Progress Bar Laser Bawah Tombol Login */}
-                {isLoading && (
-                  <div className="mt-1.5 overflow-hidden rounded-full bg-slate-200 h-1.5 border border-red-500/30 p-[1px]">
-                    <div
-                      className="bg-gradient-to-r from-red-500 via-amber-400 to-emerald-500 h-full transition-all duration-100 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
-                      style={{ width: `${loginProgress}%` }}
-                    />
-                  </div>
-                )}
               </div>
 
-              <div className="text-center pt-1">
-                <p className="text-[11px] text-slate-500 font-medium">Belum memiliki akun?</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('REGISTER');
-                    setErrorMessage(null);
-                  }}
-                  className="inline-flex items-center text-red-600 hover:text-red-700 active:scale-95 font-semibold text-xs mt-0.5 transition-colors cursor-pointer"
-                >
-                  <span>Daftar akun</span>
-                </button>
+              {/* Navigasi Alternatif ke Tab Daftar */}
+              <div className="text-center pt-2">
+                <p className="text-xs text-slate-500 font-medium">
+                  Belum memiliki akun terdaftar?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('REGISTER');
+                      setErrorMessage(null);
+                    }}
+                    className="inline-block text-red-600 hover:text-red-700 active:scale-95 font-bold underline transition-colors cursor-pointer"
+                  >
+                    Daftar Akun Baru
+                  </button>
+                </p>
               </div>
             </form>
           )}
 
         </div>
+
+        {/* ======================================================== */}
+        {/* 3. BOTTOM FOOTER & SECURITY BADGE (SAFE AREA BOTTOM)    */}
+        {/* ======================================================== */}
+        <div className="pb-[max(1rem,env(safe-area-inset-bottom))] px-4 pt-2.5 bg-slate-50 border-t border-slate-100 flex-shrink-0 text-center">
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Sistem Resmi PDI Man &bull; TLS 256-bit Encrypted</span>
+          </div>
+        </div>
+
+        {/* Full-Screen Pure White Action Splash Overlay */}
+        <ActionLoadingSplash
+          show={splashState.show}
+          title={splashState.title}
+          subtitle={splashState.subtitle}
+          status={splashState.status}
+          isExiting={splashState.isExiting}
+        />
+
       </div>
     </div>
   );
