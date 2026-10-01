@@ -130,14 +130,14 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-1">
-        <label className="text-[11px] font-semibold text-white/90 tracking-wide">
-          {label} {required && <span className="text-red-400">*</span>}
+      <div className="flex justify-between items-center mb-1.5">
+        <label className="text-[11px] font-semibold text-slate-700 tracking-wide">
+          {label} {required && <span className="text-red-500">*</span>}
         </label>
         <button
           type="button"
           onClick={handleClear}
-          className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-300 hover:text-amber-200 transition-colors py-0.5 px-1.5 rounded bg-white/10"
+          className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-600 hover:text-red-600 transition-colors py-0.5 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200/80 cursor-pointer"
         >
           <Eraser className="w-3 h-3" />
           Hapus Paraf
@@ -145,7 +145,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
       </div>
 
       <div
-        className="relative rounded-xl overflow-hidden border border-white/25 bg-white shadow-inner"
+        className="relative rounded-xl overflow-hidden border border-slate-300 bg-white shadow-inner"
         style={{ height: `${height}px` }}
       >
         <canvas
@@ -160,14 +160,14 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
         />
         {!value && (
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <span className="text-[10px] text-slate-300 select-none">
+            <span className="text-[11px] text-slate-300 select-none">
               Tanda tangan / paraf di sini
             </span>
           </div>
         )}
       </div>
       {!hideHint && (
-        <p className="text-[9px] text-white/50 mt-0.5">
+        <p className="text-[10px] text-slate-400 mt-1">
           Bubuhkan tanda tangan / paraf langsung dengan jari atau stylus.
         </p>
       )}

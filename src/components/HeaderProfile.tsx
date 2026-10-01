@@ -18,50 +18,39 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({ user, onLogout, no
     : `Kota ${rawKota}`;
   const asalGudang = user?.sentraDistribusi || 'Baros';
 
-  return (
-    <div className="relative rounded-b-2xl bg-gradient-to-br from-red-600 via-red-700 to-red-900 text-white px-3.5 py-2.5 shadow-lg border-b border-white/20">
-      {/* Background Decorative Pattern (Contained) */}
-      <div className="absolute inset-0 overflow-hidden rounded-b-2xl pointer-events-none">
-        <div className="absolute -top-10 -right-10 w-28 h-28 bg-white/10 rounded-full blur-2xl" />
-        <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-black/20 rounded-full blur-xl" />
-      </div>
+  // Inisial huruf depan nama PDI Man
+  const inisialNama = (() => {
+    if (!user?.nama) return 'P';
+    const clean = user.nama.trim();
+    if (!clean) return 'P';
+    const firstWord = clean.split(/\s+/)[0];
+    return firstWord ? firstWord.charAt(0).toUpperCase() : 'P';
+  })();
 
-      {/* Top Row: User Avatar / MDC Logo & User Greeting & Logout Button */}
+  return (
+    <div className="relative rounded-b-2xl bg-gradient-to-r from-red-600 via-red-600 to-red-700 text-white px-3.5 py-2.5 shadow-md border-b border-red-800/30">
+      {/* Top Row: User Avatar Inisial & User Greeting & Logout Button */}
       <div className="relative flex items-center justify-between gap-2.5 mb-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          {/* Logo MDC */}
+          {/* Avatar Inisial Nama Depan PDI Man */}
           <div className="relative flex-shrink-0 w-9 h-9">
-            <div className="w-full h-full rounded-xl bg-white/15 border border-white/30 backdrop-blur-md p-1.5 flex items-center justify-center shadow-xs overflow-hidden">
-              <img
-                src="/icon-192.png"
-                alt="Logo MDC"
-                className="w-full h-full object-contain drop-shadow-xs"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent) {
-                    const fallback = parent.querySelector('.mdc-text-logo');
-                    if (fallback) fallback.classList.remove('hidden');
-                  }
-                }}
-              />
-              <span className="mdc-text-logo hidden text-[10px] font-black tracking-wider text-white font-mono">
-                MDC
+            <div className="w-full h-full rounded-xl bg-white flex items-center justify-center shadow-xs overflow-hidden border border-red-100 select-none">
+              <span className="text-base font-black tracking-tight text-red-600 font-sans leading-none">
+                {inisialNama}
               </span>
             </div>
-            {/* Indikator Online Hijau (Posisinya presisi di sudut luar tanpa terpotong bentuk rounded/overflow-hidden) */}
+            {/* Indikator Online Hijau */}
             <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3 z-10 pointer-events-none">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-[#8b151b] shadow-xs" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-red-600 shadow-xs" />
             </span>
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-[10.5px] text-white/75 font-medium">Selamat Datang,</span>
-              <span className="inline-flex items-center gap-0.5 text-[8.5px] px-1.5 py-0.2 rounded-full bg-black/30 text-amber-300 font-semibold border border-amber-300/30 flex-shrink-0">
-                <Shield className="w-2 h-2" /> PDI Man
+              <span className="text-[10.5px] text-white/90 font-medium">Selamat Datang,</span>
+              <span className="inline-flex items-center gap-0.5 text-[8.5px] px-1.5 py-0.2 rounded-full bg-black/20 text-amber-200 font-semibold border border-white/20 flex-shrink-0">
+                <Shield className="w-2 h-2 text-amber-300" /> PDI Man
               </span>
             </div>
             <h2 className="text-xs font-bold text-white truncate leading-tight tracking-wide mt-0.5">
@@ -77,32 +66,32 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({ user, onLogout, no
             type="button"
             onClick={onLogout}
             title="Keluar dari Akun"
-            className="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 border border-white/20 transition-all text-white/90 hover:text-white flex-shrink-0 cursor-pointer shadow-xs"
+            className="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 transition-all text-white hover:text-white flex-shrink-0 cursor-pointer shadow-xs"
           >
             <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Frosted Dealer Badge Card (Compact) */}
-      <div className="relative rounded-xl bg-black/30 backdrop-blur-md border border-white/15 px-2.5 py-1.5 text-xs shadow-inner">
+      {/* Clean White Dealer Badge Card */}
+      <div className="relative rounded-xl bg-white text-slate-900 border border-red-100 px-3 py-2 text-xs shadow-md">
         <div className="flex items-center justify-between gap-2 mb-1">
-          <div className="flex items-center gap-1.5 truncate text-white/95 font-semibold">
-            <Building2 className="w-3 h-3 text-amber-400 flex-shrink-0" />
-            <span className="truncate text-[11px]">{namaDealer}</span>
+          <div className="flex items-center gap-1.5 truncate text-slate-900 font-bold">
+            <Building2 className="w-3.5 h-3.5 text-red-600 flex-shrink-0" />
+            <span className="truncate text-[11px] font-bold">{namaDealer}</span>
           </div>
-          <span className="flex-shrink-0 text-[9.5px] px-1.5 py-0.5 rounded-md bg-white/20 font-mono font-bold tracking-wider text-white border border-white/25">
+          <span className="flex-shrink-0 text-[9.5px] px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 font-mono font-bold tracking-wider border border-red-200/80">
             {kodeDealer}
           </span>
         </div>
 
-        <div className="flex items-center justify-between text-[10px] text-white/80 pt-1 border-t border-white/10">
+        <div className="flex items-center justify-between text-[10px] text-slate-600 pt-1 border-t border-slate-100">
           <div className="flex items-center gap-1">
-            <MapPin className="w-2.5 h-2.5 text-red-300" />
-            <span>Kota : <strong className="text-white">{kotaFormatted}</strong></span>
+            <MapPin className="w-2.5 h-2.5 text-red-500" />
+            <span>Kota : <strong className="text-slate-800">{kotaFormatted}</strong></span>
           </div>
           <div>
-            <span>Asal Gudang : <strong className="text-amber-300 font-semibold">{asalGudang}</strong></span>
+            <span>Asal Gudang : <strong className="text-red-700 font-semibold">{asalGudang}</strong></span>
           </div>
         </div>
       </div>

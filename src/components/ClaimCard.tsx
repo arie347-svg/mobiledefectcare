@@ -89,42 +89,42 @@ export const ClaimCard = React.memo<ClaimCardProps>(({ claim, viewMode, currentU
     switch (status) {
       case 'Draft':
         badgeNode = (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-300 border border-slate-400/30 whitespace-nowrap">
-            <FileEdit className="w-2.5 h-2.5" /> Draft
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 whitespace-nowrap">
+            <FileEdit className="w-2.5 h-2.5 text-slate-500" /> Draft
           </span>
         );
         break;
       case 'Dikirim ke MD':
         badgeNode = (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 whitespace-nowrap">
-            <Clock className="w-2.5 h-2.5" /> Dikirim ke MD
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-300 whitespace-nowrap">
+            <Clock className="w-2.5 h-2.5 text-sky-600" /> Dikirim ke MD
           </span>
         );
         break;
       case 'Proses di MD':
         badgeNode = (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 whitespace-nowrap">
-            <Wrench className="w-2.5 h-2.5" /> Proses di MD
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 whitespace-nowrap">
+            <Wrench className="w-2.5 h-2.5 text-amber-600" /> Proses di MD
           </span>
         );
         break;
       case 'Dikirim ke Dealer':
         badgeNode = (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 whitespace-nowrap">
-            <Clock className="w-2.5 h-2.5" /> Kirim ke Dealer
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-300 whitespace-nowrap">
+            <Clock className="w-2.5 h-2.5 text-indigo-600" /> Kirim ke Dealer
           </span>
         );
         break;
       case 'Selesai':
         badgeNode = (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 whitespace-nowrap">
-            <CheckCircle2 className="w-2.5 h-2.5" /> Selesai
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 whitespace-nowrap">
+            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Selesai
           </span>
         );
         break;
       default:
         badgeNode = (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-300 border border-gray-400/30 whitespace-nowrap">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-300 whitespace-nowrap">
             {status}
           </span>
         );
@@ -243,31 +243,31 @@ export const ClaimCard = React.memo<ClaimCardProps>(({ claim, viewMode, currentU
     return (
       <div
         onClick={onClick}
-        className="group relative flex items-center justify-between px-3 py-2 mb-1 rounded-xl bg-slate-900/85 hover:bg-slate-800/90 active:scale-[0.99] border border-white/15 shadow-xs transition-all cursor-pointer text-white"
+        className="group relative flex items-center justify-between px-3 py-2.5 mb-1.5 rounded-xl bg-white hover:bg-slate-50 active:scale-[0.99] border border-slate-200/90 hover:border-slate-300 shadow-xs transition-all cursor-pointer text-slate-800"
       >
         {/* Sisi Kiri: Nama motor + jumlah part di atas, Sopir + Transporter di bawah */}
         <div className="min-w-0 flex-1 pr-2.5">
-          <h4 className="font-bold text-xs text-white tracking-wide truncate">
+          <h4 className="font-bold text-xs text-slate-900 tracking-wide truncate">
             {motorSummary}
           </h4>
-          <p className="text-[10.5px] text-white/60 truncate mt-0.5">
+          <p className="text-[11px] text-slate-500 truncate mt-0.5">
             {driverName} • {transporterName}
           </p>
         </div>
 
         {/* Sisi Kanan: Status di atas, Estimasi / Leadtime di bawah */}
-        <div className="flex flex-col items-end gap-0.5 flex-shrink-0 text-right">
+        <div className="flex flex-col items-end gap-1 flex-shrink-0 text-right">
           {getStatusBadge(claim.status)}
-          <div className="text-[9.5px]">
+          <div className="text-[10px]">
             {isSelesai ? (
-              <span className="text-emerald-300 font-semibold font-mono">
+              <span className="text-emerald-700 font-semibold font-mono">
                 Leadtime {aktualHari}/{targetLeadtimeHari} Hari
               </span>
             ) : isDraft ? (
-              <span className="text-white/50 italic">Draft</span>
+              <span className="text-slate-400 italic">Draft</span>
             ) : (
-              <span className="text-amber-300 font-mono">
-                EstSelesai: <strong className="text-white font-mono">{estSelesai}</strong>
+              <span className="text-slate-500 font-mono">
+                EstSelesai: <strong className="text-slate-800 font-mono">{estSelesai}</strong>
               </span>
             )}
           </div>
@@ -280,39 +280,39 @@ export const ClaimCard = React.memo<ClaimCardProps>(({ claim, viewMode, currentU
   return (
     <div
       onClick={onClick}
-      className="group relative rounded-xl p-2.5 mb-1.5 bg-gradient-to-b from-slate-900/90 to-slate-950/95 hover:from-slate-800/95 hover:to-slate-900/95 active:scale-[0.99] border border-white/20 shadow-sm transition-all cursor-pointer text-white"
+      className="group relative rounded-xl p-3 mb-2 bg-white hover:bg-slate-50/80 active:scale-[0.99] border border-slate-200/90 hover:border-slate-300 shadow-xs hover:shadow-sm transition-all cursor-pointer text-slate-800"
     >
       {/* Baris Atas: Ringkasan Motor & Status Badge */}
-      <div className="flex items-center justify-between gap-2 mb-1.5">
-        <h4 className="font-bold text-xs text-white tracking-wide truncate flex-1">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <h4 className="font-bold text-xs text-slate-900 tracking-wide truncate flex-1">
           {motorSummary}
         </h4>
         <div className="flex-shrink-0">{getStatusBadge(claim.status)}</div>
       </div>
 
       {/* Baris Tengah: Info Sopir + Transporter & Leadtime / Estimasi Selesai */}
-      <div className="flex items-center justify-between text-[10.5px] text-white/70 py-1 border-t border-white/10">
+      <div className="flex items-center justify-between text-[11px] text-slate-600 py-1.5 border-t border-slate-100">
         <div className="min-w-0 flex-1 pr-2 truncate">
-          <span className="text-white/60">Sopir: </span>
-          <strong className="text-white/90">{driverName}</strong>
-          <span className="text-white/40 mx-1">•</span>
-          <span className="text-white/70">{transporterName}</span>
+          <span className="text-slate-400">Sopir: </span>
+          <strong className="text-slate-800">{driverName}</strong>
+          <span className="text-slate-300 mx-1">•</span>
+          <span className="text-slate-600">{transporterName}</span>
         </div>
 
         <div className="text-right flex-shrink-0">
           {isSelesai ? (
-            <span className="inline-flex items-center gap-1 font-semibold text-emerald-300 font-mono">
-              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+            <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 font-mono">
+              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
               Leadtime {aktualHari}/{targetLeadtimeHari} Hari
             </span>
           ) : isDraft ? (
-            <span className="inline-flex items-center gap-1 text-white/50 italic">
-              <Clock className="w-2.5 h-2.5" /> Draft
+            <span className="inline-flex items-center gap-1 text-slate-400 italic">
+              <Clock className="w-3 h-3 text-slate-400" /> Draft
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 font-medium text-amber-300 font-mono">
-              <Clock className="w-2.5 h-2.5 text-amber-400" />
-              Est: <strong className="text-white font-mono">{estSelesai}</strong>
+            <span className="inline-flex items-center gap-1 font-medium text-slate-600 font-mono">
+              <Clock className="w-3 h-3 text-amber-500" />
+              Est: <strong className="text-slate-800 font-mono">{estSelesai}</strong>
             </span>
           )}
         </div>
@@ -320,21 +320,21 @@ export const ClaimCard = React.memo<ClaimCardProps>(({ claim, viewMode, currentU
 
       {/* Operasional MD info banner jika sedang dalam perbaikan */}
       {claim.status === 'Proses di MD' && (
-        <div className="mt-1 rounded-lg bg-black/30 border border-white/10 px-2 py-1 flex items-center justify-between text-[10px]">
+        <div className="mt-1.5 rounded-lg bg-amber-50/70 border border-amber-200/80 px-2.5 py-1 flex items-center justify-between text-[10.5px]">
           <div className="truncate pr-2">
-            <span className="text-white/60">Perbaikan: </span>
-            <strong className="text-amber-300">{claim.mdJenisPerbaikan || 'Pengerjaan Teknis'}</strong>
+            <span className="text-slate-500">Perbaikan: </span>
+            <strong className="text-amber-800 font-semibold">{claim.mdJenisPerbaikan || 'Pengerjaan Teknis'}</strong>
           </div>
-          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${claim.mdValidasiRepairman === 'Valid' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-amber-500/20 text-amber-300'}`}>
+          <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded ${claim.mdValidasiRepairman === 'Valid' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800'}`}>
             {claim.mdValidasiRepairman === 'Valid' ? 'QC Valid' : 'Pengerjaan'}
           </span>
         </div>
       )}
 
       {/* Baris Bawah: Tanggal Pengajuan & Aksi (Kontak WhatsApp & Tautan Detail >) */}
-      <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-white/10 text-[9.5px]">
-        <div className="flex items-center gap-1 text-white/60">
-          <Calendar className="w-2.5 h-2.5 text-red-400" />
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-[10px]">
+        <div className="flex items-center gap-1 text-slate-500">
+          <Calendar className="w-3 h-3 text-red-500" />
           <span>{tglPengajuan}</span>
         </div>
 
@@ -348,7 +348,7 @@ export const ClaimCard = React.memo<ClaimCardProps>(({ claim, viewMode, currentU
                   e.stopPropagation();
                   setIsDropdownOpen(!isDropdownOpen);
                 }}
-                className="py-0.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-[9.5px] font-semibold flex items-center gap-1 shadow-xs transition-all cursor-pointer"
+                className="py-1 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-[10px] font-semibold flex items-center gap-1 shadow-xs transition-all cursor-pointer"
               >
                 <MessageSquare className="w-2.5 h-2.5" />
                 <span>Kontak</span>
@@ -356,8 +356,8 @@ export const ClaimCard = React.memo<ClaimCardProps>(({ claim, viewMode, currentU
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute right-0 bottom-full mb-1.5 w-48 rounded-xl bg-slate-950/95 backdrop-blur-md border border-white/20 shadow-2xl p-1 z-40 space-y-0.5">
-                  <div className="px-2 py-1 text-[8.5px] font-bold tracking-wider text-amber-300 uppercase border-b border-white/10">
+                <div className="absolute right-0 bottom-full mb-1.5 w-48 rounded-xl bg-white border border-slate-200 shadow-xl p-1 z-40 space-y-0.5">
+                  <div className="px-2 py-1 text-[9px] font-bold tracking-wider text-slate-600 uppercase border-b border-slate-100">
                     Hubungi via WhatsApp
                   </div>
                   <div className="p-0.5 space-y-0.5">
@@ -366,12 +366,12 @@ export const ClaimCard = React.memo<ClaimCardProps>(({ claim, viewMode, currentU
                         key={idx}
                         type="button"
                         onClick={(e) => handleWhatsAppAction(c.phone, c.label, e)}
-                        className="w-full px-2 py-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 active:scale-[0.98] border border-white/10 hover:border-emerald-500/30 text-white transition-all flex items-center justify-between gap-1.5 group/item cursor-pointer"
+                        className="w-full px-2 py-1.5 rounded-lg hover:bg-emerald-50 active:scale-[0.98] border border-transparent hover:border-emerald-200 text-slate-700 hover:text-emerald-900 transition-all flex items-center justify-between gap-1.5 group/item cursor-pointer"
                       >
-                        <span className="text-[11px] font-semibold text-white/90 group-hover/item:text-white truncate">
+                        <span className="text-[11px] font-semibold text-slate-800 group-hover/item:text-emerald-900 truncate">
                           {c.label}
                         </span>
-                        <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.2 rounded border border-emerald-500/20 flex-shrink-0">
+                        <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">
                           <MessageSquare className="w-2 h-2" />
                           Chat
                         </span>
@@ -387,7 +387,7 @@ export const ClaimCard = React.memo<ClaimCardProps>(({ claim, viewMode, currentU
           <button
             type="button"
             onClick={onClick}
-            className="flex items-center gap-0.5 text-amber-400 hover:text-amber-300 font-semibold group-hover:translate-x-0.5 transition-transform cursor-pointer text-[10px]"
+            className="flex items-center gap-0.5 text-red-600 hover:text-red-700 font-bold group-hover:translate-x-0.5 transition-transform cursor-pointer text-[10.5px]"
           >
             <span>Detail &gt;</span>
           </button>

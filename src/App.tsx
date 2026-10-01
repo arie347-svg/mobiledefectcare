@@ -7,6 +7,7 @@ import {
   ClaimStatusNotification,
 } from './types';
 import { GasService, GasCache, isGasEnvironment } from './services/gasBridge';
+import { DEFAULT_MASTER_DATA } from './data/defaultMasterData';
 import { HeaderProfile } from './components/HeaderProfile';
 import { NotificationCenter } from './components/NotificationCenter';
 import { NotificationToast } from './components/NotificationToast';
@@ -122,14 +123,7 @@ export const App: React.FC = () => {
     if (cached && Array.isArray(cached.motorList) && cached.motorList.length > 0) {
       return cached;
     }
-    return {
-      success: false,
-      transporterList: [],
-      motorList: [],
-      partList: [],
-      kerusakanList: [],
-      penyebabList: [],
-    };
+    return DEFAULT_MASTER_DATA;
   });
 
   const [claims, setClaims] = useState<ClaimItem[]>([]);
@@ -371,7 +365,7 @@ export const App: React.FC = () => {
     setDataFetchError(null);
 
     // Langkah A: Gunakan SWR Cache Master Data segera (0 milidetik UI ready)
-    const localMaster = GasCache.getMasterData();
+    const localMaster = GasCache.getMasterData() || DEFAULT_MASTER_DATA;
     if (localMaster && Array.isArray(localMaster.motorList) && localMaster.motorList.length > 0) {
       setMasterData(localMaster);
     }
@@ -381,7 +375,7 @@ export const App: React.FC = () => {
     if (shouldFetchMaster) {
       GasService.getMasterDataKlaim(forceRefreshMaster)
         .then((freshMaster) => {
-          if (freshMaster && freshMaster.success && Array.isArray(freshMaster.motorList)) {
+          if (freshMaster && freshMaster.success && Array.isArray(freshMaster.motorList) && freshMaster.motorList.length > 0) {
             setMasterData(freshMaster);
           }
         })
@@ -675,13 +669,18 @@ export const App: React.FC = () => {
     return filteredClaims.slice(0, visibleCount);
   }, [filteredClaims, visibleCount]);
 
-  // Master data readiness & syncing flags (Tombol Klaim Baru langsung aktif 0ms selama Master Data siap)
-  const isMasterReady = Boolean(masterData?.success && masterData?.motorList && masterData.motorList.length > 0);
-  const isSyncingMaster = !isMasterReady;
-
-  // Claim Wizard Handlers
+  // Claim Wizard Handlers (Tombol Klaim Baru langsung aktif responsif 0ms)
   const handleOpenNewClaim = () => {
-    if (isSyncingMaster) return;
+    // Jika master data belum siap, picu sinkronisasi latar belakang secara non-blocking
+    if (!masterData?.success || !masterData?.motorList || masterData.motorList.length === 0) {
+      GasService.getMasterDataKlaim(false)
+        .then((freshMaster) => {
+          if (freshMaster && freshMaster.success) {
+            setMasterData(freshMaster);
+          }
+        })
+        .catch(() => {});
+    }
     if (user?.kodeAhm) {
       saveActiveWizardSession(user.kodeAhm, null);
     }
@@ -926,8 +925,8 @@ export const App: React.FC = () => {
   // IF LOADING PUBLIC RECEIPT FROM DIRECT LINK (?receipt=...)
   if (isLoadingPublicReceipt) {
     return (
-      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#3a0609] via-[#220406] to-[#0d0102] text-white font-sans antialiased">
-        <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-b from-red-500 to-red-700 p-0.5 shadow-lg shadow-red-950/80 flex items-center justify-center mb-3 animate-pulse">
+      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-[#f8fafc] text-slate-800 font-sans antialiased">
+        <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-b from-red-600 to-red-700 p-0.5 shadow-md shadow-red-600/20 flex items-center justify-center mb-3 animate-pulse">
           <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-1.5 overflow-hidden">
             <img
               src="https://lh3.googleusercontent.com/d/1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1"
@@ -937,7 +936,7 @@ export const App: React.FC = () => {
             />
           </div>
         </div>
-        <Loader2 className="w-6 h-6 animate-spin text-red-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-red-600" />
       </div>
     );
   }
@@ -945,7 +944,7 @@ export const App: React.FC = () => {
   // IF PUBLIC RECEIPT OPENED DIRECTLY FROM LINK (?receipt=...)
   if (publicReceiptClaim) {
     return (
-      <div className="h-full min-h-[100dvh] w-full bg-slate-950 flex flex-col items-center justify-center p-4">
+      <div className="h-full min-h-[100dvh] w-full bg-[#f8fafc] flex flex-col items-center justify-center p-4">
         <ClaimReceiptModal
           claim={publicReceiptClaim}
           user={user}
@@ -966,12 +965,12 @@ export const App: React.FC = () => {
   // IF PUBLIC RECEIPT ERROR (Klaim tidak ditemukan)
   if (publicReceiptError) {
     return (
-      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#3a0609] via-[#220406] to-[#0d0102] text-white font-sans text-center">
-        <div className="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-500/40 text-red-400 flex items-center justify-center mb-3">
+      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-[#f8fafc] text-slate-800 font-sans text-center">
+        <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mb-3">
           <AlertCircle className="w-6 h-6" />
         </div>
-        <h3 className="text-sm font-bold text-white mb-1">Resi Tidak Ditemukan</h3>
-        <p className="text-xs text-white/70 max-w-xs mb-4">{publicReceiptError}</p>
+        <h3 className="text-sm font-bold text-slate-900 mb-1">Resi Tidak Ditemukan</h3>
+        <p className="text-xs text-slate-600 max-w-xs mb-4">{publicReceiptError}</p>
         <button
           type="button"
           onClick={() => {
@@ -982,7 +981,7 @@ export const App: React.FC = () => {
               window.history.replaceState({}, document.title, url.pathname);
             }
           }}
-          className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition-all cursor-pointer shadow-lg"
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-xs font-bold text-white transition-all cursor-pointer shadow-md shadow-red-600/20"
         >
           Tutup & Kembali
         </button>
@@ -993,9 +992,9 @@ export const App: React.FC = () => {
   // IF VERIFYING SESSION ON APP LOAD: TAMPILKAN ANIMASI VISUAL TANPA TEKS
   if (isVerifyingSession) {
     return (
-      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#3a0609] via-[#220406] to-[#0d0102] text-white font-sans antialiased">
-        <div className="mdc-flash-card relative p-6 rounded-3xl bg-white/[0.04] border border-white/15 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center">
-          <div className="relative mx-auto w-14 h-14 rounded-full bg-gradient-to-b from-amber-400 via-red-500 to-red-700 p-0.5 shadow-lg shadow-red-950/80 flex items-center justify-center">
+      <div className="h-full min-h-[100dvh] w-full flex flex-col items-center justify-center p-4 bg-[#f8fafc] text-slate-800 font-sans antialiased">
+        <div className="mdc-flash-card relative p-6 rounded-3xl bg-white border border-slate-200 shadow-xl flex flex-col items-center justify-center">
+          <div className="relative mx-auto w-14 h-14 rounded-full bg-gradient-to-b from-red-600 to-red-700 p-0.5 shadow-md shadow-red-600/20 flex items-center justify-center">
             <div className="absolute inset-0 rounded-full mdc-electric-ring" />
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-1.5 overflow-hidden relative z-10">
               <img
@@ -1042,15 +1041,15 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] w-full bg-slate-950 text-white flex justify-center selection:bg-red-500 selection:text-white overflow-hidden font-sans">
+    <div className="h-[100dvh] max-h-[100dvh] w-full bg-slate-100 text-slate-900 flex justify-center selection:bg-red-500 selection:text-white overflow-hidden font-sans">
       {/* Mobile Shell Frame */}
-      <div className="w-full max-w-md bg-gradient-to-b from-slate-950 via-neutral-950 to-slate-950 h-full max-h-[100dvh] shadow-2xl relative border-x border-white/5 flex flex-col overflow-hidden">
+      <div className="w-full max-w-md bg-[#f8fafc] h-full max-h-[100dvh] shadow-xl relative border-x border-slate-200 flex flex-col overflow-hidden text-slate-900">
         
         {/* ======================================================== */}
         {/* 1. TOP FIXED SECTION (HEADER MERAH + STATUS + SEARCH + TITLE) */}
         {/* Non-scrollable (flex-shrink-0) */}
         {/* ======================================================== */}
-        <div className="flex-shrink-0 z-20 bg-slate-950/95 border-b border-white/5 shadow-md">
+        <div className="flex-shrink-0 z-20 bg-white border-b border-slate-200/80 shadow-xs">
           {/* Header Profile Section (Header Berwarna Merah) */}
           <HeaderProfile
             user={user}
@@ -1068,12 +1067,12 @@ export const App: React.FC = () => {
 
           {/* Banner Indikator Koneksi Offline / Sinyal Tidak Stabil */}
           {!isOnline && (
-            <div className="mx-4 mt-2 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[11px] flex items-center justify-between gap-2 shadow-xs backdrop-blur-sm animate-pulse">
+            <div className="mx-4 mt-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center justify-between gap-2 shadow-xs animate-pulse">
               <div className="flex items-center gap-2 min-w-0">
-                <WifiOff className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                <WifiOff className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
                 <span className="truncate">Koneksi tidak stabil / offline. Aset statis & data lokal tetap aktif.</span>
               </div>
-              <span className="text-[9.5px] font-mono font-bold bg-amber-500/30 px-1.5 py-0.5 rounded text-amber-200 flex-shrink-0 border border-amber-400/30">
+              <span className="text-[9.5px] font-mono font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded flex-shrink-0 border border-amber-300">
                 Cache Aktif
               </span>
             </div>
@@ -1081,10 +1080,10 @@ export const App: React.FC = () => {
 
           {/* Backend Connection Notice if running outside GAS */}
           {!isGasEnvironment() && (
-            <div className="mx-4 mt-2 p-2 rounded-xl bg-amber-950/70 border border-amber-500/40 shadow-sm flex items-start gap-2">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <div className="text-[11px] text-amber-200 leading-tight">
-                <strong className="text-white block font-semibold text-[11px]">Koneksi Data Siap Digunakan</strong>
+            <div className="mx-4 mt-2 p-2 rounded-xl bg-sky-50 border border-sky-200 shadow-xs flex items-start gap-2">
+              <AlertCircle className="w-3.5 h-3.5 text-sky-600 flex-shrink-0 mt-0.5" />
+              <div className="text-[11px] text-sky-800 leading-tight">
+                <strong className="text-slate-900 block font-bold text-[11px]">Koneksi Data Siap Digunakan</strong>
                 Data klaim tersimpan otomatis di perangkat & siap disinkronkan langsung ke Spreadsheet saat dibuka via Web App GAS.
               </div>
             </div>
@@ -1092,10 +1091,10 @@ export const App: React.FC = () => {
 
           {/* Backend Error Banner if GAS fetch failed */}
           {isGasEnvironment() && dataFetchError && (
-            <div className="mx-4 mt-2 p-2 rounded-xl bg-red-950/80 border border-red-500/50 shadow-sm flex items-start gap-2">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div className="text-[11px] text-red-200 leading-tight">
-                <strong className="text-white block font-semibold text-[11px]">Sinkronisasi Spreadsheet</strong>
+            <div className="mx-4 mt-2 p-2 rounded-xl bg-red-50 border border-red-200 shadow-xs flex items-start gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="text-[11px] text-red-800 leading-tight">
+                <strong className="text-red-900 block font-bold text-[11px]">Sinkronisasi Spreadsheet</strong>
                 {dataFetchError}
               </div>
             </div>
@@ -1103,10 +1102,10 @@ export const App: React.FC = () => {
 
           {/* 24-Hour Draft Alert Banner */}
           {dashboardStats.alertDraft && (
-            <div className="mx-4 mt-2 p-2 rounded-xl bg-red-950/80 border border-red-500/50 shadow-sm shadow-red-900/30 flex items-start gap-2 animate-pulse">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div className="text-[11px] text-red-200 leading-tight">
-                <strong className="text-white block font-semibold text-[11px]">Peringatan Batas Waktu Draft!</strong>
+            <div className="mx-4 mt-2 p-2 rounded-xl bg-red-50 border border-red-300 shadow-xs flex items-start gap-2 animate-pulse">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="text-[11px] text-red-800 leading-tight">
+                <strong className="text-red-900 block font-bold text-[11px]">Peringatan Batas Waktu Draft!</strong>
                 Terdapat klaim berstatus DRAFT titipan yang mendekati atau telah melampaui batas waktu 24 jam.
               </div>
             </div>
@@ -1122,19 +1121,19 @@ export const App: React.FC = () => {
           {/* Search Bar & View Mode Toggles */}
           <div className="px-3.5 py-1.5 flex items-center gap-1.5">
             <div className="relative flex-1">
-              <Search className="w-3.5 h-3.5 text-white/40 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari SJ, Sopir, Part, Tipe Motor..."
-                className="w-full pl-7 pr-6 py-1 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 outline-none focus:border-red-500 transition-colors font-normal"
+                className="w-full pl-7 pr-6 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 transition-all font-normal"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -1146,23 +1145,23 @@ export const App: React.FC = () => {
               onClick={() => {
                 if (user) fetchAllData(user, false);
               }}
-              title="Sinkronkan Data Klaim Terbaru (Klik untuk sinkron cepat)"
-              className={`p-1.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 transition-all ${
-                isLoadingData ? 'animate-spin text-red-400' : ''
+              title="Sinkronkan Data Klaim Terbaru"
+              className={`p-1.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 transition-all cursor-pointer ${
+                isLoadingData ? 'animate-spin text-red-600' : ''
               }`}
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
 
-            <div className="flex rounded-xl bg-black/40 p-0.5 border border-white/10">
+            <div className="flex rounded-xl bg-slate-100 p-0.5 border border-slate-200">
               <button
                 type="button"
                 onClick={() => handleToggleViewMode('CARDS')}
                 title="Tampilan Kartu Lengkap"
-                className={`p-1 rounded-lg transition-colors ${
+                className={`p-1 rounded-lg transition-colors cursor-pointer ${
                   viewMode === 'CARDS'
                     ? 'bg-red-600 text-white shadow-xs'
-                    : 'text-white/50 hover:text-white'
+                    : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <LayoutGrid className="w-3 h-3" />
@@ -1171,10 +1170,10 @@ export const App: React.FC = () => {
                 type="button"
                 onClick={() => handleToggleViewMode('SIMPLE')}
                 title="Tampilan Ringkas"
-                className={`p-1 rounded-lg transition-colors ${
+                className={`p-1 rounded-lg transition-colors cursor-pointer ${
                   viewMode === 'SIMPLE'
                     ? 'bg-red-600 text-white shadow-xs'
-                    : 'text-white/50 hover:text-white'
+                    : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <List className="w-3 h-3" />
@@ -1182,8 +1181,8 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Claims List Header: Judul Daftar Pengajuan Klaim + Laser Flash Sweep Bar */}
-          <div className="relative px-3.5 py-1 flex items-center justify-between border-t border-white/5 bg-white/[0.02] overflow-hidden">
+          {/* Claims List Header: Judul Daftar Pengajuan Klaim */}
+          <div className="relative px-3.5 py-1.5 flex items-center justify-between border-t border-slate-200/80 bg-slate-50/80 overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeFilter}
@@ -1193,15 +1192,15 @@ export const App: React.FC = () => {
                 transition={{ duration: 0.15 }}
                 className="flex items-center gap-1.5"
               >
-                <span className="text-[10.5px] font-semibold text-white/90 uppercase tracking-wide">
+                <span className="text-[10.5px] font-bold text-slate-800 uppercase tracking-wide">
                   {activeFilter === 'ALL' ? 'Daftar Pengajuan Klaim' : `Status: ${activeFilter}`}{' '}
-                  <span className="text-amber-400 font-mono">({filteredClaims.length})</span>
+                  <span className="text-red-600 font-mono font-bold">({filteredClaims.length})</span>
                 </span>
               </motion.div>
             </AnimatePresence>
 
             {searchQuery ? (
-              <span className="text-[9.5px] text-white/50 italic">Hasil pencarian</span>
+              <span className="text-[9.5px] text-slate-500 italic">Hasil pencarian</span>
             ) : null}
 
             {/* Pita Kilatan Laser Horizontal saat menyinkronkan data */}
@@ -1249,7 +1248,7 @@ export const App: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setVisibleCount((prev) => Math.min(prev + 20, filteredClaims.length))}
-                        className="text-[10.5px] font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-full transition-all cursor-pointer border border-white/10 shadow-xs active:scale-95"
+                        className="text-[10.5px] font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-1.5 rounded-full transition-all cursor-pointer border border-slate-200 shadow-xs active:scale-95"
                       >
                         Tampilkan lebih banyak ({filteredClaims.length - visibleCount} klaim lagi)
                       </button>
@@ -1258,30 +1257,30 @@ export const App: React.FC = () => {
                 </div>
               ) : isLoadingData ? (
                 <div className="h-full overflow-y-auto px-3.5 py-2.5 space-y-2.5 select-none">
-                  {/* Deretan Kartu Shimmer Kilatan Modern (Tanpa Tulisan) */}
+                  {/* Deretan Kartu Shimmer Kilatan Modern */}
                   {[0, 1, 2].map((idx) => (
                     <div
                       key={idx}
                       style={{ animationDelay: `${idx * 120}ms` }}
-                      className="mdc-flash-card rounded-2xl p-3.5 bg-white/[0.04] border border-white/10 backdrop-blur-md space-y-2.5"
+                      className="mdc-flash-card rounded-2xl p-3.5 bg-white border border-slate-200 shadow-xs space-y-2.5"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <div className="h-3.5 w-40 rounded-md bg-gradient-to-r from-white/15 via-white/25 to-white/10" />
-                        <div className="h-4 w-20 rounded-full bg-gradient-to-r from-red-500/25 via-amber-400/25 to-red-500/20 border border-white/10" />
+                        <div className="h-3.5 w-40 rounded-md bg-slate-200/80" />
+                        <div className="h-4 w-20 rounded-full bg-slate-100 border border-slate-200" />
                       </div>
                       <div className="flex items-center justify-between gap-2 pt-0.5">
-                        <div className="h-2.5 w-32 rounded bg-white/10" />
-                        <div className="h-2.5 w-16 rounded bg-white/10" />
+                        <div className="h-2.5 w-32 rounded bg-slate-100" />
+                        <div className="h-2.5 w-16 rounded bg-slate-100" />
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="h-full overflow-y-auto px-3.5 py-4">
-                  <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-white/5 border border-white/10 my-4">
-                    <FolderOpen className="w-10 h-10 text-white/30 mb-2" />
-                    <p className="text-xs font-semibold text-white/80">Belum Ada Data Klaim</p>
-                    <p className="text-[11px] text-white/50 mt-1 max-w-[240px]">
+                  <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-white border border-slate-200 shadow-xs my-4">
+                    <FolderOpen className="w-10 h-10 text-slate-300 mb-2" />
+                    <p className="text-xs font-bold text-slate-800">Belum Ada Data Klaim</p>
+                    <p className="text-[11px] text-slate-500 mt-1 max-w-[240px]">
                       {activeFilter !== 'ALL'
                         ? `Tidak ada pengajuan klaim dengan status "${activeFilter}".`
                         : searchQuery
@@ -1299,27 +1298,16 @@ export const App: React.FC = () => {
         {/* 3. FIXED FOOTER BAR WITH ROUNDED BUTTON                  */}
         {/* Persistent at bottom, with rounded/circular button       */}
         {/* ======================================================== */}
-        <div className="flex-shrink-0 z-30 bg-neutral-950/95 backdrop-blur-md border-t border-white/10 px-3.5 py-2.5 shadow-[0_-6px_16px_rgba(0,0,0,0.5)]">
+        <div className="flex-shrink-0 z-30 bg-white border-t border-slate-200 px-3.5 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
           <button
             type="button"
             onClick={handleOpenNewClaim}
-            disabled={isSyncingMaster}
-            className={`w-full py-2.5 px-4 rounded-full text-white text-xs font-semibold shadow-lg border flex items-center justify-center gap-2 transition-all ${
-              isSyncingMaster
-                ? 'bg-slate-800/80 border-white/10 text-white/50 cursor-not-allowed opacity-75 shadow-none'
-                : 'bg-gradient-to-r from-red-600 via-red-500 to-red-600 hover:brightness-110 active:scale-[0.98] shadow-red-950/80 border-red-400/40 cursor-pointer'
-            }`}
+            className="w-full py-2.5 px-4 rounded-xl text-white text-xs font-bold shadow-md bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-[0.98] shadow-red-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
-            {isSyncingMaster ? (
-              <Loader2 className="w-4 h-4 animate-spin text-red-400" />
-            ) : (
-              <>
-                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 shadow-inner">
-                  <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
-                </div>
-                <span className="tracking-wide font-bold">Klaim Baru</span>
-              </>
-            )}
+            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 shadow-inner">
+              <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
+            </div>
+            <span className="tracking-wide font-bold">Klaim Baru</span>
           </button>
         </div>
 
@@ -1380,29 +1368,29 @@ export const App: React.FC = () => {
 
         {/* Modal Konfirmasi Logout Kustom */}
         {showLogoutConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-xs overflow-hidden rounded-3xl border border-red-500/30 bg-gradient-to-b from-neutral-900 via-slate-900 to-red-950 p-6 shadow-2xl text-white text-center ring-1 ring-white/10">
-              <div className="mx-auto w-12 h-12 rounded-2xl bg-red-600/20 border border-red-500/40 text-red-400 flex items-center justify-center mb-3 shadow-lg shadow-red-950/60">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="w-full max-w-xs overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl text-slate-800 text-center">
+              <div className="mx-auto w-12 h-12 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mb-3 shadow-xs">
                 <LogOut className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-white mb-1">
+              <h3 className="text-base font-bold text-slate-900 mb-1">
                 Keluar dari Akun?
               </h3>
-              <p className="text-xs text-white/70 mb-5 leading-relaxed">
+              <p className="text-xs text-slate-600 mb-5 leading-relaxed">
                 Sesi akun MDC Mobile Anda akan diakhiri dan dialihkan kembali ke layar awal.
               </p>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-xs font-semibold text-white/80 transition-all border border-white/15 cursor-pointer"
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-xs font-semibold text-slate-700 transition-all border border-slate-200 cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="button"
                   onClick={executeLogout}
-                  className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:brightness-110 active:scale-95 text-xs font-bold text-white shadow-md shadow-red-950/80 transition-all cursor-pointer"
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-95 text-xs font-bold text-white shadow-md shadow-red-600/20 transition-all cursor-pointer"
                 >
                   Ya, Keluar
                 </button>

@@ -217,29 +217,25 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 pointer-events-auto">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200 pointer-events-auto">
       {/* Backdrop tap to dismiss */}
       <div className="flex-1 w-full" onClick={handleDismiss} />
 
       {/* Floating Bottom Sheet Card persis seperti model PWA Google AI Studio */}
-      <div className="relative w-full max-w-md mx-auto overflow-hidden rounded-t-3xl sm:rounded-3xl border-t sm:border border-white/20 bg-gradient-to-b from-slate-900/98 via-neutral-900/98 to-red-950/98 p-4 sm:p-5 shadow-2xl text-white backdrop-blur-xl animate-in slide-in-from-bottom duration-300">
-        {/* Decorative Ambient Light */}
-        <div className="absolute -top-16 -right-16 w-32 h-32 bg-red-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-amber-600/15 rounded-full blur-3xl pointer-events-none" />
-
+      <div className="relative w-full max-w-md mx-auto overflow-hidden rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-200 bg-white p-4 sm:p-5 shadow-2xl text-slate-800 animate-in slide-in-from-bottom duration-300">
         {/* Drag / Pull Handle Bar di Atas */}
-        <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-3" />
+        <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto mb-3" />
 
         {installedSuccess ? (
           /* ======================================================== */
           /* KONDISI: BERHASIL DIPASANG KE PERANGKAT                  */
           /* ======================================================== */
           <div className="py-3 text-center space-y-2 animate-in zoom-in-95 duration-200">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 mx-auto flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center shadow-xs">
               <CheckCircle2 className="w-6 h-6" />
             </div>
-            <h4 className="text-sm font-bold text-white">MDC Mobile Berhasil Dipasang</h4>
-            <p className="text-xs text-white/70">
+            <h4 className="text-sm font-bold text-slate-900">MDC Mobile Berhasil Dipasang</h4>
+            <p className="text-xs text-slate-600">
               Ikon aplikasi telah ditambahkan ke Layar Utama HP Anda.
             </p>
           </div>
@@ -248,47 +244,47 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
           /* PANDUAN LANGKAH CEPAT KHUSUS iOS (APPLE SAFARI)          */
           /* ======================================================== */
           <div className="space-y-3 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-400">
+                <div className="w-7 h-7 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-red-600">
                   <Smartphone className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-bold text-white">Pasang di iPhone / iPad</h4>
+                <h4 className="text-xs font-bold text-slate-900">Pasang di iPhone / iPad</h4>
               </div>
               <button
                 type="button"
                 onClick={() => setShowIosGuide(false)}
-                className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white"
+                className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-2 text-xs text-white/90">
-              <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10">
-                <div className="w-6 h-6 rounded-md bg-sky-500/20 border border-sky-400/30 flex items-center justify-center flex-shrink-0 text-sky-400">
+            <div className="space-y-2 text-xs text-slate-700">
+              <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="w-6 h-6 rounded-md bg-sky-50 border border-sky-200 flex items-center justify-center flex-shrink-0 text-sky-600">
                   <Share className="w-3.5 h-3.5" />
                 </div>
                 <div className="text-[11px] leading-tight">
-                  <span>1. Ketuk tombol <strong>Bagikan (Share)</strong> di bilah bawah Safari.</span>
+                  <span>1. Ketuk tombol <strong className="text-slate-900">Bagikan (Share)</strong> di bilah bawah Safari.</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10">
-                <div className="w-6 h-6 rounded-md bg-amber-500/20 border border-amber-400/30 flex items-center justify-center flex-shrink-0 text-amber-400">
+              <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="w-6 h-6 rounded-md bg-amber-50 border border-amber-200 flex items-center justify-center flex-shrink-0 text-amber-600">
                   <PlusSquare className="w-3.5 h-3.5" />
                 </div>
                 <div className="text-[11px] leading-tight">
-                  <span>2. Gulir menu ke bawah lalu pilih <strong>Add to Home Screen</strong>.</span>
+                  <span>2. Gulir menu ke bawah lalu pilih <strong className="text-slate-900">Add to Home Screen</strong>.</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10">
-                <div className="w-6 h-6 rounded-md bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center flex-shrink-0 text-emerald-400">
+              <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="w-6 h-6 rounded-md bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0 text-emerald-600">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 </div>
                 <div className="text-[11px] leading-tight">
-                  <span>3. Ketuk <strong>Tambah (Add)</strong> di sudut kanan atas.</span>
+                  <span>3. Ketuk <strong className="text-slate-900">Tambah (Add)</strong> di sudut kanan atas.</span>
                 </div>
               </div>
             </div>
@@ -296,7 +292,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
             <button
               type="button"
               onClick={handleDismiss}
-              className="w-full py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white transition-all cursor-pointer"
+              className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-800 border border-slate-200 transition-all cursor-pointer"
             >
               Mengerti & Tutup
             </button>
@@ -310,8 +306,8 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 {/* Logo App */}
-                <div className="relative flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-600 via-red-500 to-amber-500 p-0.5 shadow-xl shadow-red-950/80">
-                  <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center overflow-hidden">
+                <div className="relative flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-600 via-red-500 to-amber-500 p-0.5 shadow-md shadow-red-600/20">
+                  <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center overflow-hidden">
                     <img
                       src="/icon-192.png"
                       alt="Logo MDC Mobile"
@@ -328,14 +324,14 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
 
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <h4 className="text-sm font-bold text-white tracking-wide truncate">
+                    <h4 className="text-sm font-bold text-slate-900 tracking-tight truncate">
                       MDC Mobile
                     </h4>
-                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[9px] font-bold">
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[9px] font-bold">
                       <Sparkles className="w-2.5 h-2.5" /> PDI Dealer
                     </span>
                   </div>
-                  <p className="text-[11px] text-white/60 truncate mt-0.5">
+                  <p className="text-[11px] text-slate-500 truncate mt-0.5">
                     Aplikasi PWA Resmi Mobile Defect Care
                   </p>
                 </div>
@@ -345,7 +341,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
               <button
                 type="button"
                 onClick={handleDismiss}
-                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-colors cursor-pointer flex-shrink-0"
+                className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer flex-shrink-0"
                 title="Tutup banner"
               >
                 <X className="w-4 h-4" />
@@ -353,7 +349,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
             </div>
 
             {/* Deskripsi Manfaat Singkat */}
-            <p className="text-xs text-white/75 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               Pasang ke Layar Utama HP untuk akses cepat 1-ketuk, navigasi layar penuh tanpa bilah URL browser, dan performa pemindaian barcode optimal.
             </p>
 
@@ -362,7 +358,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
               <button
                 type="button"
                 onClick={handleDismiss}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 active:scale-98 text-xs font-semibold text-white/80 hover:text-white transition-all border border-white/10 text-center cursor-pointer"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-98 text-xs font-semibold text-slate-700 transition-all border border-slate-200 text-center cursor-pointer"
               >
                 Nanti Saja
               </button>
@@ -371,7 +367,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ isAuthScreen = fal
                 type="button"
                 onClick={handleInstallAction}
                 disabled={isInstalling}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 via-red-500 to-red-600 hover:brightness-110 active:scale-98 text-xs font-bold text-white shadow-lg shadow-red-950 border border-red-400/40 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-80"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-xs font-bold text-white shadow-md shadow-red-600/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-80"
               >
                 {isInstalling ? (
                   <>

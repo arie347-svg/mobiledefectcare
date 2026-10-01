@@ -41,6 +41,7 @@ import {
   saveActiveWizardSession,
   normalizeSj,
 } from '../utils/draftStorage';
+import { DEFAULT_MASTER_DATA } from '../data/defaultMasterData';
 
 // Manual transporter options when nopol is not in master spreadsheet list
 const MANUAL_TRANSPORTERS = ['TM', 'RJTM', 'JTM', 'WSS', 'YSS', 'SBR'];
@@ -109,6 +110,23 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
+  // Master data dengan proteksi fallback offline lengkap (0ms jaminan ada data referensi)
+  const effectiveMasterData = useMemo(() => {
+    const hasTransporters = Array.isArray(masterData?.transporterList) && masterData.transporterList.length > 0;
+    const hasMotors = Array.isArray(masterData?.motorList) && masterData.motorList.length > 0;
+    const hasParts = Array.isArray(masterData?.partList) && masterData.partList.length > 0;
+    const hasKerusakan = Array.isArray(masterData?.kerusakanList) && masterData.kerusakanList.length > 0;
+    const hasPenyebab = Array.isArray(masterData?.penyebabList) && masterData.penyebabList.length > 0;
+
+    return {
+      transporterList: hasTransporters ? masterData.transporterList : DEFAULT_MASTER_DATA.transporterList,
+      motorList: hasMotors ? masterData.motorList : DEFAULT_MASTER_DATA.motorList,
+      partList: hasParts ? masterData.partList : DEFAULT_MASTER_DATA.partList,
+      kerusakanList: hasKerusakan ? masterData.kerusakanList : DEFAULT_MASTER_DATA.kerusakanList,
+      penyebabList: hasPenyebab ? masterData.penyebabList : DEFAULT_MASTER_DATA.penyebabList,
+    };
+  }, [masterData]);
+
   // Dynamic transporter list combining master data from Spreadsheet and user additions
   const [transporterList, setTransporterList] = useState<any[]>(() => {
     let customList: any[] = [];
@@ -116,7 +134,9 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
       const saved = localStorage.getItem('mdc_custom_transporters');
       if (saved) customList = JSON.parse(saved);
     } catch (_) {}
-    const baseList = masterData?.transporterList || [];
+    const baseList = (masterData?.transporterList && masterData.transporterList.length > 0)
+      ? masterData.transporterList
+      : DEFAULT_MASTER_DATA.transporterList;
     const merged = [...baseList, ...customList];
     const seen = new Set<string>();
     return merged.filter((item) => {
@@ -129,24 +149,24 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
   // Reaktif terhadap pembaruan masterData dari Google Spreadsheet
   useEffect(() => {
-    if (masterData?.transporterList && masterData.transporterList.length > 0) {
-      setTransporterList((prev) => {
-        let customList: any[] = [];
-        try {
-          const saved = localStorage.getItem('mdc_custom_transporters');
-          if (saved) customList = JSON.parse(saved);
-        } catch (_) {}
-        const baseList = masterData.transporterList || [];
-        const merged = [...baseList, ...customList, ...prev];
-        const seen = new Set<string>();
-        return merged.filter((item) => {
-          const key = (item.nopol || '').toUpperCase().replace(/\s/g, '');
-          if (!key || seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
+    const baseList = (masterData?.transporterList && masterData.transporterList.length > 0)
+      ? masterData.transporterList
+      : DEFAULT_MASTER_DATA.transporterList;
+    setTransporterList((prev) => {
+      let customList: any[] = [];
+      try {
+        const saved = localStorage.getItem('mdc_custom_transporters');
+        if (saved) customList = JSON.parse(saved);
+      } catch (_) {}
+      const merged = [...baseList, ...customList, ...prev];
+      const seen = new Set<string>();
+      return merged.filter((item) => {
+        const key = (item.nopol || '').toUpperCase().replace(/\s/g, '');
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
       });
-    }
+    });
   }, [masterData?.transporterList]);
 
   const [showNopolDropdown, setShowNopolDropdown] = useState(false);
@@ -1191,22 +1211,22 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-red-950 text-white pb-16">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 pb-24">
       {/* Wizard Header */}
-      <div className="sticky top-0 z-30 flex items-center justify-between px-3.5 py-2.5 bg-slate-950/85 backdrop-blur-md border-b border-white/10">
+      <div className="sticky top-0 z-30 flex items-center justify-between px-3.5 py-2.5 bg-white border-b border-slate-200/90 shadow-2xs">
         <button
           type="button"
           onClick={() => setShowCancelModal(true)}
-          className="p-1.5 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all flex items-center gap-1 text-xs font-semibold cursor-pointer"
+          className="p-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 transition-all flex items-center gap-1 text-xs font-semibold cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Batal
         </button>
 
         <div className="text-center">
-          <h2 className="text-xs font-bold text-white tracking-wide">
+          <h2 className="text-xs font-bold text-slate-900 tracking-wide">
             {initialDraft ? 'Lanjutkan Draft Klaim' : 'Form Pengajuan Klaim Cacat'}
           </h2>
-          <span className="text-[10px] text-amber-400 font-mono">Langkah {currentStep} dari 3</span>
+          <span className="text-[10px] text-red-600 font-semibold font-mono">Langkah {currentStep} dari 3</span>
         </div>
 
         <div className="w-16 text-right">
@@ -1214,7 +1234,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
             <button
               type="button"
               onClick={() => setCurrentStep(currentStep - 1)}
-              className="text-xs text-white/70 hover:text-white font-medium"
+              className="text-xs text-slate-600 hover:text-slate-900 font-medium"
             >
               Kembali
             </button>
@@ -1237,10 +1257,10 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 key={s.step}
                 className={`py-1 px-1.5 rounded-lg border text-center transition-all ${
                   isCurrent
-                    ? 'bg-red-600 border-red-400 text-white font-bold shadow-md shadow-red-900/50'
+                    ? 'bg-red-600 border-red-600 text-white font-bold shadow-xs'
                     : isDone
-                    ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300 font-semibold'
-                    : 'bg-white/5 border-white/10 text-white/40'
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-semibold'
+                    : 'bg-white border-slate-200 text-slate-400'
                 }`}
               >
                 <span className="text-[9.5px] block leading-tight truncate">
@@ -1254,8 +1274,8 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
       {/* Error Banner */}
       {errorMessage && (
-        <div className="mx-3.5 mb-2 p-2 rounded-xl border border-red-500/40 bg-red-950/70 text-red-200 text-[11px] flex items-center gap-2">
-          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-red-400" />
+        <div className="mx-3.5 mb-2 p-2.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-[11px] flex items-center gap-2">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-red-500" />
           <span>{errorMessage}</span>
         </div>
       )}
@@ -1263,17 +1283,17 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
       {/* STEP 1: DOKUMEN & PENANGGUNG JAWAB BONGKAR */}
       {currentStep === 1 && (
         <div className="px-3.5 pb-20">
-          <div className="rounded-2xl p-3 bg-white/10 border border-white/15 backdrop-blur-md space-y-2.5 shadow-xl">
+          <div className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-xs space-y-3">
             <div>
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-semibold text-white/90">
-                  No. Surat Jalan <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700">
+                  No. Surat Jalan <span className="text-red-500">*</span>
                 </label>
                 <span
                   className={`text-[10px] font-mono transition-colors ${
                     noSj.length === 11
-                      ? 'text-emerald-400 font-bold'
-                      : 'text-white/50'
+                      ? 'text-emerald-600 font-bold'
+                      : 'text-slate-400'
                   }`}
                 >
                   {noSj.length}/11 digit {noSj.length === 11 && '✓'}
@@ -1288,57 +1308,60 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 value={noSj}
                 onChange={(e) => handleNoSjChange(e.target.value)}
                 placeholder="11 digit angka"
-                className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/20 text-white text-xs font-mono tracking-wider focus:border-red-500 outline-none"
+                className="w-full mt-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-mono tracking-wider focus:border-red-500 focus:ring-1 focus:ring-red-100 outline-none placeholder:text-slate-400"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[11px] font-semibold text-white/90">
-                  Tanggal DO <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700">
+                  Tanggal DO <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="input-tgl-do"
                   type="date"
                   value={tglDo}
                   onChange={(e) => setTglDo(e.target.value)}
-                  className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/20 text-white text-xs outline-none focus:border-red-500"
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs outline-none focus:border-red-500 focus:ring-1 focus:ring-red-100"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-white/90">
-                  Tanggal Periksa <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700">
+                  Tanggal Periksa <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="input-tgl-periksa"
                   type="date"
                   value={tglPemeriksaan}
                   onChange={(e) => setTglPemeriksaan(e.target.value)}
-                  className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/20 text-white text-xs outline-none focus:border-red-500"
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs outline-none focus:border-red-500 focus:ring-1 focus:ring-red-100"
                 />
               </div>
             </div>
 
-            <div className="pt-2 border-t border-white/10">
-              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1.5">
-                <Truck className="w-3.5 h-3.5 text-amber-400" /> Penanggung Jawab
-              </h3>
+            <div className="pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1 h-3.5 bg-red-600 rounded-full"></div>
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                  <Truck className="w-3.5 h-3.5 text-red-600" /> Penanggung Jawab
+                </h3>
+              </div>
             </div>
 
             {/* FOTO BUKTI MENGETAHUI SOPIR (HANYA KAMERA LANGSUNG - SEBELUM KOLOM NAMA) */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-[11px] font-semibold text-white/90 flex items-center gap-1">
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1">
                   <span>Foto Bukti Mengetahui Sopir</span>
-                  <span className="text-red-400">*</span>
+                  <span className="text-red-500">*</span>
                 </label>
                 {fotoSopirPJ ? (
-                  <span className="text-[9px] text-emerald-400 flex items-center gap-1 font-semibold">
-                    <CheckCircle2 className="w-3 h-3" /> Foto Tersedia
+                  <span className="text-[9px] text-emerald-700 flex items-center gap-1 font-semibold">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Foto Tersedia
                   </span>
                 ) : (
-                  <span className="text-[9px] text-amber-300 font-medium">
+                  <span className="text-[9px] text-amber-700 font-medium">
                     Kamera Langsung
                   </span>
                 )}
@@ -1348,11 +1371,11 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 <label
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border ${
                     fotoSopirPJ
-                      ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300'
-                      : 'border-dashed border-red-500/60 bg-red-950/20 text-white/90'
-                  } hover:border-red-400 cursor-pointer text-xs transition-colors shadow-sm`}
+                      ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                      : 'border-dashed border-red-300 bg-red-50/50 text-slate-700 hover:border-red-500'
+                  } cursor-pointer text-xs transition-colors shadow-xs`}
                 >
-                  <Camera className="w-4 h-4 text-red-400" />
+                  <Camera className="w-4 h-4 text-red-600" />
                   <span className="font-semibold">
                     {fotoSopirPJ ? 'Ambil Ulang Foto Sopir' : 'Ambil Foto'}
                   </span>
@@ -1367,7 +1390,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 </label>
 
                 {fotoSopirPJ && (
-                  <div className="w-11 h-11 rounded-lg overflow-hidden border border-emerald-500/50 flex-shrink-0 shadow-md">
+                  <div className="w-11 h-11 rounded-lg overflow-hidden border border-emerald-300 flex-shrink-0 shadow-xs">
                     <img
                       src={fotoSopirPJ}
                       referrerPolicy="no-referrer"
@@ -1377,15 +1400,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   </div>
                 )}
               </div>
-              <p className="text-[9.5px] text-white/50 mt-1">
+              <p className="text-[10px] text-slate-400 mt-1">
                 Wajib mengambil foto fisik sopir penanggung jawab secara langsung di tempat.
               </p>
             </div>
 
             {/* KOLOM NAMA SOPIR (POSISI SETELAH FOTO) */}
             <div>
-              <label className="text-[11px] font-semibold text-white/90">
-                Nama Sopir <span className="text-red-400">*</span>
+              <label className="text-[11px] font-semibold text-slate-700">
+                Nama Sopir <span className="text-red-500">*</span>
               </label>
               <input
                 id="input-nama-sopir-pj"
@@ -1393,38 +1416,38 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 value={namaSopirPJ}
                 onChange={(e) => setNamaSopirPJ(e.target.value.toUpperCase())}
                 placeholder="Nama lengkap sopir ekspedisi"
-                className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/20 text-white text-xs outline-none focus:border-red-500"
+                className="w-full mt-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs outline-none focus:border-red-500 focus:ring-1 focus:ring-red-100 placeholder:text-slate-400"
               />
             </div>
 
             <div className="relative" data-dropdown="true">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-semibold text-white/90">
-                  Nomor Polisi <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700">
+                  Nomor Polisi <span className="text-red-500">*</span>
                 </label>
                 {matchedTransporterPJ ? (
-                  <span className="text-[10px] font-semibold text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-1.5 py-0.2 rounded">
+                  <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
                     Transporter: {matchedTransporterPJ.transporter}
                   </span>
                 ) : isManualNopolPJ ? (
-                  <span className="text-[10px] font-semibold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-1.5 py-0.2 rounded">
+                  <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
                     Nopol Baru
                   </span>
                 ) : null}
               </div>
 
-              <div className="relative mt-0.5">
+              <div className="relative mt-1">
                 {showNopolDropdown && (
                   <div
-                    className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-slate-900 border border-white/25 shadow-2xl backdrop-blur-md divide-y divide-white/10"
+                    className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-white border border-slate-200 shadow-xl divide-y divide-slate-100"
                     style={{ touchAction: 'pan-y' }}
                   >
-                    <div className="p-1.5 bg-slate-950/95 text-[10px] font-bold text-amber-300 flex items-center justify-between sticky top-0 border-b border-white/10 z-10">
+                    <div className="p-2 bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center justify-between sticky top-0 border-b border-slate-200 z-10">
                       <span>Pilih Referensi Transporter ({transporterList.length})</span>
                       <button
                         type="button"
                         onClick={() => setShowNopolDropdown(false)}
-                        className="text-white/60 hover:text-white px-1.5 py-0.5 rounded bg-white/10"
+                        className="text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded bg-slate-200"
                       >
                         ✕
                       </button>
@@ -1435,21 +1458,21 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                           key={`${item.nopol}-${idx}`}
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleSelectNopolPJ(item)}
-                          className="px-2.5 py-2 flex items-center justify-between hover:bg-red-600/35 cursor-pointer transition-colors"
+                          className="px-3 py-2 flex items-center justify-between hover:bg-red-50 cursor-pointer transition-colors"
                         >
                           <div className="flex items-center gap-1.5">
-                            <Truck className="w-3 h-3 text-amber-400/80" />
-                            <span className="font-mono text-xs font-bold text-white tracking-wider">
+                            <Truck className="w-3.5 h-3.5 text-red-600" />
+                            <span className="font-mono text-xs font-bold text-slate-900 tracking-wider">
                               {item.nopol}
                             </span>
                           </div>
-                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-white/10 text-amber-200 border border-white/10">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                             {item.transporter}
                           </span>
                         </div>
                       ))
                     ) : (
-                      <div className="p-2.5 text-[10px] text-amber-300/80 text-center">
+                      <div className="p-2.5 text-[10px] text-amber-700 text-center">
                         Nopol belum ada di referensi master.
                       </div>
                     )}
@@ -1463,17 +1486,17 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   onChange={(e) => handleNopolPJInput(e.target.value)}
                   onFocus={() => setShowNopolDropdown(true)}
                   placeholder="Pilih atau ketik"
-                  className="w-full px-2.5 py-1.5 pr-8 rounded-lg bg-black/40 border border-white/20 text-white text-xs font-mono uppercase tracking-wider focus:border-red-500 outline-none"
+                  className="w-full px-3 py-2 pr-8 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-mono uppercase tracking-wider focus:border-red-500 focus:ring-1 focus:ring-red-100 outline-none placeholder:text-slate-400"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNopolDropdown(!showNopolDropdown)}
-                  className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-white/50 hover:text-white transition-colors"
+                  className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                   tabIndex={-1}
                 >
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform ${
-                      showNopolDropdown ? 'rotate-180 text-amber-300' : ''
+                      showNopolDropdown ? 'rotate-180 text-red-600' : ''
                     }`}
                   />
                 </button>
@@ -1481,20 +1504,20 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
             </div>
 
             {isManualNopolPJ && (
-              <div className="p-2 rounded-xl bg-amber-950/40 border border-amber-500/40">
-                <label className="text-[11px] font-semibold text-amber-300 flex items-center justify-between">
-                  <span>Pilih Transporter <span className="text-red-400">*</span></span>
-                  <span className="text-[9px] text-amber-200/70 font-normal">Nopol baru tersimpan otomatis</span>
+              <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200">
+                <label className="text-[11px] font-semibold text-amber-900 flex items-center justify-between">
+                  <span>Pilih Transporter <span className="text-red-500">*</span></span>
+                  <span className="text-[9px] text-amber-700 font-normal">Nopol baru tersimpan otomatis</span>
                 </label>
                 <select
                   id="select-manual-transporter"
                   value={transporterPJ}
                   onChange={(e) => handleManualTransporterChange(e.target.value)}
-                  className="w-full mt-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-amber-500/50 text-white text-xs font-semibold outline-none focus:border-amber-400"
+                  className="w-full mt-1.5 px-3 py-2 rounded-lg bg-white border border-amber-300 text-slate-900 text-xs font-semibold outline-none focus:border-red-500 focus:ring-1 focus:ring-red-100"
                 >
                   <option value="">-- Pilih Transporter (TM / RJTM / WSS / SBR) --</option>
                   {MANUAL_TRANSPORTERS.map((opt) => (
-                    <option key={opt} value={opt} className="bg-slate-900 text-white font-semibold">
+                    <option key={opt} value={opt} className="bg-white text-slate-900 font-semibold">
                       {opt}
                     </option>
                   ))}
@@ -1536,23 +1559,23 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     }));
                     setActiveDropdown(null);
                   }}
-                  className="rounded-xl px-3 py-2.5 bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-between shadow-sm cursor-pointer hover:bg-white/15 transition-all"
+                  className="rounded-xl px-3.5 py-2.5 bg-white border border-slate-200/90 shadow-xs flex items-center justify-between hover:bg-slate-50 transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0 mr-2">
-                    <div className="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">
+                    <div className="w-6 h-6 rounded-lg bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0 text-[11px] font-bold">
                       #{mIdx + 1}
                     </div>
-                    <div className="truncate text-xs font-semibold text-white">
+                    <div className="truncate text-xs font-semibold text-slate-800">
                       {motor.tipeMotor ? (
                         <span>
                           {motor.tipeMotor}{motor.warna ? ` (${motor.warna})` : ''} •{' '}
-                          <span className="font-mono text-white/75">{motor.noMesin || 'No Mesin -'}</span>
+                          <span className="font-mono text-slate-500">{motor.noMesin || 'No Mesin -'}</span>
                         </span>
                       ) : (
-                        <span className="text-white/60 italic">Unit Motor #{mIdx + 1} (Terkunci)</span>
+                        <span className="text-slate-400 italic">Unit Motor #{mIdx + 1} (Terkunci)</span>
                       )}
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-amber-300 font-medium flex-shrink-0">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium flex-shrink-0 border border-slate-200/60">
                       {motor.parts.length} Part
                     </span>
                   </div>
@@ -1569,7 +1592,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                         }));
                         setActiveDropdown(null);
                       }}
-                      className="text-[10px] text-amber-300 hover:text-amber-200 px-2 py-1 rounded-lg bg-white/10 flex items-center gap-1 font-semibold"
+                      className="text-[10px] text-slate-700 hover:text-slate-900 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center gap-1 font-semibold cursor-pointer"
                     >
                       <ChevronDown className="w-3 h-3" />
                       <span>Buka</span>
@@ -1581,7 +1604,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                           e.stopPropagation();
                           removeMotor(mIdx);
                         }}
-                        className="p-1 text-red-400 hover:text-red-300 rounded hover:bg-white/10"
+                        className="p-1 text-red-500 hover:text-red-700 rounded hover:bg-red-50 cursor-pointer"
                         title="Hapus Motor"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1592,7 +1615,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
               );
             }
 
-            const rawMotorList = masterData?.motorList || [];
+            const rawMotorList = effectiveMasterData.motorList;
             
             const extractedTipes = Array.from(
               new Set([
@@ -1619,8 +1642,11 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
               );
             });
 
+            // Gunakan warna tipe motor yang cocok, atau fallback ke seluruh referensi warna jika tipe custom
+            const colorsToUse = matchedColorsForTipe.length > 0 ? matchedColorsForTipe : rawMotorList;
+
             const mergedColors = [
-              ...matchedColorsForTipe.map((m: any) => ({
+              ...colorsToUse.map((m: any) => ({
                 warna: (m.warna || '').toString().trim().toUpperCase(),
                 namaWarna: (m.namaWarna || '').toString().trim(),
               })),
@@ -1648,24 +1674,27 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
             return (
               <div
                 key={mIdx}
-                className={`relative rounded-2xl p-3.5 bg-white/10 border border-amber-500/40 backdrop-blur-md space-y-3 shadow-lg ${
+                className={`relative rounded-2xl p-4 bg-white border border-slate-200/90 shadow-xs space-y-3.5 ${
                   activeDropdown ? 'z-30' : 'z-10'
                 }`}
               >
-                <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                  <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                    <Car className="w-3.5 h-3.5" /> Unit Motor #{mIdx + 1}
-                    <span className="text-[9px] text-emerald-400 font-normal px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30">
-                      Aktif
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1 h-3.5 bg-red-600 rounded-full"></div>
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Car className="w-3.5 h-3.5 text-red-600" /> Unit Motor #{mIdx + 1}
+                      <span className="text-[9px] text-red-700 font-semibold px-2 py-0.5 rounded-full bg-red-50 border border-red-200">
+                        Aktif
+                      </span>
                     </span>
-                  </span>
+                  </div>
 
                   <div className="flex items-center gap-1.5">
                     {motors.length > 1 && (
                       <button
                         type="button"
                         onClick={() => handleLockMotor(mIdx)}
-                        className="text-[10px] text-white/90 hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/15 border border-white/20 active:scale-95 transition-all font-semibold"
+                        className="text-[10px] text-slate-700 hover:text-slate-900 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 active:scale-95 transition-all font-semibold cursor-pointer"
                       >
                         <ChevronUp className="w-3 h-3" /> Kunci
                       </button>
@@ -1675,7 +1704,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       <button
                         type="button"
                         onClick={() => removeMotor(mIdx)}
-                        className="text-[11px] text-red-300 hover:text-red-200 flex items-center gap-1 px-2 py-1 rounded-lg bg-red-950/40 border border-red-500/30"
+                        className="text-[11px] text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded-lg bg-red-50 border border-red-200 cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" /> Hapus
                       </button>
@@ -1686,28 +1715,28 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="relative" data-dropdown="true">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-semibold text-white/90">
-                        Tipe Motor <span className="text-red-400">*</span>
+                      <label className="text-[11px] font-semibold text-slate-700">
+                        Tipe Motor <span className="text-red-500">*</span>
                       </label>
                       {isTipeInputCustom && (
-                        <span className="text-[9px] font-semibold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-1 py-0.2 rounded">
+                        <span className="text-[9px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
                           Tipe Baru
                         </span>
                       )}
                     </div>
 
-                    <div className="relative mt-0.5">
+                    <div className="relative mt-1">
                       {activeDropdown === `motor-tipe-${mIdx}` && (
                         <div
-                          className="absolute z-50 left-0 right-0 top-full mt-1 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-slate-900 border border-white/25 shadow-2xl divide-y divide-white/10"
+                          className="absolute z-50 left-0 right-0 top-full mt-1 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-white border border-slate-200 shadow-xl divide-y divide-slate-100"
                           style={{ touchAction: 'pan-y' }}
                         >
-                          <div className="p-1.5 bg-slate-950/95 text-[10px] font-bold text-amber-300 flex items-center justify-between sticky top-0 border-b border-white/10 z-10">
+                          <div className="p-2 bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center justify-between sticky top-0 border-b border-slate-200 z-10">
                             <span>Referensi Master_Motor ({filteredTipeList.length})</span>
                             <button
                               type="button"
                               onClick={() => setActiveDropdown(null)}
-                              className="text-white/60 hover:text-white px-1.5 py-0.5 rounded bg-white/10"
+                              className="text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded bg-slate-200"
                             >
                               ✕
                             </button>
@@ -1722,9 +1751,9 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                 updateMotor(mIdx, 'tipeMotor', clean);
                                 setActiveDropdown(null);
                               }}
-                              className="p-2 text-[11px] font-semibold text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 cursor-pointer flex items-center gap-1.5"
+                              className="p-2 text-[11px] font-semibold text-red-700 bg-red-50 hover:bg-red-100 cursor-pointer flex items-center gap-1.5"
                             >
-                              <Plus className="w-3 h-3 text-amber-400" />
+                              <Plus className="w-3 h-3 text-red-600" />
                               <span>Gunakan "{motor.tipeMotor}" (Tipe Baru)</span>
                             </div>
                           )}
@@ -1738,19 +1767,19 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                   updateMotor(mIdx, 'tipeMotor', t);
                                   setActiveDropdown(null);
                                 }}
-                                className="px-2.5 py-1.5 flex items-center justify-between hover:bg-red-600/35 cursor-pointer transition-colors"
+                                className="px-3 py-2 flex items-center justify-between hover:bg-red-50 cursor-pointer transition-colors text-slate-800"
                               >
-                                <span className="font-semibold text-[11px] text-white uppercase truncate mr-2">
+                                <span className="font-semibold text-[11px] text-slate-800 uppercase truncate mr-2">
                                   {t}
                                 </span>
                                 {motor.tipeMotor.toUpperCase() === t.toUpperCase() && (
-                                  <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                                  <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                                 )}
                               </div>
                             ))
                           ) : (
                             !isTipeInputCustom && (
-                              <div className="p-2.5 text-[10px] text-amber-300/80 text-center">
+                              <div className="p-2.5 text-[10px] text-amber-700 text-center">
                                 Tipe motor tidak ditemukan di master.
                               </div>
                             )
@@ -1767,7 +1796,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                         }}
                         onFocus={() => setActiveDropdown(`motor-tipe-${mIdx}`)}
                         placeholder="Pilih / ketik tipe motor..."
-                        className="w-full px-2.5 py-1.5 pr-8 rounded-lg bg-black/40 border border-white/20 text-white text-xs uppercase tracking-wide focus:border-red-500 outline-none"
+                        className="w-full px-3 py-2 pr-8 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs uppercase tracking-wide focus:border-red-500 focus:ring-1 focus:ring-red-100 outline-none placeholder:text-slate-400"
                       />
                       <button
                         type="button"
@@ -1776,12 +1805,12 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                             activeDropdown === `motor-tipe-${mIdx}` ? null : `motor-tipe-${mIdx}`
                           )
                         }
-                        className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-white/50 hover:text-white transition-colors"
+                        className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                         tabIndex={-1}
                       >
                         <ChevronDown
                           className={`w-3.5 h-3.5 transition-transform ${
-                            activeDropdown === `motor-tipe-${mIdx}` ? 'rotate-180 text-amber-300' : ''
+                            activeDropdown === `motor-tipe-${mIdx}` ? 'rotate-180 text-red-600' : ''
                           }`}
                         />
                       </button>
@@ -1790,29 +1819,29 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
                   <div className="relative" data-dropdown="true">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-semibold text-white/90">
-                        Warna Motor <span className="text-red-400">*</span>
+                      <label className="text-[11px] font-semibold text-slate-700">
+                        Warna Motor <span className="text-red-500">*</span>
                       </label>
                       {isWarnaInputCustom ? (
-                        <span className="text-[9px] font-semibold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-1 py-0.2 rounded">
+                        <span className="text-[9px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
                           Warna Baru
                         </span>
                       ) : (
                         motor.tipeMotor && (
-                          <span className="text-[9px] text-amber-300/80 font-normal">
+                          <span className="text-[9px] text-slate-500 font-normal">
                             {uniqueColors.length} opsi
                           </span>
                         )
                       )}
                     </div>
 
-                    <div className="relative mt-0.5">
+                    <div className="relative mt-1">
                       {activeDropdown === `motor-warna-${mIdx}` && (
                         <div
-                          className="absolute z-50 left-0 right-0 top-full mt-1 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-slate-900 border border-white/25 shadow-2xl divide-y divide-white/10"
+                          className="absolute z-50 left-0 right-0 top-full mt-1 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-white border border-slate-200 shadow-xl divide-y divide-slate-100"
                           style={{ touchAction: 'pan-y' }}
                         >
-                          <div className="p-1.5 bg-slate-950/95 text-[10px] font-bold text-amber-300 flex items-center justify-between sticky top-0 border-b border-white/10 z-10">
+                          <div className="p-2 bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center justify-between sticky top-0 border-b border-slate-200 z-10">
                             <span>
                               {motor.tipeMotor
                                 ? `Warna ${motor.tipeMotor} (${filteredWarnaList.length})`
@@ -1821,14 +1850,14 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                             <button
                               type="button"
                               onClick={() => setActiveDropdown(null)}
-                              className="text-white/60 hover:text-white px-1.5 py-0.5 rounded bg-white/10"
+                              className="text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded bg-slate-200"
                             >
                               ✕
                             </button>
                           </div>
 
                           {!motor.tipeMotor && (
-                            <div className="p-2 text-[10px] text-amber-300/90 text-center bg-amber-950/30">
+                            <div className="p-2 text-[10px] text-amber-700 text-center bg-amber-50">
                               ⚠️ Pilih Tipe Motor terlebih dahulu.
                             </div>
                           )}
@@ -1845,9 +1874,9 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                 updateMotor(mIdx, 'warna', clean);
                                 setActiveDropdown(null);
                               }}
-                              className="p-2 text-xs font-semibold text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 cursor-pointer flex items-center gap-1.5"
+                              className="p-2 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 cursor-pointer flex items-center gap-1.5"
                             >
-                              <Plus className="w-3 h-3 text-amber-400" />
+                              <Plus className="w-3 h-3 text-red-600" />
                               <span>Gunakan "{motor.warna}" (Warna Baru)</span>
                             </div>
                           )}
@@ -1861,26 +1890,26 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                   updateMotor(mIdx, 'warna', w.warna);
                                   setActiveDropdown(null);
                                 }}
-                                className="px-2.5 py-2 flex items-center justify-between hover:bg-red-600/35 cursor-pointer transition-colors"
+                                className="px-3 py-2 flex items-center justify-between hover:bg-red-50 cursor-pointer transition-colors text-slate-800"
                               >
                                 <div>
-                                  <span className="font-semibold text-xs text-white uppercase block leading-tight">
+                                  <span className="font-semibold text-xs text-slate-900 uppercase block leading-tight">
                                     {w.warna}
                                   </span>
                                   {w.namaWarna && w.namaWarna !== 'Warna Baru' && (
-                                    <span className="text-[10px] text-white/60 block leading-tight">
+                                    <span className="text-[10px] text-slate-500 block leading-tight">
                                       {w.namaWarna}
                                     </span>
                                   )}
                                 </div>
                                 {motor.warna.toUpperCase() === w.warna.toUpperCase() && (
-                                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
                                 )}
                               </div>
                             ))
                           ) : (
                             !isWarnaInputCustom && (
-                              <div className="p-2.5 text-[10px] text-amber-300/80 text-center">
+                              <div className="p-2.5 text-[10px] text-amber-700 text-center">
                                 Warna tidak ditemukan di master.
                               </div>
                             )
@@ -1897,7 +1926,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                         }}
                         onFocus={() => setActiveDropdown(`motor-warna-${mIdx}`)}
                         placeholder="Pilih / ketik warna..."
-                        className="w-full px-2.5 py-1.5 pr-8 rounded-lg bg-black/40 border border-white/20 text-white text-xs uppercase tracking-wide focus:border-red-500 outline-none"
+                        className="w-full px-3 py-2 pr-8 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs uppercase tracking-wide focus:border-red-500 focus:ring-1 focus:ring-red-100 outline-none placeholder:text-slate-400"
                       />
                       <button
                         type="button"
@@ -1906,12 +1935,12 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                             activeDropdown === `motor-warna-${mIdx}` ? null : `motor-warna-${mIdx}`
                           )
                         }
-                        className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-white/50 hover:text-white transition-colors"
+                        className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                         tabIndex={-1}
                       >
                         <ChevronDown
                           className={`w-3.5 h-3.5 transition-transform ${
-                            activeDropdown === `motor-warna-${mIdx}` ? 'rotate-180 text-amber-300' : ''
+                            activeDropdown === `motor-warna-${mIdx}` ? 'rotate-180 text-red-600' : ''
                           }`}
                         />
                       </button>
@@ -1919,10 +1948,10 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <div>
-                    <label className="text-[11px] font-semibold text-white/90">
-                      No. Mesin <span className="text-red-400">*</span>
+                    <label className="text-[11px] font-semibold text-slate-700">
+                      No. Mesin <span className="text-red-500">*</span>
                     </label>
                     <div className="flex gap-2 mt-1">
                       <input
@@ -1930,12 +1959,12 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                         value={motor.noMesin}
                         onChange={(e) => updateMotor(mIdx, 'noMesin', e.target.value.toUpperCase())}
                         placeholder="KF81E..."
-                        className="flex-1 px-2.5 py-1.5 rounded-xl bg-black/40 border border-white/20 text-white text-xs font-mono outline-none"
+                        className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-mono outline-none focus:border-red-500 focus:ring-1 focus:ring-red-100 placeholder:text-slate-400"
                       />
                       <button
                         type="button"
                         onClick={() => triggerScan(mIdx, 'noMesin')}
-                        className="px-3 py-1.5 rounded-xl bg-red-600/80 hover:bg-red-500 text-white text-xs font-semibold flex items-center gap-1 shadow"
+                        className="px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center gap-1 shadow-xs cursor-pointer"
                       >
                         <Barcode className="w-3.5 h-3.5" /> Scan
                       </button>
@@ -1943,8 +1972,8 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-semibold text-white/90">
-                      No. Rangka <span className="text-red-400">*</span>
+                    <label className="text-[11px] font-semibold text-slate-700">
+                      No. Rangka <span className="text-red-500">*</span>
                     </label>
                     <div className="flex gap-2 mt-1">
                       <input
@@ -1952,12 +1981,12 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                         value={motor.noRangka}
                         onChange={(e) => updateMotor(mIdx, 'noRangka', e.target.value.toUpperCase())}
                         placeholder="MH1KF81..."
-                        className="flex-1 px-2.5 py-1.5 rounded-xl bg-black/40 border border-white/20 text-white text-xs font-mono outline-none"
+                        className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-mono outline-none focus:border-red-500 focus:ring-1 focus:ring-red-100 placeholder:text-slate-400"
                       />
                       <button
                         type="button"
                         onClick={() => triggerScan(mIdx, 'noRangka')}
-                        className="px-3 py-1.5 rounded-xl bg-red-600/80 hover:bg-red-500 text-white text-xs font-semibold flex items-center gap-1 shadow"
+                        className="px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center gap-1 shadow-xs cursor-pointer"
                       >
                         <Barcode className="w-3.5 h-3.5" /> Scan
                       </button>
@@ -1965,18 +1994,21 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-white/10 space-y-2.5">
+                <div className="pt-2.5 border-t border-slate-100 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-white/80 uppercase">
-                      Daftar Part Cacat ({motor.parts.length})
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1 h-3 bg-red-600 rounded-full"></div>
+                      <span className="text-[11px] font-bold text-slate-700 uppercase">
+                        Daftar Part Cacat ({motor.parts.length})
+                      </span>
+                    </div>
                   </div>
 
                   {motor.parts.map((part, pIdx) => {
                     const currentActivePartIdx = activePartIndex[mIdx] ?? (motor.parts.length - 1);
                     const isPartExpanded = currentActivePartIdx === pIdx;
 
-                    const rawPartList = masterData?.partList || [];
+                    const rawPartList = effectiveMasterData.partList;
 
                     const matchedPartsForTipe = rawPartList.filter((p: any) => {
                       const pTipe = (p.tipe || p.tipeMotor || 'ALL').toString().trim().toUpperCase();
@@ -1989,8 +2021,11 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       );
                     });
 
+                    // Jika tipe motor belum ada katalog spesifiknya, gunakan seluruh referensi part agar autocomplete tetap muncul
+                    const partsToUse = matchedPartsForTipe.length > 0 ? matchedPartsForTipe : rawPartList;
+
                     const mergedParts = [
-                      ...matchedPartsForTipe.map((p: any) => (p.namaPart || '').toString().trim().toUpperCase()),
+                      ...partsToUse.map((p: any) => (p.namaPart || '').toString().trim().toUpperCase()),
                       ...customParts
                         .filter((cp) => cp.tipe === 'ALL' || !motor.tipeMotor || cp.tipe.toUpperCase() === motor.tipeMotor.trim().toUpperCase())
                         .map((cp) => cp.namaPart.toUpperCase()),
@@ -2005,7 +2040,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       part.namaPart.trim() !== '' &&
                       !uniqueParts.some((pn) => pn.toUpperCase() === part.namaPart.trim().toUpperCase());
 
-                    const rawKerusakan = masterData?.kerusakanList || [];
+                    const rawKerusakan = effectiveMasterData.kerusakanList;
                     
                     const uniqueKerusakans = Array.from(
                       new Set([...rawKerusakan.map((k) => k.trim().toUpperCase()), ...customKerusakans].filter(Boolean))
@@ -2017,7 +2052,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       part.jenisKerusakan.trim() !== '' &&
                       !uniqueKerusakans.some((k) => k.toUpperCase() === part.jenisKerusakan.trim().toUpperCase());
 
-                    const rawPenyebab = masterData?.penyebabList || [];
+                    const rawPenyebab = effectiveMasterData.penyebabList;
 
                     const uniquePenyebabs = Array.from(
                       new Set([...rawPenyebab.map((p) => p.trim().toUpperCase()), ...customPenyebabs].filter(Boolean))
@@ -2040,25 +2075,25 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                             }));
                             setActiveDropdown(null);
                           }}
-                          className="rounded-lg px-2.5 py-2 bg-black/40 border border-white/15 flex items-center justify-between cursor-pointer hover:bg-black/60 transition-colors shadow-sm"
+                          className="rounded-xl px-3 py-2 bg-slate-50 border border-slate-200/90 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition-colors shadow-2xs"
                         >
                           <div className="flex items-center gap-2 min-w-0 mr-2 flex-1">
-                            <span className="text-[10px] font-bold text-amber-400 flex-shrink-0">
+                            <span className="text-[10px] font-bold text-red-600 flex-shrink-0">
                               Part #{pIdx + 1}:
                             </span>
-                            <span className="text-xs text-white truncate font-medium">
-                              {part.namaPart || <span className="text-white/40 italic">Part belum dipilih</span>}
+                            <span className="text-xs text-slate-800 truncate font-semibold">
+                              {part.namaPart || <span className="text-slate-400 italic font-normal">Part belum dipilih</span>}
                               {part.jenisKerusakan && (
-                                <span className="text-white/60 font-normal"> • {part.jenisKerusakan}</span>
+                                <span className="text-slate-500 font-normal"> • {part.jenisKerusakan}</span>
                               )}
                             </span>
                             {part.fotoPart ? (
-                              <span className="text-[9px] text-emerald-300 bg-emerald-950/60 border border-emerald-500/30 px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0">
-                                <Camera className="w-2.5 h-2.5" /> Foto OK
+                              <span className="text-[9px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0 font-medium">
+                                <Camera className="w-2.5 h-2.5 text-emerald-600" /> Foto OK
                               </span>
                             ) : (
-                              <span className="text-[9px] text-red-300 bg-red-950/70 border border-red-500/50 px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0 animate-pulse font-medium">
-                                <AlertCircle className="w-2.5 h-2.5 text-red-400" /> Wajib Foto
+                              <span className="text-[9px] text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0 animate-pulse font-medium">
+                                <AlertCircle className="w-2.5 h-2.5 text-red-600" /> Wajib Foto
                               </span>
                             )}
                           </div>
@@ -2074,7 +2109,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                 }));
                                 setActiveDropdown(null);
                               }}
-                              className="text-[10px] text-amber-300 hover:text-amber-200 px-2 py-0.5 rounded bg-white/10 font-semibold"
+                              className="text-[10px] text-slate-700 hover:text-slate-900 px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-semibold cursor-pointer"
                             >
                               Edit
                             </button>
@@ -2085,7 +2120,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                   e.stopPropagation();
                                   removePart(mIdx, pIdx);
                                 }}
-                                className="p-1 text-red-400 hover:text-red-300"
+                                className="p-1 text-red-500 hover:text-red-700 cursor-pointer"
                               >
                                 <Trash2 className="w-3 h-3" />
                               </button>
@@ -2098,12 +2133,12 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     return (
                       <div
                         key={pIdx}
-                        className="rounded-xl p-3 bg-black/40 border border-amber-500/40 space-y-2.5 shadow-md"
+                        className="rounded-xl p-3.5 bg-slate-50/70 border border-slate-200 space-y-3 shadow-2xs"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-amber-300 flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-slate-800 flex items-center gap-1.5">
                             <span>Part #{pIdx + 1}</span>
-                            <span className="text-[9px] text-emerald-400 font-normal px-1 rounded bg-emerald-950/60 border border-emerald-500/30">
+                            <span className="text-[9px] text-red-700 font-semibold px-1.5 py-0.2 rounded bg-red-50 border border-red-200">
                               Sedang Diedit
                             </span>
                           </span>
@@ -2113,7 +2148,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleLockPart(mIdx, pIdx)}
-                                className="text-[9px] text-white/90 hover:text-white px-2 py-0.5 rounded bg-white/15 flex items-center gap-1 border border-white/20 active:scale-95 transition-all font-semibold"
+                                className="text-[9px] text-slate-700 hover:text-slate-900 px-2.5 py-1 rounded-lg bg-white flex items-center gap-1 border border-slate-200 active:scale-95 transition-all font-semibold cursor-pointer"
                               >
                                 <ChevronUp className="w-2.5 h-2.5" /> Kunci
                               </button>
@@ -2123,7 +2158,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                               <button
                                 type="button"
                                 onClick={() => removePart(mIdx, pIdx)}
-                                className="text-[10px] text-red-400 hover:text-red-300 px-1"
+                                className="text-[10px] text-red-600 hover:text-red-700 px-1 cursor-pointer"
                               >
                                 Hapus
                               </button>
@@ -2133,29 +2168,29 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
                         <div className="relative" data-dropdown="true">
                           <div className="flex items-center justify-between">
-                            <label className="text-[10px] font-semibold text-white/80">
-                              Nama Part <span className="text-red-400">*</span>
+                            <label className="text-[10px] font-semibold text-slate-700">
+                              Nama Part <span className="text-red-500">*</span>
                             </label>
                             {isPartInputCustom ? (
-                              <span className="text-[9px] font-semibold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-1 py-0.2 rounded">
+                              <span className="text-[9px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
                                 Part Baru
                               </span>
                             ) : (
                               motor.tipeMotor && (
-                                <span className="text-[9px] text-amber-300/80 font-normal">
+                                <span className="text-[9px] text-slate-500 font-normal">
                                   Katalog {motor.tipeMotor}
                                 </span>
                               )
                             )}
                           </div>
 
-                          <div className="relative mt-0.5">
+                          <div className="relative mt-1">
                             {activeDropdown === `part-nama-${mIdx}-${pIdx}` && (
                               <div
-                                className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-slate-900 border border-white/25 shadow-2xl divide-y divide-white/10"
+                                className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-white border border-slate-200 shadow-xl divide-y divide-slate-100"
                                 style={{ touchAction: 'pan-y' }}
                               >
-                                <div className="p-1.5 bg-slate-950/95 text-[10px] font-bold text-amber-300 flex items-center justify-between sticky top-0 border-b border-white/10 z-10">
+                                <div className="p-2 bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center justify-between sticky top-0 border-b border-slate-200 z-10">
                                   <span>
                                     {motor.tipeMotor
                                       ? `Part ${motor.tipeMotor} (${filteredPartList.length})`
@@ -2164,7 +2199,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => setActiveDropdown(null)}
-                                    className="text-white/60 hover:text-white px-1.5 py-0.5 rounded bg-white/10"
+                                    className="text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded bg-slate-200"
                                   >
                                     ✕
                                   </button>
@@ -2182,9 +2217,9 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                       updatePart(mIdx, pIdx, 'namaPart', clean);
                                       setActiveDropdown(null);
                                     }}
-                                    className="p-2 text-xs font-semibold text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 cursor-pointer flex items-center gap-1.5"
+                                    className="p-2 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 cursor-pointer flex items-center gap-1.5"
                                   >
-                                    <Plus className="w-3 h-3 text-amber-400" />
+                                    <Plus className="w-3 h-3 text-red-600" />
                                     <span>Gunakan "{part.namaPart}" (Part Baru)</span>
                                   </div>
                                 )}
@@ -2198,17 +2233,17 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                         updatePart(mIdx, pIdx, 'namaPart', pName);
                                         setActiveDropdown(null);
                                       }}
-                                      className="px-2.5 py-2 flex items-center justify-between hover:bg-red-600/35 cursor-pointer transition-colors"
+                                      className="px-3 py-2 flex items-center justify-between hover:bg-red-50 cursor-pointer transition-colors text-slate-800"
                                     >
-                                      <span className="font-semibold text-xs text-white uppercase">{pName}</span>
+                                      <span className="font-semibold text-xs text-slate-900 uppercase">{pName}</span>
                                       {part.namaPart.toUpperCase() === pName.toUpperCase() && (
-                                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                        <Check className="w-3.5 h-3.5 text-emerald-600" />
                                       )}
                                     </div>
                                   ))
                                 ) : (
                                   !isPartInputCustom && (
-                                    <div className="p-2.5 text-[10px] text-amber-300/80 text-center">
+                                    <div className="p-2.5 text-[10px] text-amber-700 text-center">
                                       Part tidak ditemukan di katalog.
                                     </div>
                                   )
@@ -2225,7 +2260,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                               }}
                               onFocus={() => setActiveDropdown(`part-nama-${mIdx}-${pIdx}`)}
                               placeholder="Pilih / ketik nama part..."
-                              className="w-full px-2.5 py-1.5 pr-8 rounded-lg bg-slate-900 border border-white/20 text-white text-xs uppercase tracking-wide focus:border-red-500 outline-none"
+                              className="w-full px-3 py-2 pr-8 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs uppercase tracking-wide focus:border-red-500 focus:ring-1 focus:ring-red-100 outline-none placeholder:text-slate-400"
                             />
                             <button
                               type="button"
@@ -2236,13 +2271,13 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                     : `part-nama-${mIdx}-${pIdx}`
                                 )
                               }
-                              className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-white/50 hover:text-white transition-colors"
+                              className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                               tabIndex={-1}
                             >
                               <ChevronDown
                                 className={`w-3.5 h-3.5 transition-transform ${
                                   activeDropdown === `part-nama-${mIdx}-${pIdx}`
-                                    ? 'rotate-180 text-amber-300'
+                                    ? 'rotate-180 text-red-600'
                                     : ''
                                 }`}
                               />
@@ -2250,31 +2285,31 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-2.5">
                           <div className="relative" data-dropdown="true">
                             <div className="flex items-center justify-between">
-                              <label className="text-[10px] font-semibold text-white/80">
-                                Jenis Kerusakan <span className="text-red-400">*</span>
+                              <label className="text-[10px] font-semibold text-slate-700">
+                                Jenis Kerusakan <span className="text-red-500">*</span>
                               </label>
                               {isKerusakanCustom && (
-                                <span className="text-[8px] font-semibold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-1 rounded">
+                                <span className="text-[8px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-1 rounded">
                                   Baru
                                 </span>
                               )}
                             </div>
 
-                            <div className="relative mt-0.5">
+                            <div className="relative mt-1">
                               {activeDropdown === `part-kerusakan-${mIdx}-${pIdx}` && (
                                 <div
-                                  className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-slate-900 border border-white/25 shadow-2xl divide-y divide-white/10"
+                                  className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-white border border-slate-200 shadow-xl divide-y divide-slate-100"
                                   style={{ touchAction: 'pan-y' }}
                                 >
-                                  <div className="p-1.5 bg-slate-950/95 text-[10px] font-bold text-amber-300 flex items-center justify-between sticky top-0 border-b border-white/10 z-10">
+                                  <div className="p-2 bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center justify-between sticky top-0 border-b border-slate-200 z-10">
                                     <span>Pilih Kerusakan ({filteredKerusakanList.length})</span>
                                     <button
                                       type="button"
                                       onClick={() => setActiveDropdown(null)}
-                                      className="text-white/60 hover:text-white px-1.5 py-0.5 rounded bg-white/10"
+                                      className="text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded bg-slate-200"
                                     >
                                       ✕
                                     </button>
@@ -2289,9 +2324,9 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                         updatePart(mIdx, pIdx, 'jenisKerusakan', clean);
                                         setActiveDropdown(null);
                                       }}
-                                      className="p-2 text-[11px] font-semibold text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 cursor-pointer flex items-center gap-1.5"
+                                      className="p-2 text-[11px] font-semibold text-red-700 bg-red-50 hover:bg-red-100 cursor-pointer flex items-center gap-1.5"
                                     >
-                                      <Plus className="w-3 h-3 text-amber-400" />
+                                      <Plus className="w-3 h-3 text-red-600" />
                                       <span>Gunakan "{part.jenisKerusakan}" (Baru)</span>
                                     </div>
                                   )}
@@ -2305,17 +2340,17 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                           updatePart(mIdx, pIdx, 'jenisKerusakan', k);
                                           setActiveDropdown(null);
                                         }}
-                                        className="px-2.5 py-2 flex items-center justify-between hover:bg-red-600/35 cursor-pointer transition-colors"
+                                        className="px-3 py-2 flex items-center justify-between hover:bg-red-50 cursor-pointer transition-colors text-slate-800"
                                       >
-                                        <span className="font-semibold text-[11px] text-white uppercase">{k}</span>
+                                        <span className="font-semibold text-[11px] text-slate-900 uppercase">{k}</span>
                                         {part.jenisKerusakan.toUpperCase() === k.toUpperCase() && (
-                                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                          <Check className="w-3.5 h-3.5 text-emerald-600" />
                                         )}
                                       </div>
                                     ))
                                   ) : (
                                     !isKerusakanCustom && (
-                                      <div className="p-2.5 text-[10px] text-amber-300/80 text-center">
+                                      <div className="p-2.5 text-[10px] text-amber-700 text-center">
                                         Kerusakan tidak ditemukan.
                                       </div>
                                     )
@@ -2332,7 +2367,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                 }}
                                 onFocus={() => setActiveDropdown(`part-kerusakan-${mIdx}-${pIdx}`)}
                                 placeholder="Pilih kerusakan..."
-                                className="w-full px-2 py-1.5 pr-7 rounded-lg bg-slate-900 border border-white/20 text-white text-[11px] uppercase tracking-wide focus:border-red-500 outline-none"
+                                className="w-full px-2.5 py-2 pr-7 rounded-lg bg-white border border-slate-300 text-slate-900 text-[11px] uppercase tracking-wide focus:border-red-500 focus:ring-1 focus:ring-red-100 outline-none placeholder:text-slate-400"
                               />
                               <button
                                 type="button"
@@ -2343,13 +2378,13 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                       : `part-kerusakan-${mIdx}-${pIdx}`
                                   )
                                 }
-                                className="absolute right-1 top-1 bottom-1 px-1 flex items-center text-white/50 hover:text-white transition-colors"
+                                className="absolute right-1 top-1 bottom-1 px-1 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                                 tabIndex={-1}
                               >
                                 <ChevronDown
                                   className={`w-3.5 h-3.5 transition-transform ${
                                     activeDropdown === `part-kerusakan-${mIdx}-${pIdx}`
-                                      ? 'rotate-180 text-amber-300'
+                                      ? 'rotate-180 text-red-600'
                                       : ''
                                   }`}
                                 />
@@ -2359,28 +2394,28 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
                           <div className="relative" data-dropdown="true">
                             <div className="flex items-center justify-between">
-                              <label className="text-[10px] font-semibold text-white/80">
-                                Penyebab Cacat <span className="text-red-400">*</span>
+                              <label className="text-[10px] font-semibold text-slate-700">
+                                Penyebab Cacat <span className="text-red-500">*</span>
                               </label>
                               {isPenyebabCustom && (
-                                <span className="text-[8px] font-semibold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-1 rounded">
+                                <span className="text-[8px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-1 rounded">
                                   Baru
                                 </span>
                               )}
                             </div>
 
-                            <div className="relative mt-0.5">
+                            <div className="relative mt-1">
                               {activeDropdown === `part-penyebab-${mIdx}-${pIdx}` && (
                                 <div
-                                  className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-slate-900 border border-white/25 shadow-2xl divide-y divide-white/10"
+                                  className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-white border border-slate-200 shadow-xl divide-y divide-slate-100"
                                   style={{ touchAction: 'pan-y' }}
                                 >
-                                  <div className="p-1.5 bg-slate-950/95 text-[10px] font-bold text-amber-300 flex items-center justify-between sticky top-0 border-b border-white/10 z-10">
+                                  <div className="p-2 bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center justify-between sticky top-0 border-b border-slate-200 z-10">
                                     <span>Pilih Penyebab ({filteredPenyebabList.length})</span>
                                     <button
                                       type="button"
                                       onClick={() => setActiveDropdown(null)}
-                                      className="text-white/60 hover:text-white px-1.5 py-0.5 rounded bg-white/10"
+                                      className="text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded bg-slate-200"
                                     >
                                       ✕
                                     </button>
@@ -2395,9 +2430,9 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                         updatePart(mIdx, pIdx, 'penyebab', clean);
                                         setActiveDropdown(null);
                                       }}
-                                      className="p-2 text-[11px] font-semibold text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 cursor-pointer flex items-center gap-1.5"
+                                      className="p-2 text-[11px] font-semibold text-red-700 bg-red-50 hover:bg-red-100 cursor-pointer flex items-center gap-1.5"
                                     >
-                                      <Plus className="w-3 h-3 text-amber-400" />
+                                      <Plus className="w-3 h-3 text-red-600" />
                                       <span>Gunakan "{part.penyebab}" (Baru)</span>
                                     </div>
                                   )}
@@ -2411,17 +2446,17 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                           updatePart(mIdx, pIdx, 'penyebab', p);
                                           setActiveDropdown(null);
                                         }}
-                                        className="px-2.5 py-2 flex items-center justify-between hover:bg-red-600/35 cursor-pointer transition-colors"
+                                        className="px-3 py-2 flex items-center justify-between hover:bg-red-50 cursor-pointer transition-colors text-slate-800"
                                       >
-                                        <span className="font-semibold text-[11px] text-white uppercase">{p}</span>
+                                        <span className="font-semibold text-[11px] text-slate-900 uppercase">{p}</span>
                                         {part.penyebab.toUpperCase() === p.toUpperCase() && (
-                                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                          <Check className="w-3.5 h-3.5 text-emerald-600" />
                                         )}
                                       </div>
                                     ))
                                   ) : (
                                     !isPenyebabCustom && (
-                                      <div className="p-2.5 text-[10px] text-amber-300/80 text-center">
+                                      <div className="p-2.5 text-[10px] text-amber-700 text-center">
                                         Penyebab tidak ditemukan.
                                       </div>
                                     )
@@ -2438,7 +2473,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                 }}
                                 onFocus={() => setActiveDropdown(`part-penyebab-${mIdx}-${pIdx}`)}
                                 placeholder="Pilih penyebab..."
-                                className="w-full px-2 py-1.5 pr-7 rounded-lg bg-slate-900 border border-white/20 text-white text-[11px] uppercase tracking-wide focus:border-red-500 outline-none"
+                                className="w-full px-2.5 py-2 pr-7 rounded-lg bg-white border border-slate-300 text-slate-900 text-[11px] uppercase tracking-wide focus:border-red-500 focus:ring-1 focus:ring-red-100 outline-none placeholder:text-slate-400"
                               />
                               <button
                                 type="button"
@@ -2449,13 +2484,13 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                                       : `part-penyebab-${mIdx}-${pIdx}`
                                   )
                                 }
-                                className="absolute right-1 top-1 bottom-1 px-1 flex items-center text-white/50 hover:text-white transition-colors"
+                                className="absolute right-1 top-1 bottom-1 px-1 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                                 tabIndex={-1}
                               >
                                 <ChevronDown
                                   className={`w-3.5 h-3.5 transition-transform ${
                                     activeDropdown === `part-penyebab-${mIdx}-${pIdx}`
-                                      ? 'rotate-180 text-amber-300'
+                                      ? 'rotate-180 text-red-600'
                                       : ''
                                   }`}
                                 />
@@ -2466,15 +2501,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="text-[10px] font-semibold text-white/90">
-                              Foto Cacat Part <span className="text-red-400">*</span>
+                            <label className="text-[10px] font-semibold text-slate-700">
+                              Foto Cacat Part <span className="text-red-500">*</span>
                             </label>
                             {part.fotoPart ? (
-                              <span className="text-[9px] text-emerald-400 flex items-center gap-1 font-semibold">
-                                <CheckCircle2 className="w-3 h-3" />
+                              <span className="text-[9px] text-emerald-700 flex items-center gap-1 font-semibold">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                               </span>
                             ) : (
-                              <span className="text-[9px] text-red-400 flex items-center gap-1 font-medium">
+                              <span className="text-[9px] text-red-600 flex items-center gap-1 font-medium">
                                 <AlertCircle className="w-3 h-3" />
                               </span>
                             )}
@@ -2483,12 +2518,12 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                             <label
                               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg border ${
                                 part.fotoPart
-                                  ? 'border-emerald-500/40 bg-emerald-950/20'
-                                  : 'border-dashed border-red-500/60 bg-red-950/20'
-                              } hover:border-red-400 cursor-pointer text-xs text-white/90 transition-colors shadow-sm`}
+                                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                                  : 'border-dashed border-red-300 bg-red-50/50 text-slate-700 hover:border-red-500'
+                              } cursor-pointer text-xs transition-colors shadow-2xs`}
                             >
-                              <Camera className="w-4 h-4 text-red-400" />
-                              <span>{part.fotoPart ? 'Ubah Foto Cacat Part' : 'Foto Cacat Part *'}</span>
+                              <Camera className="w-4 h-4 text-red-600" />
+                              <span className="font-semibold">{part.fotoPart ? 'Ubah Foto Cacat Part' : 'Foto Cacat Part *'}</span>
                               <input
                                 type="file"
                                 accept="image/*"
@@ -2499,7 +2534,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                             </label>
 
                             {part.fotoPart && (
-                              <div className="w-12 h-12 rounded-lg overflow-hidden border border-emerald-500/50 flex-shrink-0 shadow-md">
+                              <div className="w-12 h-12 rounded-lg overflow-hidden border border-emerald-300 flex-shrink-0 shadow-2xs">
                                 <img
                                   src={part.fotoPart}
                                   referrerPolicy="no-referrer"
@@ -2511,11 +2546,11 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                           </div>
                         </div>
 
-                        <div className="pt-1.5 border-t border-white/10">
+                        <div className="pt-2 border-t border-slate-200">
                           <button
                             type="button"
                             onClick={() => handleAddPartWithValidation(mIdx)}
-                            className="w-full py-2 px-3 rounded-xl border border-dashed border-amber-400/50 hover:bg-amber-400/10 active:scale-98 text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors bg-white/5 cursor-pointer"
+                            className="w-full py-2 px-3 rounded-xl border border-dashed border-red-300 hover:border-red-500 hover:bg-red-50 active:scale-98 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors bg-white cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" /> Tambah Part Lainnya
                           </button>
@@ -2528,7 +2563,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     <button
                       type="button"
                       onClick={() => handleAddPartWithValidation(mIdx)}
-                      className="w-full py-2 px-3 rounded-xl border border-dashed border-amber-400/50 hover:bg-amber-400/10 active:scale-98 text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors bg-white/5 cursor-pointer mt-1"
+                      className="w-full py-2 px-3 rounded-xl border border-dashed border-red-300 hover:border-red-500 hover:bg-red-50 active:scale-98 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors bg-white cursor-pointer mt-1"
                     >
                       <Plus className="w-3.5 h-3.5" /> Tambah Part
                     </button>
@@ -2541,7 +2576,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
           <button
             type="button"
             onClick={addMotor}
-            className="w-full py-2.5 rounded-2xl border border-dashed border-amber-400/50 hover:bg-amber-400/10 text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+            className="w-full py-3 rounded-2xl border border-dashed border-red-300 hover:border-red-500 hover:bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Tambah Unit Motor Lainnya
           </button>
@@ -2551,21 +2586,24 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
       {/* STEP 3: PENGEMBALIAN & PARAF USER */}
       {currentStep === 3 && (
         <div className="px-4 space-y-4 pb-28">
-          <div className="rounded-2xl p-4 bg-white/10 border border-white/15 backdrop-blur-md space-y-3">
+          <div className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1.5">
-                <Truck className="w-3.5 h-3.5" /> Metode Pengembalian Part
-              </h3>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1 h-3.5 bg-red-600 rounded-full"></div>
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                  <Truck className="w-3.5 h-3.5 text-red-600" /> Metode Pengembalian Part
+                </h3>
+              </div>
               {isMethodLocked && (
-                <span className="text-[10px] font-semibold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
                   🔒 Terkunci (Mode Edit Draft)
                 </span>
               )}
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-white/90">
-                Pilih Metode Pengembalian <span className="text-red-400">*</span>
+              <label className="text-xs font-semibold text-slate-700">
+                Pilih Metode Pengembalian <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-2 gap-2.5 mt-1.5">
                 <button
@@ -2574,8 +2612,8 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   onClick={() => handleSelectMetodeKembali('DIKIRIM LANGSUNG')}
                   className={`py-2 px-3 rounded-xl border text-center transition-all text-xs font-bold ${
                     metodeKembali === 'DIKIRIM LANGSUNG'
-                      ? 'bg-red-600 border-red-400 text-white shadow-md shadow-red-900/50'
-                      : 'bg-black/30 border-white/15 text-white/70 hover:border-white/30'
+                      ? 'bg-red-600 border-red-600 text-white shadow-xs'
+                      : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
                   } ${isMethodLocked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
                 >
                   DIKIRIM LANGSUNG
@@ -2587,8 +2625,8 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   onClick={() => handleSelectMetodeKembali('DITITIP')}
                   className={`py-2 px-3 rounded-xl border text-center transition-all text-xs font-bold ${
                     metodeKembali === 'DITITIP'
-                      ? 'bg-red-600 border-red-400 text-white shadow-md shadow-red-900/50'
-                      : 'bg-black/30 border-white/15 text-white/70 hover:border-white/30'
+                      ? 'bg-red-600 border-red-600 text-white shadow-xs'
+                      : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
                   } ${isMethodLocked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
                 >
                   DITITIP
@@ -2597,11 +2635,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
             </div>
 
             {metodeKembali === 'DIKIRIM LANGSUNG' && (
-              <div className="rounded-xl border border-white/15 bg-white/5 p-3 space-y-1 animate-fadeIn">
-                <div className="text-xs text-white/90 font-medium">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 space-y-1.5 animate-fadeIn">
+                <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-bold">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>Otomatis Diangkut Sopir Pengantar (Step 1)</span>
+                </div>
+                <div className="text-xs text-slate-700 font-medium pl-5.5">
                   {namaSopirPJ || 'Sopir Awal'} •{' '}
-                  <span className="font-mono text-amber-300 font-bold">{nopolPJ || '-'}</span>{' '}
-                  <span className="text-white/60">({transporterPJ || '-'})</span>
+                  <span className="font-mono text-slate-900 font-bold">{nopolPJ || '-'}</span>{' '}
+                  <span className="text-slate-500">({transporterPJ || '-'})</span>
                 </div>
               </div>
             )}
@@ -2609,8 +2651,8 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
             {metodeKembali === 'DITITIP' && (
               <div className="space-y-3 pt-1 animate-fadeIn">
                 <div>
-                  <label className="text-[11px] font-semibold text-white/90">
-                    Nama Sopir Pengembalian / Titipan <span className="text-red-400">*</span>
+                  <label className="text-[11px] font-semibold text-slate-700">
+                    Nama Sopir Pengembalian / Titipan <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="input-nama-sopir-kembali"
@@ -2618,21 +2660,21 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     value={namaSopirKembali}
                     onChange={(e) => setNamaSopirKembali(e.target.value.toUpperCase())}
                     placeholder="Nama sopir pengambil part titipan"
-                    className="w-full mt-1 px-2.5 py-2 rounded-xl bg-black/40 border border-white/20 text-white text-xs outline-none focus:border-red-500"
+                    className="w-full mt-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs outline-none focus:border-red-500 focus:ring-1 focus:ring-red-100 placeholder:text-slate-400"
                   />
                 </div>
 
                 <div className="relative" data-dropdown="true">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-semibold text-white/90">
-                      Nomor Polisi Pengembalian <span className="text-red-400">*</span>
+                    <label className="text-[11px] font-semibold text-slate-700">
+                      Nomor Polisi Pengembalian <span className="text-red-500">*</span>
                     </label>
                     {matchedTransporterKembali ? (
-                      <span className="text-[10px] font-semibold text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-1.5 py-0.2 rounded">
+                      <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
                         Transporter: {matchedTransporterKembali.transporter}
                       </span>
                     ) : isManualNopolKembali ? (
-                      <span className="text-[10px] font-semibold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-1.5 py-0.2 rounded">
+                      <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
                         Nopol Baru
                       </span>
                     ) : null}
@@ -2641,15 +2683,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   <div className="relative mt-1">
                     {showNopolKembaliDropdown && (
                       <div
-                        className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-slate-900 border border-white/25 shadow-2xl backdrop-blur-md divide-y divide-white/10"
+                        className="absolute z-50 left-0 right-0 bottom-full mb-1.5 max-h-44 overflow-y-auto overscroll-contain rounded-xl bg-white border border-slate-200 shadow-xl divide-y divide-slate-100"
                         style={{ touchAction: 'pan-y' }}
                       >
-                        <div className="p-1.5 bg-slate-950/90 text-[10px] font-bold text-amber-300 flex items-center justify-between sticky top-0 border-b border-white/10">
+                        <div className="p-2 bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center justify-between sticky top-0 border-b border-slate-200 z-10">
                           <span>Referensi Master Transporter ({transporterList.length})</span>
                           <button
                             type="button"
                             onClick={() => setShowNopolKembaliDropdown(false)}
-                            className="text-white/60 hover:text-white px-1"
+                            className="text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded bg-slate-200"
                           >
                             ✕
                           </button>
@@ -2660,21 +2702,21 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                               key={`${item.nopol}-${idx}`}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => handleSelectNopolKembali(item)}
-                              className="px-2.5 py-2 flex items-center justify-between hover:bg-red-600/35 cursor-pointer transition-colors"
+                              className="px-3 py-2 flex items-center justify-between hover:bg-red-50 cursor-pointer transition-colors text-slate-800"
                             >
                               <div className="flex items-center gap-1.5">
-                                <Truck className="w-3 h-3 text-amber-400/80" />
-                                <span className="font-mono text-xs font-bold text-white tracking-wider">
+                                <Truck className="w-3.5 h-3.5 text-red-600" />
+                                <span className="font-mono text-xs font-bold text-slate-900 tracking-wider">
                                   {item.nopol}
                                 </span>
                               </div>
-                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-white/10 text-amber-200 border border-white/10">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                                 {item.transporter}
                               </span>
                             </div>
                           ))
                         ) : (
-                          <div className="p-2 text-[10px] text-amber-300/80 text-center">
+                          <div className="p-2.5 text-[10px] text-amber-700 text-center">
                             Nopol belum terdaftar di Master.
                           </div>
                         )}
@@ -2688,17 +2730,17 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       onChange={(e) => handleNopolKembaliInput(e.target.value)}
                       onFocus={() => setShowNopolKembaliDropdown(true)}
                       placeholder="Pilih atau ketik nopol (misal: B 9285 UIP)"
-                      className="w-full px-2.5 py-2 pr-8 rounded-xl bg-black/40 border border-white/20 text-white text-xs font-mono uppercase tracking-wider focus:border-red-500 outline-none"
+                      className="w-full px-3 py-2 pr-8 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-mono uppercase tracking-wider focus:border-red-500 focus:ring-1 focus:ring-red-100 outline-none placeholder:text-slate-400"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNopolKembaliDropdown(!showNopolKembaliDropdown)}
-                      className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-white/50 hover:text-white transition-colors"
+                      className="absolute right-1 top-1 bottom-1 px-1.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                       tabIndex={-1}
                     >
                       <ChevronDown
                         className={`w-3.5 h-3.5 transition-transform ${
-                          showNopolKembaliDropdown ? 'rotate-180 text-amber-300' : ''
+                          showNopolKembaliDropdown ? 'rotate-180 text-red-600' : ''
                         }`}
                       />
                     </button>
@@ -2706,20 +2748,20 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 </div>
 
                 {isManualNopolKembali && (
-                  <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/40">
-                    <label className="text-[11px] font-semibold text-amber-300 flex items-center justify-between">
-                      <span>Pilih Transporter Pengembalian <span className="text-red-400">*</span></span>
-                      <span className="text-[9px] text-amber-200/70 font-normal">Nopol baru tersimpan otomatis</span>
+                  <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200">
+                    <label className="text-[11px] font-semibold text-amber-900 flex items-center justify-between">
+                      <span>Pilih Transporter Pengembalian <span className="text-red-500">*</span></span>
+                      <span className="text-[9px] text-amber-700 font-normal">Nopol baru tersimpan otomatis</span>
                     </label>
                     <select
                       id="select-manual-transporter-kembali"
                       value={transporterKembali}
                       onChange={(e) => handleManualTransporterKembaliChange(e.target.value)}
-                      className="w-full mt-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-amber-500/50 text-white text-xs font-semibold outline-none focus:border-amber-400"
+                      className="w-full mt-1.5 px-3 py-2 rounded-lg bg-white border border-amber-300 text-slate-900 text-xs font-semibold outline-none focus:border-red-500 focus:ring-1 focus:ring-red-100"
                     >
                       <option value="">-- Pilih Transporter (TM / RJTM / WSS / YSS / SBR) --</option>
                       {MANUAL_TRANSPORTERS.map((opt) => (
-                        <option key={opt} value={opt} className="bg-slate-900 text-white font-semibold">
+                        <option key={opt} value={opt} className="bg-white text-slate-900 font-semibold">
                           {opt}
                         </option>
                       ))}
@@ -2730,7 +2772,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
             )}
           </div>
 
-          <div className="rounded-2xl p-3 bg-white/10 border border-white/15 backdrop-blur-md">
+          <div className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-xs">
             <SignaturePad
               id="canvas-paraf-user"
               label={`Paraf Petugas PDI Dealer (${user.nama || 'PDI Man'})`}
@@ -2746,12 +2788,12 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
       )}
 
       {/* Floating Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/90 backdrop-blur-md border-t border-white/15 p-3">
-        {/* Progress Bar Laser Kilatan Modern */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 shadow-lg">
+        {/* Progress Bar */}
         {isSubmitting && (
-          <div className="max-w-md mx-auto mb-2 overflow-hidden rounded-full bg-black/50 h-1.5 border border-amber-400/30 p-[1px]">
+          <div className="max-w-md mx-auto mb-2 overflow-hidden rounded-full bg-slate-100 h-1.5 border border-slate-200 p-[1px]">
             <div
-              className="bg-gradient-to-r from-red-500 via-amber-300 to-emerald-400 h-full transition-all duration-75 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
+              className="bg-gradient-to-r from-red-600 via-amber-500 to-emerald-500 h-full transition-all duration-75 ease-out rounded-full shadow-xs"
               style={{ width: `${submitProgress}%` }}
             />
           </div>
@@ -2764,15 +2806,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 type="button"
                 onClick={() => handleSaveClaim('Draft')}
                 disabled={isSubmitting}
-                className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
                   isSubmitting && submittingStatus === 'Draft'
-                    ? 'border-amber-400/60 bg-amber-950/85 mdc-btn-flash-amber cursor-wait'
-                    : 'border-white/20 bg-white/10 hover:bg-white/15 active:scale-98'
+                    ? 'border-amber-400 bg-amber-50 text-amber-900 cursor-wait'
+                    : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700 active:scale-98 shadow-xs'
                 }`}
               >
                 {isSubmitting && submittingStatus === 'Draft' && (
                   <div
-                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400/40 via-amber-300/30 to-yellow-200/30 transition-all duration-75 ease-out pointer-events-none"
                     style={{ width: `${submitProgress}%` }}
                   />
                 )}
@@ -2780,18 +2822,18 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   {isSubmitting && submittingStatus === 'Draft' ? (
                     <>
                       {submitProgress >= 100 ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 animate-bounce" />
                       ) : (
-                        <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                        <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse" />
                       )}
                       <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan Draft'}</span>
-                      <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                      <span className="font-mono font-extrabold text-amber-900 tracking-wider bg-amber-100 px-1.5 py-0.5 rounded text-[11px] border border-amber-300">
                         {submitProgress}%
                       </span>
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4 text-amber-300" />
+                      <Save className="w-4 h-4 text-slate-600" />
                       <span>Simpan Draft</span>
                     </>
                   )}
@@ -2802,7 +2844,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                 type="button"
                 onClick={handleNext}
                 disabled={isSubmitting}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white text-xs font-bold shadow-lg shadow-red-900/50 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white text-xs font-bold shadow-md shadow-red-900/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Lanjutkan
               </button>
@@ -2815,15 +2857,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     type="button"
                     onClick={() => handleSaveClaim('Draft')}
                     disabled={isSubmitting}
-                    className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-amber-100 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer disabled:cursor-not-allowed ${
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
                       isSubmitting && submittingStatus === 'Draft'
-                        ? 'border-amber-400/60 bg-amber-900/90 mdc-btn-flash-amber cursor-wait'
-                        : 'border-amber-500/30 bg-amber-950/60 hover:bg-amber-900/70 active:scale-98'
+                        ? 'border-amber-400 bg-amber-50 text-amber-900 cursor-wait'
+                        : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700 active:scale-98 shadow-xs'
                     }`}
                   >
                     {isSubmitting && submittingStatus === 'Draft' && (
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400/40 via-amber-300/30 to-yellow-200/30 transition-all duration-75 ease-out pointer-events-none"
                         style={{ width: `${submitProgress}%` }}
                       />
                     )}
@@ -2831,18 +2873,18 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       {isSubmitting && submittingStatus === 'Draft' ? (
                         <>
                           {submitProgress >= 100 ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 animate-bounce" />
                           ) : (
-                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                            <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse" />
                           )}
                           <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan'}</span>
-                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                          <span className="font-mono font-extrabold text-amber-900 tracking-wider bg-amber-100 px-1.5 py-0.5 rounded text-[11px] border border-amber-300">
                             {submitProgress}%
                           </span>
                         </>
                       ) : (
                         <>
-                          <Save className="w-4 h-4 text-amber-300" />
+                          <Save className="w-4 h-4 text-slate-600" />
                           <span>Simpan Draft</span>
                         </>
                       )}
@@ -2853,15 +2895,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     type="button"
                     onClick={() => handleSaveClaim('Dikirim ke MD')}
                     disabled={isSubmitting}
-                    className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-md shadow-red-900/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
                       isSubmitting && submittingStatus === 'Dikirim ke MD'
-                        ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50 cursor-wait'
-                        : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-900/50'
+                        ? 'bg-red-800 cursor-wait'
+                        : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98'
                     }`}
                   >
                     {isSubmitting && submittingStatus === 'Dikirim ke MD' && (
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700/80 via-red-600/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
                         style={{ width: `${submitProgress}%` }}
                       />
                     )}
@@ -2871,10 +2913,10 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                           {submitProgress >= 100 ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
                           ) : (
-                            <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
                           )}
                           <span>{submitProgress >= 100 ? 'Terkirim!' : 'Mengirim ke MD'}</span>
-                          <span className="font-mono font-extrabold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
                             {submitProgress}%
                           </span>
                         </>
@@ -2893,15 +2935,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     type="button"
                     onClick={() => handleSaveClaim('Draft')}
                     disabled={isSubmitting}
-                    className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
                       isSubmitting && submittingStatus === 'Draft'
-                        ? 'border-amber-400/60 bg-amber-950/85 mdc-btn-flash-amber cursor-wait'
-                        : 'border-white/20 bg-white/10 hover:bg-white/15 active:scale-98'
+                        ? 'border-amber-400 bg-amber-50 text-amber-900 cursor-wait'
+                        : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700 active:scale-98 shadow-xs'
                     }`}
                   >
                     {isSubmitting && submittingStatus === 'Draft' && (
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400/40 via-amber-300/30 to-yellow-200/30 transition-all duration-75 ease-out pointer-events-none"
                         style={{ width: `${submitProgress}%` }}
                       />
                     )}
@@ -2909,18 +2951,18 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       {isSubmitting && submittingStatus === 'Draft' ? (
                         <>
                           {submitProgress >= 100 ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 animate-bounce" />
                           ) : (
-                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                            <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse" />
                           )}
                           <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan'}</span>
-                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                          <span className="font-mono font-extrabold text-amber-900 tracking-wider bg-amber-100 px-1.5 py-0.5 rounded text-[11px] border border-amber-300">
                             {submitProgress}%
                           </span>
                         </>
                       ) : (
                         <>
-                          <Save className="w-4 h-4 text-amber-300" />
+                          <Save className="w-4 h-4 text-slate-600" />
                           <span>Simpan Draft</span>
                         </>
                       )}
@@ -2931,15 +2973,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     type="button"
                     onClick={() => handleSaveClaim('Dikirim ke MD')}
                     disabled={isSubmitting}
-                    className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-md shadow-red-900/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
                       isSubmitting && submittingStatus === 'Dikirim ke MD'
-                        ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50 cursor-wait'
-                        : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-900/50'
+                        ? 'bg-red-800 cursor-wait'
+                        : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98'
                     }`}
                   >
                     {isSubmitting && submittingStatus === 'Dikirim ke MD' && (
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600/80 via-red-500/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700/80 via-red-600/85 to-amber-500/60 transition-all duration-100 ease-out pointer-events-none"
                         style={{ width: `${submitProgress}%` }}
                       />
                     )}
@@ -2949,10 +2991,10 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                           {submitProgress >= 100 ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
                           ) : (
-                            <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
                           )}
                           <span>{submitProgress >= 100 ? 'Terkirim!' : 'Mengirim ke MD'}</span>
-                          <span className="font-mono font-extrabold text-amber-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
                             {submitProgress}%
                           </span>
                         </>
@@ -2971,15 +3013,15 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                     type="button"
                     onClick={() => handleSaveClaim('Draft')}
                     disabled={isSubmitting}
-                    className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
+                    className={`relative overflow-hidden flex-1 py-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed ${
                       isSubmitting && submittingStatus === 'Draft'
-                        ? 'border-amber-400/60 bg-amber-950/85 mdc-btn-flash-amber cursor-wait'
-                        : 'border-white/20 bg-white/10 hover:bg-white/15 active:scale-98'
+                        ? 'border-amber-400 bg-amber-50 text-amber-900 cursor-wait'
+                        : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700 active:scale-98 shadow-xs'
                     }`}
                   >
                     {isSubmitting && submittingStatus === 'Draft' && (
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/80 via-amber-500/75 to-yellow-400/55 transition-all duration-75 ease-out pointer-events-none"
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400/40 via-amber-300/30 to-yellow-200/30 transition-all duration-75 ease-out pointer-events-none"
                         style={{ width: `${submitProgress}%` }}
                       />
                     )}
@@ -2987,18 +3029,18 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                       {isSubmitting && submittingStatus === 'Draft' ? (
                         <>
                           {submitProgress >= 100 ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 animate-bounce" />
                           ) : (
-                            <Zap className="w-4 h-4 text-amber-200 fill-amber-200 animate-pulse" />
+                            <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse" />
                           )}
                           <span>{submitProgress >= 100 ? 'Tersimpan!' : 'Menyimpan'}</span>
-                          <span className="font-mono font-extrabold text-amber-100 tracking-wider bg-black/45 px-1.5 py-0.5 rounded text-[11px] border border-amber-300/40">
+                          <span className="font-mono font-extrabold text-amber-900 tracking-wider bg-amber-100 px-1.5 py-0.5 rounded text-[11px] border border-amber-300">
                             {submitProgress}%
                           </span>
                         </>
                       ) : (
                         <>
-                          <Save className="w-4 h-4 text-amber-300" />
+                          <Save className="w-4 h-4 text-slate-600" />
                           <span>Simpan Draft</span>
                         </>
                       )}
@@ -3008,7 +3050,7 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
                   <button
                     type="button"
                     disabled
-                    className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-1.5"
                   >
                     Pilih Metode Dahulu
                   </button>
@@ -3028,22 +3070,22 @@ export const ClaimWizard: React.FC<ClaimWizardProps> = ({
 
       {/* Modal Konfirmasi Batal Pengisian Klaim */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-xs overflow-hidden rounded-3xl border border-red-500/30 bg-gradient-to-b from-neutral-900 via-slate-900 to-red-950 p-6 shadow-2xl text-white text-center ring-1 ring-white/10">
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mb-3 shadow-lg shadow-amber-950/60">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-xs overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl text-slate-900 text-center">
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mb-3 shadow-xs">
               <AlertCircle className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white mb-1">
+            <h3 className="text-base font-bold text-slate-900 mb-1">
               Batalkan Pengisian Klaim?
             </h3>
-            <p className="text-xs text-white/70 mb-5 leading-relaxed">
+            <p className="text-xs text-slate-600 mb-5 leading-relaxed">
               Data formulir yang sudah Anda ketik belum tersimpan dan akan hilang jika Anda membatalkannya sekarang.
             </p>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setShowCancelModal(false)}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-xs font-semibold text-white/80 transition-all border border-white/15 cursor-pointer"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-xs font-semibold text-slate-700 transition-all border border-slate-200 cursor-pointer"
               >
                 Lanjut Mengisi
               </button>

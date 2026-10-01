@@ -14,6 +14,7 @@ export interface UserProfile {
 export interface TransporterMasterItem {
   transporter: string;
   nopol: string;
+  kontak?: string;
 }
 
 export interface MotorMasterItem {
@@ -30,11 +31,15 @@ export interface PartMasterItem {
 
 export interface MasterDataResponse {
   success: boolean;
+  transporters?: string[];
+  sentras?: string[];
   transporterList: TransporterMasterItem[];
   motorList: MotorMasterItem[];
   partList: PartMasterItem[];
   kerusakanList: string[];
   penyebabList: string[];
+  version?: string;
+  source?: string;
   message?: string;
 }
 

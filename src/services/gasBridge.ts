@@ -5,6 +5,7 @@ import {
   SimpanKlaimPayload,
   UserProfile,
 } from '../types';
+import { DEFAULT_MASTER_DATA } from '../data/defaultMasterData';
 
 // Declare google.script.run types
 declare global {
@@ -147,11 +148,11 @@ const MASTER_DATA_STORAGE_KEY = 'mdc_master_data_cache_v3';
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 Jam
 
 export const GasCache = {
-  getMasterData(): MasterDataResponse | null {
-    if (typeof window === 'undefined') return null;
+  getMasterData(): MasterDataResponse {
+    if (typeof window === 'undefined') return DEFAULT_MASTER_DATA;
     try {
       const raw = localStorage.getItem(MASTER_DATA_STORAGE_KEY);
-      if (!raw) return null;
+      if (!raw) return DEFAULT_MASTER_DATA;
       const parsed = JSON.parse(raw);
       if (parsed && parsed.data && Array.isArray(parsed.data.motorList) && parsed.data.motorList.length > 0) {
         const age = Date.now() - (parsed.timestamp || 0);
@@ -160,7 +161,7 @@ export const GasCache = {
         }
       }
     } catch (_) {}
-    return null;
+    return DEFAULT_MASTER_DATA;
   },
 
   setMasterData(data: MasterDataResponse): void {
@@ -453,33 +454,53 @@ export const GasService = {
 
     console.log('[gasBridge] getMasterDataKlaim CALL network ke Spreadsheet/GAS');
 
-    const freshRes = await executeGasAction<MasterDataResponse>(
-      'getMasterDataKlaim',
-      { forceRefresh },
-      (gasRun, resolve, reject) => {
-        gasRun
-          .withSuccessHandler((rawRes: any) => {
-            const res = parseGasResponse<MasterDataResponse>(rawRes);
-            console.log(
-              `[gasBridge] getMasterDataKlaim SUCCESS (Motor: ${res?.motorList?.length || 0}, Part: ${
-                res?.partList?.length || 0
-              })`
-            );
-            resolve(res);
-          })
-          .withFailureHandler((err: Error) => {
-            console.warn('[gasBridge] getMasterDataKlaim Notice:', err?.message || err);
-            reject(new Error(err?.message || 'Gagal memuat master data klaim dari Spreadsheet.'));
-          })
-          .getMasterDataKlaim(forceRefresh);
+    try {
+      const freshRes = await executeGasAction<MasterDataResponse>(
+        'getMasterDataKlaim',
+        { forceRefresh },
+        (gasRun, resolve, reject) => {
+          gasRun
+            .withSuccessHandler((rawRes: any) => {
+              const res = parseGasResponse<MasterDataResponse>(rawRes);
+              console.log(
+                `[gasBridge] getMasterDataKlaim SUCCESS (Motor: ${res?.motorList?.length || 0}, Part: ${
+                  res?.partList?.length || 0
+                })`
+              );
+              resolve(res);
+            })
+            .withFailureHandler((err: Error) => {
+              console.warn('[gasBridge] getMasterDataKlaim Notice:', err?.message || err);
+              reject(new Error(err?.message || 'Gagal memuat master data klaim dari Spreadsheet.'));
+            })
+            .getMasterDataKlaim(forceRefresh);
+        }
+      );
+
+      // Smart merge: Pastikan jika remote GAS hanya mengembalikan sebagian data (atau kosong), data referensi lengkap tetap tersedia
+      const merged: MasterDataResponse = {
+        success: true,
+        transporters: (freshRes?.transporters && freshRes.transporters.length > 0) ? freshRes.transporters : DEFAULT_MASTER_DATA.transporters,
+        sentras: (freshRes?.sentras && freshRes.sentras.length > 0) ? freshRes.sentras : DEFAULT_MASTER_DATA.sentras,
+        transporterList: (freshRes?.transporterList && freshRes.transporterList.length > 0) ? freshRes.transporterList : DEFAULT_MASTER_DATA.transporterList,
+        motorList: (freshRes?.motorList && freshRes.motorList.length > 0) ? freshRes.motorList : DEFAULT_MASTER_DATA.motorList,
+        partList: (freshRes?.partList && freshRes.partList.length > 0) ? freshRes.partList : DEFAULT_MASTER_DATA.partList,
+        kerusakanList: (freshRes?.kerusakanList && freshRes.kerusakanList.length > 0) ? freshRes.kerusakanList : DEFAULT_MASTER_DATA.kerusakanList,
+        penyebabList: (freshRes?.penyebabList && freshRes.penyebabList.length > 0) ? freshRes.penyebabList : DEFAULT_MASTER_DATA.penyebabList,
+        version: freshRes?.version || DEFAULT_MASTER_DATA.version,
+        source: freshRes?.source || 'merged'
+      };
+
+      GasCache.setMasterData(merged);
+      return merged;
+    } catch (err) {
+      console.warn('[gasBridge] getMasterDataKlaim network error, falling back to default/cached:', err);
+      const cached = GasCache.getMasterData();
+      if (cached && Array.isArray(cached.motorList) && cached.motorList.length > 0) {
+        return cached;
       }
-    );
-
-    if (freshRes && freshRes.success && Array.isArray(freshRes.motorList) && freshRes.motorList.length > 0) {
-      GasCache.setMasterData(freshRes);
+      return DEFAULT_MASTER_DATA;
     }
-
-    return freshRes;
   },
 
   // 5. Get Dashboard Stats

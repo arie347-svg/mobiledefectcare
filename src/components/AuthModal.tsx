@@ -313,13 +313,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const isGas = isGasEnvironment();
 
   return (
-    <div className="h-full min-h-[100dvh] w-full flex items-center justify-center p-3 sm:p-4 bg-gradient-to-b from-[#3a0609] via-[#220406] to-[#0d0102] overflow-y-auto font-sans antialiased text-white selection:bg-red-500 selection:text-white">
+    <div className="h-full min-h-[100dvh] w-full flex items-center justify-center p-3 sm:p-4 bg-[#f8fafc] overflow-y-auto font-sans antialiased text-slate-800 selection:bg-red-500 selection:text-white">
       <div className="w-full max-w-[360px] my-auto">
         
         {/* Header: Logo Pin & Judul Halaman Ramping & Ringkas */}
-        <div className="text-center mb-2.5">
-          <div className="mx-auto w-9 h-9 rounded-full bg-gradient-to-b from-red-500 to-red-700 p-0.5 shadow-lg shadow-red-950/80 flex items-center justify-center mb-1.5">
-            <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-1 overflow-hidden">
+        <div className="text-center mb-3">
+          <div className="mx-auto w-10 h-10 rounded-full bg-gradient-to-b from-red-600 to-red-700 p-0.5 shadow-md shadow-red-600/20 flex items-center justify-center mb-2">
+            <div className="w-full h-full rounded-full bg-white flex items-center justify-center p-1.5 overflow-hidden">
               <img
                 src="https://lh3.googleusercontent.com/d/1fGSO4NT-xEfj0W_jeRSmfQUe1RC2_yq1"
                 alt="MDC Pin"
@@ -328,10 +328,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               />
             </div>
           </div>
-          <h1 className="text-base font-medium text-white tracking-normal leading-tight">
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">
             {activeTab === 'REGISTER' ? 'Verifikasi Akun Dealer' : 'MDC - Dealer'}
           </h1>
-          <p className="text-[11px] text-white/65 mt-0.5 font-normal">
+          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
             {activeTab === 'REGISTER'
               ? 'Pendaftaran Pengguna Resmi PDI Man'
               : 'PDI Man Access'}
@@ -340,19 +340,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Backend GAS Connection Indicator (jika standalone) */}
         {!isGas && (
-          <div className="mb-2 p-2 rounded-xl border border-amber-500/30 bg-amber-950/40 text-amber-200 text-[10px] font-normal flex items-center gap-1.5 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
-            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-amber-400" />
+          <div className="mb-2.5 p-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 text-[10px] font-medium flex items-center gap-1.5 shadow-2xs">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-amber-600" />
             <span>Mode Standalone (terhubung via proxy API).</span>
           </div>
         )}
 
         {/* Kotak Card Formulir Utama (Didesain Pas 1 Layar Penuh) */}
-        <div className="relative w-full rounded-2xl border border-white/10 bg-[#281316]/80 backdrop-blur-md p-3.5 sm:p-4 shadow-xl space-y-2.5">
+        <div className="relative w-full rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-sm space-y-2.5">
           
           {/* Notifikasi Pesan Validasi / Error Global */}
           {errorMessage && (
-            <div className="p-2 px-2.5 rounded-xl border border-red-500/35 bg-red-950/70 text-red-200 text-[11px] font-normal flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.25)] animate-in fade-in duration-200">
-              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-red-400" />
+            <div className="p-2 px-2.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-[11px] font-medium flex items-center gap-2 shadow-2xs animate-in fade-in duration-200">
+              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-red-600" />
               <span className="leading-tight flex-1">{errorMessage}</span>
             </div>
           )}
@@ -365,10 +365,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               
               {/* Field 1: Alamat Email Google (Gmail) * */}
               <div>
-                <label className="text-[11px] font-normal text-white/85 flex items-center gap-1 mb-1">
-                  Alamat Email Google (Gmail) <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                  Alamat Email Google (Gmail) <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-[#f0ecec] border border-white/10 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/50 shadow-inner h-[34px]">
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
                   <Mail className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
                   <input
                     type="email"
@@ -380,11 +380,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       if (errorMessage) setErrorMessage(null);
                     }}
                     placeholder="contoh: namaanda@gmail.com"
-                    className="w-full bg-transparent text-xs text-neutral-900 placeholder:text-neutral-500 font-normal outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                   />
                 </div>
                 {emailTouched && regEmail && !isValidEmail(regEmail) && (
-                  <p className="text-[10px] text-red-400 mt-1 flex items-center gap-1">
+                  <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3 flex-shrink-0" />
                     Format email tidak valid
                   </p>
@@ -393,10 +393,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Field 2: Nama Lengkap * */}
               <div>
-                <label className="text-[11px] font-normal text-white/85 flex items-center gap-1 mb-1">
-                  Nama Lengkap <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                  Nama Lengkap <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-[#f0ecec] border border-white/10 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/50 shadow-inner h-[34px]">
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
                   <User className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
                   <input
                     type="text"
@@ -407,17 +407,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       if (errorMessage) setErrorMessage(null);
                     }}
                     placeholder="MASUKKAN NAMA LENGKAP"
-                    className="w-full bg-transparent text-xs text-neutral-900 placeholder:text-neutral-500 font-normal uppercase outline-none tracking-wide"
+                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal uppercase outline-none tracking-wide"
                   />
                 </div>
               </div>
 
               {/* Field 3: No. HP / WhatsApp * */}
               <div>
-                <label className="text-[11px] font-normal text-white/85 flex items-center gap-1 mb-1">
-                  No. HP / WhatsApp <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                  No. HP / WhatsApp <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-[#f0ecec] border border-white/10 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/50 shadow-inner h-[34px]">
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
                   <MessageCircle className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
                   <input
                     type="tel"
@@ -429,16 +429,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       if (errorMessage) setErrorMessage(null);
                     }}
                     placeholder="Contoh: 081234567890"
-                    className="w-full bg-transparent text-xs text-neutral-900 placeholder:text-neutral-500 font-normal outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                   />
                 </div>
                 {hpTouched && regHp && !isValidHp(regHp) ? (
-                  <p className="text-[10px] text-red-400 mt-0.5 flex items-center gap-1">
+                  <p className="text-[10px] text-red-600 mt-0.5 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3 flex-shrink-0" />
                     Harus format 08xx atau 628xx (10-13 digit)
                   </p>
                 ) : (
-                  <p className="text-[10px] text-white/55 mt-0.5 font-normal">
+                  <p className="text-[10px] text-slate-500 mt-0.5 font-normal">
                     Format: 08xx atau 628xx (10-13 digit angka)
                   </p>
                 )}
@@ -446,11 +446,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Field 4: Kode AHM Dealer * + Tombol Cari */}
               <div>
-                <label className="text-[11px] font-normal text-white/85 flex items-center gap-1 mb-1">
-                  Kode AHM Dealer <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                  Kode AHM Dealer <span className="text-red-500">*</span>
                 </label>
-                <div className="flex rounded-xl overflow-hidden shadow-inner border border-white/10 focus-within:ring-1.5 focus-within:ring-red-500/50 h-[34px]">
-                  <div className="flex items-center flex-1 bg-[#f0ecec] px-2.5">
+                <div className="flex rounded-xl overflow-hidden shadow-2xs border border-slate-200 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 h-[34px] transition-all">
+                  <div className="flex items-center flex-1 bg-slate-50 focus-within:bg-white px-2.5">
                     <Building2 className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
                     <input
                       type="text"
@@ -468,14 +468,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         }
                       }}
                       placeholder="Contoh : 12345"
-                      className="w-full bg-transparent text-xs text-neutral-900 placeholder:text-neutral-500 font-normal outline-none"
+                      className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                     />
                   </div>
                   <button
                     type="button"
                     disabled={regLookupLoading}
                     onClick={() => handleSearchKodeAhm()}
-                    className={`px-3 py-1.5 bg-[#e02b37] hover:bg-[#c9202c] active:scale-95 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer flex-shrink-0 min-w-[82px] ${
+                    className={`px-3 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer flex-shrink-0 min-w-[82px] ${
                       regLookupLoading ? 'mdc-btn-flash-red bg-red-700' : ''
                     }`}
                   >
@@ -495,9 +495,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 {/* Progress Bar Kilatan Modern saat Pencarian Aktif */}
                 {regLookupLoading && (
-                  <div className="mt-1.5 overflow-hidden rounded-full bg-black/40 h-1.5 border border-red-500/30 p-[1px]">
+                  <div className="mt-1.5 overflow-hidden rounded-full bg-slate-200 h-1.5 border border-red-500/30 p-[1px]">
                     <div
-                      className="bg-gradient-to-r from-red-500 via-amber-300 to-emerald-400 h-full transition-all duration-75 ease-out rounded-full shadow-[0_0_10px_rgba(251,191,36,0.85)]"
+                      className="bg-gradient-to-r from-red-500 via-amber-400 to-emerald-500 h-full transition-all duration-75 ease-out rounded-full shadow-[0_0_10px_rgba(251,191,36,0.85)]"
                       style={{ width: `${lookupProgress}%` }}
                     />
                   </div>
@@ -505,66 +505,66 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 {/* Validasi Status di Bawah Kolom Kode AHM */}
                 {regDealerInfo && regDealerInfo.found && !regLookupLoading && (
-                  <div className="flex items-center gap-1.5 mt-1.5 text-emerald-400 text-[11px] font-normal animate-in fade-in duration-200">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                  <div className="flex items-center gap-1.5 mt-1.5 text-emerald-700 text-[11px] font-medium animate-in fade-in duration-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                     <span>Dealer Terverifikasi (100%)</span>
                   </div>
                 )}
                 {regDealerInfo && !regDealerInfo.found && !regLookupLoading && (
-                  <div className="flex items-center gap-1.5 mt-1.5 text-red-400 text-[11px] font-normal animate-in fade-in duration-200">
-                    <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-                    <span>dealer tidak ditemukan. Periksa kembali Kode AHM</span>
+                  <div className="flex items-center gap-1.5 mt-1.5 text-red-600 text-[11px] font-medium animate-in fade-in duration-200">
+                    <AlertCircle className="w-3.5 h-3.5 text-red-600 flex-shrink-0" />
+                    <span>Dealer tidak ditemukan. Periksa kembali Kode AHM</span>
                   </div>
                 )}
               </div>
 
               {/* Sub-Card: Kotak Informasi Dealer Terdaftar (Kompak) */}
-              <div className="rounded-xl border border-white/10 bg-[#351a1e]/60 p-2.5 space-y-1.5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 space-y-1.5">
                 <div>
-                  <div className="text-[9px] font-normal text-white/65 uppercase tracking-wider mb-0.5">
+                  <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
                     NAMA DEALER TERDAFTAR
                   </div>
-                  <div className="w-full rounded-lg bg-[#452227]/70 border border-white/10 px-2 py-1 text-[11px] font-normal text-white/90 min-h-[26px] flex items-center overflow-hidden text-ellipsis whitespace-nowrap">
+                  <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center overflow-hidden text-ellipsis whitespace-nowrap shadow-2xs">
                     {regDealerInfo?.namaDealer || (
-                      <span className="text-white/40 font-normal">Otomatis terisi...</span>
+                      <span className="text-slate-400 font-normal">Otomatis terisi...</span>
                     )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-1.5">
                   <div>
-                    <div className="text-[9px] font-normal text-white/65 uppercase tracking-wider mb-0.5">
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
                       KODE DEALER
                     </div>
-                    <div className="w-full rounded-lg bg-[#452227]/70 border border-white/10 px-2 py-1 text-[11px] font-normal text-white/90 min-h-[26px] flex items-center">
-                      {regDealerInfo?.kodeDealer || <span className="text-white/40">-</span>}
+                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center shadow-2xs">
+                      {regDealerInfo?.kodeDealer || <span className="text-slate-400">-</span>}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[9px] font-normal text-white/65 uppercase tracking-wider mb-0.5">
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
                       KATEGORI
                     </div>
-                    <div className="w-full rounded-lg bg-[#452227]/70 border border-white/10 px-2 py-1 text-[11px] font-normal text-white/90 min-h-[26px] flex items-center">
-                      {regDealerInfo?.kategori || <span className="text-white/40">-</span>}
+                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center shadow-2xs">
+                      {regDealerInfo?.kategori || <span className="text-slate-400">-</span>}
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-1.5">
                   <div>
-                    <div className="text-[9px] font-normal text-white/65 uppercase tracking-wider mb-0.5">
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
                       KOTA
                     </div>
-                    <div className="w-full rounded-lg bg-[#452227]/70 border border-white/10 px-2 py-1 text-[11px] font-normal text-white/90 min-h-[26px] flex items-center">
-                      {regDealerInfo?.kota || <span className="text-white/40">-</span>}
+                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center shadow-2xs">
+                      {regDealerInfo?.kota || <span className="text-slate-400">-</span>}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[9px] font-normal text-white/65 uppercase tracking-wider mb-0.5">
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
                       SENTRA DISTRIBUSI
                     </div>
-                    <div className="w-full rounded-lg bg-[#452227]/70 border border-white/10 px-2 py-1 text-[11px] font-normal text-white/90 min-h-[26px] flex items-center">
-                      {regDealerInfo?.sentraDistribusi || <span className="text-white/40">-</span>}
+                    <div className="w-full rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-800 min-h-[26px] flex items-center shadow-2xs">
+                      {regDealerInfo?.sentraDistribusi || <span className="text-slate-400">-</span>}
                     </div>
                   </div>
                 </div>
@@ -575,10 +575,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`relative overflow-hidden w-full py-2.5 px-4 rounded-xl text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-wait ${
+                  className={`relative overflow-hidden w-full py-2.5 px-4 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-wait shadow-sm ${
                     isLoading
                       ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50'
-                      : 'bg-[#c5232a] hover:bg-[#b51c23] active:scale-98 shadow-lg shadow-red-950/60'
+                      : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-600/20'
                   }`}
                 >
                   {isLoading && (
@@ -603,19 +603,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         </span>
                       </>
                     ) : (
-                      <>
-                        <ShieldCheck className="w-4 h-4" />
-                        <span>Kirim Verifikasi Akun</span>
-                      </>
+                      <span>DAFTAR</span>
                     )}
                   </div>
                 </button>
 
                 {/* Progress Bar Laser Bawah Tombol Pendaftaran */}
                 {isLoading && (
-                  <div className="mt-1.5 overflow-hidden rounded-full bg-black/40 h-1.5 border border-red-500/30 p-[1px]">
+                  <div className="mt-1.5 overflow-hidden rounded-full bg-slate-200 h-1.5 border border-red-500/30 p-[1px]">
                     <div
-                      className="bg-gradient-to-r from-red-500 via-amber-300 to-emerald-400 h-full transition-all duration-100 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
+                      className="bg-gradient-to-r from-red-500 via-amber-400 to-emerald-500 h-full transition-all duration-100 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
                       style={{ width: `${registerProgress}%` }}
                     />
                   </div>
@@ -624,17 +621,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Link Sudah Punya Akun */}
               <div className="text-center pt-0.5">
-                <p className="text-[11px] text-white/65 font-normal">Sudah punya akun terdaftar?</p>
+                <p className="text-[11px] text-slate-500 font-medium">Sudah punya akun terdaftar?</p>
                 <button
                   type="button"
                   onClick={() => {
                     setActiveTab('LOGIN');
                     setErrorMessage(null);
                   }}
-                  className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 active:scale-95 font-medium text-xs mt-0.5 transition-colors cursor-pointer"
+                  className="inline-flex items-center text-red-600 hover:text-red-700 active:scale-95 font-semibold text-xs mt-0.5 transition-colors cursor-pointer"
                 >
-                  <LogIn className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Masuk di Sini</span>
+                  <span>Masuk disini</span>
                 </button>
               </div>
             </form>
@@ -646,10 +642,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {activeTab === 'LOGIN' && (
             <form onSubmit={handleLogin} className="space-y-3">
               <div>
-                <label className="text-[11px] font-normal text-white/85 flex items-center gap-1 mb-1">
-                  Alamat Email Terdaftar <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                  Alamat Email Terdaftar <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-[#f0ecec] border border-white/10 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/50 shadow-inner h-[34px]">
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
                   <Mail className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
                   <input
                     type="email"
@@ -660,16 +656,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       if (errorMessage) setErrorMessage(null);
                     }}
                     placeholder="nama@dealerhonda.com"
-                    className="w-full bg-transparent text-xs text-neutral-900 placeholder:text-neutral-500 font-normal outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[11px] font-normal text-white/85 flex items-center gap-1 mb-1">
-                  Kode AHM Dealer <span className="text-red-400">*</span>
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1">
+                  Kode AHM Dealer <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl bg-[#f0ecec] border border-white/10 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/50 shadow-inner h-[34px]">
+                <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 px-2.5 py-1.5 focus-within:ring-1.5 focus-within:ring-red-500/40 focus-within:border-red-400 focus-within:bg-white shadow-2xs h-[34px] transition-all">
                   <Building2 className="w-3.5 h-3.5 text-red-600 flex-shrink-0 mr-2" />
                   <input
                     type="text"
@@ -680,10 +676,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       if (errorMessage) setErrorMessage(null);
                     }}
                     placeholder="Contoh: 123 atau 00123"
-                    className="w-full bg-transparent text-xs text-neutral-900 placeholder:text-neutral-500 font-normal outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 font-normal outline-none"
                   />
                 </div>
-                <p className="text-[10px] text-white/50 mt-1 font-normal">
+                <p className="text-[10px] text-slate-500 mt-1 font-normal">
                   Bisa diketik dengan atau tanpa awalan nol
                 </p>
               </div>
@@ -693,10 +689,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`relative overflow-hidden w-full py-2.5 px-4 rounded-xl text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-wait ${
+                  className={`relative overflow-hidden w-full py-2.5 px-4 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-wait shadow-sm ${
                     isLoading
                       ? 'bg-red-900/90 mdc-btn-flash-red border border-amber-400/50'
-                      : 'bg-[#c5232a] hover:bg-[#b51c23] active:scale-98 shadow-lg shadow-red-950/60'
+                      : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 shadow-red-600/20'
                   }`}
                 >
                   {isLoading && (
@@ -721,19 +717,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         </span>
                       </>
                     ) : (
-                      <>
-                        <LogIn className="w-4 h-4" />
-                        <span>Masuk ke MDC Mobile</span>
-                      </>
+                      <span>MASUK</span>
                     )}
                   </div>
                 </button>
 
                 {/* Progress Bar Laser Bawah Tombol Login */}
                 {isLoading && (
-                  <div className="mt-1.5 overflow-hidden rounded-full bg-black/40 h-1.5 border border-red-500/30 p-[1px]">
+                  <div className="mt-1.5 overflow-hidden rounded-full bg-slate-200 h-1.5 border border-red-500/30 p-[1px]">
                     <div
-                      className="bg-gradient-to-r from-red-500 via-amber-300 to-emerald-400 h-full transition-all duration-100 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
+                      className="bg-gradient-to-r from-red-500 via-amber-400 to-emerald-500 h-full transition-all duration-100 ease-out rounded-full shadow-[0_0_12px_rgba(251,191,36,0.9)]"
                       style={{ width: `${loginProgress}%` }}
                     />
                   </div>
@@ -741,17 +734,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
 
               <div className="text-center pt-1">
-                <p className="text-[11px] text-white/65 font-normal">Belum memiliki akun?</p>
+                <p className="text-[11px] text-slate-500 font-medium">Belum memiliki akun?</p>
                 <button
                   type="button"
                   onClick={() => {
                     setActiveTab('REGISTER');
                     setErrorMessage(null);
                   }}
-                  className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 active:scale-95 font-medium text-xs mt-0.5 transition-colors cursor-pointer"
+                  className="inline-flex items-center text-red-600 hover:text-red-700 active:scale-95 font-semibold text-xs mt-0.5 transition-colors cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Daftar Verifikasi Akun Baru</span>
+                  <span>Daftar akun</span>
                 </button>
               </div>
             </form>

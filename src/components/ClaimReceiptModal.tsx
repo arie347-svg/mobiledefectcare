@@ -253,16 +253,16 @@ export const ClaimReceiptModal: React.FC<ClaimReceiptModalProps> = ({
             type="button"
             onClick={handleShareLkuatPdf}
             disabled={isSharing}
-            className="w-full py-3 px-4 rounded-2xl bg-slate-950 hover:bg-slate-800 active:scale-98 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-60"
+            className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-98 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-red-600/20 disabled:opacity-60"
           >
             {isSharing ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
                 <span>Menyiapkan Dokumen PDF...</span>
               </>
             ) : (
               <>
-                <Share2 className="w-4 h-4 text-emerald-400" />
+                <Share2 className="w-4 h-4 text-white" />
                 <span>Bagikan LKUAT (PDF)</span>
               </>
             )}

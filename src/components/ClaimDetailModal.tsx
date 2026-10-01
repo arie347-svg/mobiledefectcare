@@ -124,13 +124,13 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
       try {
         const estText = hitungEstimasiSelesai(claim.rawDate || claim.tgl, claim.mdTargetSelesai);
         return (
-          <span className="text-[8px] font-mono text-emerald-300 font-bold whitespace-nowrap bg-emerald-950/90 px-1 py-0.5 rounded border border-emerald-500/30">
+          <span className="text-[8px] font-mono text-emerald-800 font-bold whitespace-nowrap bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">
             Est : {estText}
           </span>
         );
       } catch (_) {
         return (
-          <span className="text-[8px] font-mono text-emerald-300 font-bold whitespace-nowrap bg-emerald-950/90 px-1 py-0.5 rounded border border-emerald-500/30">
+          <span className="text-[8px] font-mono text-emerald-800 font-bold whitespace-nowrap bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">
             Est : -
           </span>
         );
@@ -141,16 +141,16 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
     const baseHours = activeStep === 1 ? 24 : activeStep === 3 ? 72 : 24;
     const sisaJam = hitungSisaJamKerja(claim.rawDate || claim.tgl, baseHours);
 
-    let color = 'bg-white/10 text-red-300 border-red-500/30';
+    let color = 'bg-slate-100 text-slate-700 border-slate-200';
     let text = `${sisaJam}j lagi`;
     if (sisaJam <= 0) {
-      color = 'bg-red-600 text-white border-red-400 animate-pulse';
+      color = 'bg-red-600 text-white border-red-500 animate-pulse';
       text = 'Lewat SLA';
     } else if (sisaJam <= 4) {
-      color = 'bg-red-600/80 text-white border-red-400 animate-pulse';
+      color = 'bg-red-50 text-red-700 border-red-200 animate-pulse';
       text = `${sisaJam}j lagi`;
     } else if (sisaJam <= 12) {
-      color = 'bg-amber-500/20 text-amber-300 border-amber-400/40';
+      color = 'bg-amber-50 text-amber-800 border-amber-200';
       text = `${sisaJam}j lagi`;
     }
 
@@ -751,16 +751,16 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-md my-auto overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-b from-slate-900/95 via-neutral-900/95 to-red-950/90 shadow-2xl backdrop-blur-xl text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/60 backdrop-blur-xs overflow-y-auto">
+      <div className="relative w-full max-w-md my-auto overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl text-slate-900">
         
-        {/* HEADER: Hanya ID Klaim & Stempel Waktu Pembuatan (Tanpa No Surat Jalan di Header Atas) */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-red-950/60">
+        {/* HEADER: ID Klaim & Stempel Waktu Pembuatan */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-red-700 bg-gradient-to-r from-red-600 to-red-700 text-white">
           <div className="min-w-0 flex-1 pr-2">
-            <h3 className="font-mono text-xs font-black text-amber-400 tracking-wide truncate">
+            <h3 className="font-mono text-xs font-black text-white tracking-wide truncate">
               {claim.idKlaim || `CLM-${claim.noSj}`}
             </h3>
-            <p className="text-[10px] text-white/60 font-mono mt-0.5">
+            <p className="text-[10px] text-white/80 font-mono mt-0.5">
               {formatTimestampWIB(claim.rawDate || claim.tgl || claim.rawTimestamp)}
             </p>
           </div>
@@ -771,7 +771,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
               type="button"
               onClick={handleViewPdf}
               title="Lihat Pratinjau Dokumen LKUAT"
-              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/25 active:scale-95 text-amber-300 hover:text-amber-200 transition-all border border-white/20 flex items-center justify-center cursor-pointer"
+              className="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white transition-all border border-white/20 flex items-center justify-center cursor-pointer"
             >
               <Eye className="w-4 h-4" />
             </button>
@@ -783,11 +783,11 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                 onClick={() => setShowExportDropdown(!showExportDropdown)}
                 disabled={isExporting}
                 title="Export"
-                className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 active:scale-95 text-white text-[11px] font-bold transition-all shadow border border-amber-400/40 flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 active:scale-95 text-red-700 text-[11px] font-bold transition-all shadow-xs border border-white/40 flex items-center gap-1 cursor-pointer disabled:opacity-50"
               >
                 {isExporting ? (
                   <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <Loader2 className="w-3 h-3 animate-spin text-red-700" />
                     <span>Memproses...</span>
                   </>
                 ) : (
@@ -800,17 +800,17 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 
               {/* Menu Dropdown Ekspor */}
               {showExportDropdown && (
-                <div className="absolute right-0 mt-1.5 w-48 rounded-2xl bg-slate-900 border border-white/20 shadow-2xl backdrop-blur-xl z-50 overflow-hidden divide-y divide-white/10 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="p-2 bg-slate-950 text-[10px] font-bold text-amber-300">
-                    Export
+                <div className="absolute right-0 mt-1.5 w-48 rounded-2xl bg-white border border-slate-200 shadow-xl z-50 overflow-hidden divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="p-2 bg-slate-50 text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                    Export Dokumen
                   </div>
                   
                   <button
                     type="button"
                     onClick={handleSharePdf}
-                    className="w-full px-3 py-2 text-left text-xs font-medium text-white hover:bg-red-600/30 flex items-center gap-2 transition-colors cursor-pointer"
+                    className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-800 hover:bg-red-50 flex items-center gap-2 transition-colors cursor-pointer"
                   >
-                    <Share2 className="w-3.5 h-3.5 text-sky-400" />
+                    <Share2 className="w-3.5 h-3.5 text-sky-600" />
                     <span>Bagikan</span>
                   </button>
 
@@ -818,9 +818,9 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                     type="button"
                     onClick={handleDownloadPdf}
                     disabled={isExporting}
-                    className="w-full px-3 py-2 text-left text-xs font-medium text-white hover:bg-red-600/30 flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+                    className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-800 hover:bg-red-50 flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    <Download className="w-3.5 h-3.5 text-emerald-400" />
+                    <Download className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Download</span>
                   </button>
                 </div>
@@ -831,7 +831,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors ml-0.5"
+              className="p-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white/90 hover:text-white transition-colors ml-0.5 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -841,7 +841,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
         {/* Modal Scrollable Body */}
         <div className="p-4 max-h-[75vh] overflow-y-auto space-y-4">
           {/* 5-Step Horizontal Tracker Bar - Symmetrical Grid Layout */}
-          <div className="relative px-1.5 pt-2.5 pb-2.5 bg-black/30 rounded-2xl border border-white/10 overflow-hidden">
+          <div className="relative px-1.5 pt-2.5 pb-2.5 bg-slate-50 rounded-2xl border border-slate-200/90 overflow-hidden">
             <div className="grid grid-cols-5 gap-0">
               {steps.map((step) => {
                 const isPassed = step.num < activeStep;
@@ -850,9 +850,9 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                 const isClickable = step.num <= activeStep;
                 const Icon = step.icon;
 
-                let iconClass = 'bg-slate-800/90 border-white/20 text-white/40';
-                if (isPassed) iconClass = 'bg-emerald-600/30 border-emerald-500 text-emerald-400';
-                if (isCurrent) iconClass = 'bg-gradient-to-r from-red-600 to-red-700 border-red-400 text-white shadow-lg shadow-red-900/60 ring-2 ring-red-400';
+                let iconClass = 'bg-white border-slate-200 text-slate-400';
+                if (isPassed) iconClass = 'bg-emerald-50 border-emerald-500 text-emerald-600';
+                if (isCurrent) iconClass = 'bg-red-600 border-red-600 text-white shadow-xs ring-2 ring-red-200';
 
                 return (
                   <div
@@ -873,7 +873,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                       {step.num > 1 && (
                         <div
                           className={`absolute right-1/2 top-1/2 -translate-y-1/2 w-1/2 h-0.5 z-0 ${
-                            step.num <= activeStep ? 'bg-emerald-500' : 'bg-white/15'
+                            step.num <= activeStep ? 'bg-emerald-500' : 'bg-slate-200'
                           }`}
                         />
                       )}
@@ -881,7 +881,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                       {step.num < 5 && (
                         <div
                           className={`absolute left-1/2 top-1/2 -translate-y-1/2 w-1/2 h-0.5 z-0 ${
-                            step.num < activeStep ? 'bg-emerald-500' : 'bg-white/15'
+                            step.num < activeStep ? 'bg-emerald-500' : 'bg-slate-200'
                           }`}
                         />
                       )}
@@ -897,7 +897,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                     {/* Row 3: Step Label */}
                     <span
                       className={`text-[9px] font-bold mt-1.5 text-center leading-tight tracking-tight truncate w-full px-0.5 ${
-                        isSelected ? 'text-amber-300' : isCurrent ? 'text-white' : 'text-white/60'
+                        isSelected ? 'text-red-600' : isCurrent ? 'text-slate-900' : 'text-slate-500'
                       }`}
                     >
                       {step.label}
@@ -909,12 +909,12 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
           </div>
 
           {/* Dynamic Step Detail Card */}
-          <div className="rounded-2xl p-3.5 bg-black/35 border border-white/15 backdrop-blur-md shadow-inner">
+          <div className="rounded-2xl p-4 bg-slate-50 border border-slate-200/90 shadow-2xs">
             {selectedStepView === 1 && (
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                  <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <Store className="w-3.5 h-3.5 text-amber-400" />
+                  <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Store className="w-3.5 h-3.5 text-red-600" />
                     1. Pemeriksaan di Dealer
                   </h4>
                   <div className="flex items-center gap-1.5">
@@ -923,7 +923,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                         type="button"
                         onClick={() => setShowDeleteConfirm(true)}
                         title="Hapus Pengajuan Klaim / Draft ini secara permanen"
-                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg bg-white/10 text-red-300 border border-red-500/30 hover:bg-red-950/60 hover:text-red-200 active:scale-95 transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:text-red-700 active:scale-95 transition-all cursor-pointer shadow-2xs"
                       >
                         <Trash2 className="w-3 h-3" />
                         Hapus
@@ -936,7 +936,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                           onClose();
                           onEditDraft(claim);
                         }}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg bg-red-600 text-white hover:bg-red-500 active:scale-95 transition-all shadow-md shadow-red-900/50 cursor-pointer"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-red-600 text-white hover:bg-red-700 active:scale-95 transition-all shadow-xs cursor-pointer"
                       >
                         <Edit3 className="w-3 h-3" />
                         Lanjutkan Draft
@@ -946,15 +946,15 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                 </div>
 
                 {showDeleteConfirm && onDeleteClaim && (
-                  <div className="mb-2.5 p-2.5 rounded-xl bg-red-950/80 border border-red-500/40 flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-red-100 font-medium">
+                  <div className="mb-2.5 p-2.5 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-red-800 font-medium">
                       Hapus draft klaim ini secara permanen dari HP & Server?
                     </span>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button
                         type="button"
                         onClick={() => setShowDeleteConfirm(false)}
-                        className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10.5px] font-bold text-white/80 cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-[10.5px] font-bold text-slate-700 border border-slate-200 cursor-pointer"
                       >
                         Batal
                       </button>
@@ -963,7 +963,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                         onClick={() => {
                           onDeleteClaim(claim);
                         }}
-                        className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-[10.5px] font-bold text-white shadow cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-[10.5px] font-bold text-white shadow-xs cursor-pointer"
                       >
                         Ya, Hapus
                       </button>
@@ -971,13 +971,13 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                   </div>
                 )}
 
-                <p className="text-xs text-white/70">
+                <p className="text-xs text-slate-600">
                   {claim.status === 'Draft'
                     ? 'Klaim berstatus DRAFT titipan. Wajib diselesaikan sebelum batas 24 jam.'
                     : 'Pemeriksaan fisik unit selesai & dokumen serah terima diterbitkan.'}
                 </p>
-                <div className="mt-2 text-[11px] text-white/60">
-                  <span>Tgl DO: <strong>{claim.tglDo || '-'}</strong></span> • <span>Tgl Periksa: <strong>{claim.tglPeriksa || '-'}</strong></span>
+                <div className="mt-2 text-[11px] text-slate-500">
+                  <span>Tgl DO: <strong className="text-slate-800">{claim.tglDo || '-'}</strong></span> • <span>Tgl Periksa: <strong className="text-slate-800">{claim.tglPeriksa || '-'}</strong></span>
                 </div>
               </div>
             )}
@@ -1003,14 +1003,14 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                        <Truck className="w-3.5 h-3.5 text-sky-400" />
+                      <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5 text-red-600" />
                         2. Pengiriman ke Main Dealer
                       </h4>
                       <span className={`text-[9.5px] px-1.5 py-0.5 rounded-md font-semibold border ${
                         isDititip
-                          ? 'bg-amber-950/60 text-amber-300 border-amber-500/30'
-                          : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30'
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                       }`}>
                         {isDititip ? 'DITITIP' : 'DIKIRIM LANGSUNG'}
                       </span>
@@ -1021,7 +1021,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                         <a
                           href={`tel:${waPengurusPengirim}`}
                           title={`Telepon Pengurus ${transporterPengirim}`}
-                          className="p-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white shadow transition-all flex items-center justify-center"
+                          className="p-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-all flex items-center justify-center cursor-pointer"
                         >
                           <Phone className="w-3 h-3" />
                         </a>
@@ -1030,7 +1030,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                           title={`Chat WhatsApp Pengurus ${transporterPengirim}`}
-                          className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all flex items-center justify-center"
+                          className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all flex items-center justify-center cursor-pointer"
                         >
                           <MessageCircle className="w-3 h-3" />
                         </a>
@@ -1038,17 +1038,17 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                     )}
                   </div>
 
-                  <div className="text-xs text-white/85 space-y-1.5">
+                  <div className="text-xs text-slate-700 space-y-1.5">
                     <div>
-                      Driver Pengirim: <strong className="text-white">{driverPengirim}</strong> {nopolPengirim && nopolPengirim !== '-' ? `(${nopolPengirim})` : ''}
+                      Driver Pengirim: <strong className="text-slate-900">{driverPengirim}</strong> {nopolPengirim && nopolPengirim !== '-' ? `(${nopolPengirim})` : ''}
                     </div>
                     <div>
-                      Transporter Pengirim: <strong className="text-white">{transporterPengirim}</strong>
+                      Transporter Pengirim: <strong className="text-slate-900">{transporterPengirim}</strong>
                     </div>
 
                     {isDititip && (
-                      <div className="pt-1 text-[10.5px] text-amber-300/80 border-t border-white/10 flex items-center gap-1">
-                        <span>Dititipkan via armada pengembalian. Penanggungjawab klaiman: <strong>{claim.sopirPJ || '-'} ({claim.transporterPJ || '-'})</strong></span>
+                      <div className="pt-1.5 text-[10.5px] text-amber-800 border-t border-slate-200 flex items-center gap-1">
+                        <span>Dititipkan via armada pengembalian. Penanggungjawab klaiman: <strong className="text-slate-900">{claim.sopirPJ || '-'} ({claim.transporterPJ || '-'})</strong></span>
                       </div>
                     )}
                   </div>
@@ -1059,8 +1059,8 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
             {selectedStepView === 3 && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <Wrench className="w-3.5 h-3.5 text-amber-400" />
+                  <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Wrench className="w-3.5 h-3.5 text-amber-600" />
                     3. Proses Pengerjaan di Main Dealer
                   </h4>
                   {/* Hanya PDI Man yang dapat melihat tombol komunikasi Repairman pada status Proses MD */}
@@ -1069,7 +1069,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                       <a
                         href={`tel:${waRepairman}`}
                         title="Telepon Repairman"
-                        className="p-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white shadow transition-all flex items-center justify-center"
+                        className="p-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white shadow-xs transition-all flex items-center justify-center"
                       >
                         <Phone className="w-3 h-3" />
                       </a>
@@ -1078,21 +1078,21 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         title="Chat WhatsApp Repairman"
-                        className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all flex items-center justify-center"
+                        className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition-all flex items-center justify-center"
                       >
                         <MessageCircle className="w-3 h-3" />
                       </a>
                     </div>
                   )}
                 </div>
-                <div className="text-xs text-white/85 space-y-1.5">
+                <div className="text-xs text-slate-700 space-y-1.5">
                   <div className="flex justify-between">
-                    <span className="text-white/60">Jenis Perbaikan:</span>
-                    <strong className="text-amber-300">{claim.mdJenisPerbaikan || 'Menunggu Analisa'}</strong>
+                    <span className="text-slate-500">Jenis Perbaikan:</span>
+                    <strong className="text-amber-700 font-semibold">{claim.mdJenisPerbaikan || 'Menunggu Analisa'}</strong>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/60">Validasi QC Repairman:</span>
-                    <span className={`font-bold ${claim.mdValidasiRepairman === 'Valid' ? 'text-emerald-400' : 'text-amber-300'}`}>
+                    <span className="text-slate-500">Validasi QC Repairman:</span>
+                    <span className={`font-bold ${claim.mdValidasiRepairman === 'Valid' ? 'text-emerald-700' : 'text-amber-700'}`}>
                       {claim.mdValidasiRepairman === 'Valid' ? 'Tervalidasi Lolos QC' : 'Dalam Pengerjaan'}
                     </span>
                   </div>
@@ -1122,8 +1122,8 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
               return (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <CornerUpLeft className="w-3.5 h-3.5 text-indigo-400" />
+                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <CornerUpLeft className="w-3.5 h-3.5 text-indigo-600" />
                       4. Dikirim Kembali ke Dealer
                     </h4>
                     <div className="flex items-center gap-1.5">
@@ -1134,7 +1134,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Chat Pengurus Ekspedisi"
-                          className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1"
+                          className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs"
                         >
                           <MessageCircle className="w-3 h-3" /> Pengurus
                         </a>
@@ -1146,7 +1146,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Chat PDI Man"
-                          className="px-2 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[10px] font-bold flex items-center gap-1"
+                          className="px-2 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs"
                         >
                           <MessageCircle className="w-3 h-3" /> PDI Man
                         </a>
@@ -1155,21 +1155,21 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                   </div>
 
                   {/* Informasi Driver & Transporter Pengirim ke Dealer serta Tanggal Perubahan Status */}
-                  <div className="text-xs text-white/85 space-y-1.5 p-2.5 rounded-xl bg-slate-900/60 border border-white/10 mb-2.5">
+                  <div className="text-xs text-slate-700 space-y-1.5 p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs mb-2.5">
                     <div>
-                      Driver Pengirim: <strong className="text-white">{driverBalik}</strong> {nopolBalik && nopolBalik !== '-' ? `(${nopolBalik})` : ''}
+                      Driver Pengirim: <strong className="text-slate-900">{driverBalik}</strong> {nopolBalik && nopolBalik !== '-' ? `(${nopolBalik})` : ''}
                     </div>
                     <div>
-                      Transporter: <strong className="text-white">{transporterBalik}</strong>
+                      Transporter: <strong className="text-slate-900">{transporterBalik}</strong>
                     </div>
-                    <div className="text-white/70">
-                      Tgl Kirim Dealer: <strong className="text-amber-300 font-mono">{tglKirimDlrFormatted}</strong>
+                    <div className="text-slate-500">
+                      Tgl Kirim Dealer: <strong className="text-amber-700 font-mono">{tglKirimDlrFormatted}</strong>
                     </div>
                   </div>
 
                   {/* Keterangan Part Sudah Divalidasi Hasil Perbaikan Disertai Checklist Hijau */}
-                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs mb-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs mb-3">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                     <span className="leading-tight font-medium">
                       Part sudah divalidasi hasil perbaikan & lolos QC Main Dealer.
                     </span>
@@ -1177,10 +1177,10 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 
                   {/* Bagian Aksi Konfirmasi Serah Terima di Dealer */}
                   {claim.status === 'Dikirim ke Dealer' && (
-                    <div className="rounded-2xl border border-white/15 bg-black/40 p-3 space-y-2.5 shadow-inner">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2.5 shadow-2xs">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white">Konfirmasi Kondisi Barang:</span>
-                        <span className="text-[10px] text-emerald-400 font-semibold px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/30">
+                        <span className="text-xs font-bold text-slate-900">Konfirmasi Kondisi Barang:</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
                           Tiba di Dealer
                         </span>
                       </div>
@@ -1193,10 +1193,10 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                             type="button"
                             disabled={isSubmittingFinish || isSubmittingRetur}
                             onClick={handleKonfirmasiTerima}
-                            className={`relative overflow-hidden w-full py-2.5 px-3 rounded-xl text-white text-xs font-bold shadow-lg border flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                            className={`relative overflow-hidden w-full py-2.5 px-3 rounded-xl text-white text-xs font-bold shadow-sm border flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
                               isSubmittingFinish
                                 ? 'bg-emerald-900/90 mdc-btn-flash-emerald border-emerald-300/70 cursor-wait'
-                                : 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 active:scale-[0.98] shadow-emerald-950/60 border-emerald-400/50 disabled:opacity-45 disabled:pointer-events-none'
+                                : 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 active:scale-[0.98] border-emerald-600 disabled:opacity-45 disabled:pointer-events-none'
                             }`}
                           >
                             {isSubmittingFinish && (
@@ -1232,22 +1232,22 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                             type="button"
                             disabled={isSubmittingFinish || isSubmittingRetur}
                             onClick={() => setShowReturForm((prev) => !prev)}
-                            className={`w-full py-2.5 px-3 rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs font-medium active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none ${
+                            className={`w-full py-2.5 px-3 rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs font-semibold active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none shadow-2xs ${
                               showReturForm
-                                ? 'bg-red-950/50 border-red-500/50 text-red-300'
-                                : 'bg-transparent hover:bg-white/5 border-white/20 text-white/60 hover:text-white'
+                                ? 'bg-red-50 border-red-300 text-red-700'
+                                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:text-slate-900'
                             }`}
                           >
-                            <AlertTriangle className="w-3.5 h-3.5 text-white/50" />
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
                             <span>Retur</span>
                           </button>
                         </div>
 
                         {/* Progress Bar Kilatan Emerald saat Tombol Terima Ditekan */}
                         {isSubmittingFinish && (
-                          <div className="overflow-hidden rounded-full bg-black/50 h-1.5 border border-emerald-400/30 p-[1px]">
+                          <div className="overflow-hidden rounded-full bg-slate-200 h-1.5 border border-emerald-400/30 p-[1px]">
                             <div
-                              className="bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 h-full transition-all duration-75 ease-out rounded-full shadow-[0_0_10px_rgba(52,211,153,0.9)]"
+                              className="bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-400 h-full transition-all duration-75 ease-out rounded-full shadow-[0_0_10px_rgba(52,211,153,0.9)]"
                               style={{ width: `${finishProgress}%` }}
                             />
                           </div>
@@ -1256,8 +1256,8 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 
                       {/* Kolom Input Teks Dinamis Alasan / Keterangan Retur */}
                       {showReturForm && (
-                        <div className="pt-2.5 border-t border-white/10 space-y-2 animate-in fade-in zoom-in-95 duration-150">
-                          <label className="block text-[11px] font-semibold text-red-300">
+                        <div className="pt-2.5 border-t border-slate-200 space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                          <label className="block text-[11px] font-semibold text-red-700">
                             Alasan / Keterangan Kenapa Barang Diretur:
                           </label>
                           <textarea
@@ -1265,7 +1265,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                             value={alasanRetur}
                             onChange={(e) => setAlasanRetur(e.target.value)}
                             placeholder="Jelaskan kondisi cacat fisik atau alasan part tidak sesuai..."
-                            className="w-full p-2.5 rounded-xl bg-black/60 border border-red-500/40 text-xs text-white placeholder-white/40 focus:outline-none focus:border-red-400 transition-colors resize-none"
+                            className="w-full p-2.5 rounded-xl bg-slate-50 border border-red-300 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:bg-white transition-colors resize-none"
                           />
                           <div className="flex items-center justify-end gap-2">
                             <button
@@ -1275,7 +1275,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                                 setShowReturForm(false);
                                 setAlasanRetur('');
                               }}
-                              className="px-3 py-1.5 rounded-lg text-xs text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-40"
+                              className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-40"
                             >
                               Batal
                             </button>
@@ -1283,10 +1283,10 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                               type="button"
                               onClick={handleKirimRetur}
                               disabled={!alasanRetur.trim() || isSubmittingRetur || isSubmittingFinish}
-                              className={`relative overflow-hidden px-3.5 py-1.5 rounded-lg text-xs font-bold text-white shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:pointer-events-none ${
+                              className={`relative overflow-hidden px-3.5 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:pointer-events-none ${
                                 isSubmittingRetur
                                   ? 'bg-red-800 mdc-btn-flash-red border border-amber-300/50'
-                                  : 'bg-red-600 hover:bg-red-500 active:scale-95'
+                                  : 'bg-red-600 hover:bg-red-700 active:scale-95'
                               }`}
                             >
                               {isSubmittingRetur ? (
@@ -1312,9 +1312,9 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 
             {selectedStepView === 5 && (
               <div className="text-center py-2">
-                <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-1.5" />
-                <h4 className="text-xs font-bold text-white">5. Klaim Selesai</h4>
-                <p className="text-xs text-white/70 mt-1">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-1.5" />
+                <h4 className="text-xs font-bold text-slate-900">5. Klaim Selesai</h4>
+                <p className="text-xs text-slate-600 mt-1">
                   Part telah diterima kembali oleh Dealer dan serah terima tuntas.
                 </p>
               </div>
@@ -1323,7 +1323,8 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
 
           {/* Rincian Unit & Part Klaim */}
           <div>
-            <h4 className="text-xs font-bold text-white/80 tracking-wide uppercase mb-2">
+            <h4 className="text-xs font-bold text-slate-700 tracking-wide uppercase mb-2 flex items-center gap-1.5">
+              <span className="w-1 h-3.5 bg-red-600 rounded-full inline-block"></span>
               Rincian Motor & Part ({claim.items?.length || 0})
             </h4>
 
@@ -1335,24 +1336,24 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                   return (
                     <div
                       key={idx}
-                      className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md"
+                      className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-white truncate">{item.tipe}</span>
-                          <span className="text-[10px] text-white/60">({item.warna || '-'})</span>
+                          <span className="text-xs font-bold text-slate-900 truncate">{item.tipe}</span>
+                          <span className="text-[10px] text-slate-500">({item.warna || '-'})</span>
                         </div>
-                        <p className="text-xs font-semibold text-amber-300 truncate mt-0.5">
+                        <p className="text-xs font-semibold text-slate-800 truncate mt-0.5">
                           {item.namaPart}
                         </p>
-                        <p className="text-[11px] text-white/70 mt-0.5">
-                          Kerusakan: <span className="text-red-300 font-medium">{item.kerusakan || '-'}</span>
-                          {item.penyebab && <span className="text-white/50"> ({item.penyebab})</span>}
+                        <p className="text-[11px] text-slate-600 mt-0.5">
+                          Kerusakan: <span className="text-red-600 font-medium">{item.kerusakan || '-'}</span>
+                          {item.penyebab && <span className="text-slate-400"> ({item.penyebab})</span>}
                         </p>
                         {/* Tata Letak Nomor Fisik: No. Rangka tepat di bawah No. Mesin */}
-                        <div className="text-[10px] font-mono text-white/50 mt-1 space-y-0.5">
-                          <div>Mesin: <span className="text-white/75">{item.noMesin || '-'}</span></div>
-                          <div>Rangka: <span className="text-white/75">{item.noRangka || '-'}</span></div>
+                        <div className="text-[10px] font-mono text-slate-500 mt-1 space-y-0.5">
+                          <div>Mesin: <span className="text-slate-800 font-semibold">{item.noMesin || '-'}</span></div>
+                          <div>Rangka: <span className="text-slate-800 font-semibold">{item.noRangka || '-'}</span></div>
                         </div>
                       </div>
 
@@ -1360,7 +1361,7 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                         {photoSrc ? (
                           <div
                             onClick={() => onPreviewPhoto(photoSrc, item.namaPart)}
-                            className="group relative w-12 h-12 rounded-xl overflow-hidden border border-white/30 cursor-pointer shadow-md"
+                            className="group relative w-12 h-12 rounded-xl overflow-hidden border border-slate-200 cursor-pointer shadow-2xs"
                           >
                             <img
                               src={photoSrc}
@@ -1370,16 +1371,16 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                               alt={item.namaPart}
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                             />
-                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute inset-0 bg-black/25 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <Eye className="w-3.5 h-3.5 text-white" />
                             </div>
                           </div>
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/15 flex items-center justify-center text-white/40">
+                          <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
                             <ImageIcon className="w-5 h-5" />
                           </div>
                         )}
-                        <span className="text-[9px] text-white/40 block mt-0.5">
+                        <span className="text-[9px] text-slate-400 block mt-0.5">
                           {photoSrc ? 'Lihat Foto' : 'No Foto'}
                         </span>
                       </div>
@@ -1387,28 +1388,28 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                   );
                 })
               ) : (
-                <p className="text-xs text-white/50 italic text-center py-2">Tidak ada data rincian part.</p>
+                <p className="text-xs text-slate-500 italic text-center py-2">Tidak ada data rincian part.</p>
               )}
             </div>
           </div>
 
           {/* Pengiriman & PJ Info Box */}
-          <div className="rounded-2xl p-3 bg-black/25 border border-white/10 text-xs space-y-1.5">
+          <div className="rounded-2xl p-3 bg-white border border-slate-200 text-xs space-y-1.5 shadow-2xs">
             <div className="flex justify-between">
-              <span className="text-white/60">No. Surat Jalan:</span>
-              <strong className="font-mono text-amber-300">{claim.noSj}</strong>
+              <span className="text-slate-500">No. Surat Jalan:</span>
+              <strong className="font-mono text-slate-900 font-bold">{claim.noSj}</strong>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-white/60">Sopir Penanggungjawab:</span>
-              <span className="text-white">{claim.sopirPJ} ({claim.transporterPJ})</span>
+              <span className="text-slate-500">Sopir Penanggungjawab:</span>
+              <span className="text-slate-800 font-semibold">{claim.sopirPJ} ({claim.transporterPJ})</span>
             </div>
 
             {/* BUKTI FOTO SOPIR LANGSUNG DI BAWAH SOPIR PJ DENGAN GARIS BAWAH */}
             {claim.fotoSopirPJ && (() => {
               const cleanSopirPhoto = getCleanPhotoUrl(claim.fotoSopirPJ);
               return (
-                <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                  <span className="text-white/60">Bukti Foto Sopir:</span>
+                <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                  <span className="text-slate-500">Bukti Foto Sopir:</span>
                   <img
                     src={cleanSopirPhoto}
                     loading="lazy"
@@ -1416,21 +1417,21 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
                     alt="Foto Sopir PJ"
                     referrerPolicy="no-referrer"
                     onClick={() => onPreviewPhoto(cleanSopirPhoto, 'Foto Sopir PJ')}
-                    className="w-10 h-10 object-cover rounded-lg border border-white/20 cursor-pointer hover:scale-105 transition-transform shadow-xs"
+                    className="w-10 h-10 object-cover rounded-lg border border-slate-200 cursor-pointer hover:scale-105 transition-transform shadow-2xs"
                   />
                 </div>
               );
             })()}
 
             <div className="flex justify-between pt-0.5">
-              <span className="text-white/60">Metode Pengembalian:</span>
-              <span className="font-bold text-white uppercase">{claim.metodeKembali}</span>
+              <span className="text-slate-500">Metode Pengembalian:</span>
+              <span className="font-bold text-slate-900 uppercase">{claim.metodeKembali}</span>
             </div>
 
             {claim.metodeKembali === 'DITITIP' && (
-              <div className="flex justify-between items-center pt-1 border-t border-white/10 text-amber-300">
-                <span className="text-white/60">Sopir Pengembalian (Titip):</span>
-                <span className="font-medium">
+              <div className="flex justify-between items-center pt-1 border-t border-slate-100 text-slate-700">
+                <span className="text-slate-500">Sopir Pengembalian (Titip):</span>
+                <span className="font-medium text-slate-800">
                   {claim.sopirKembali || '-'} ({claim.transporterKembali || '-'}) {claim.nopolKembali ? `• ${claim.nopolKembali}` : ''}
                 </span>
               </div>
@@ -1439,11 +1440,11 @@ export const ClaimDetailModal: React.FC<ClaimDetailModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-white/10 bg-black/40 text-center">
+        <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 text-center">
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-white/15 hover:bg-white/20 active:scale-98 text-xs font-bold text-white transition-all cursor-pointer"
+            className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 active:scale-98 text-xs font-bold text-slate-700 border border-slate-200 shadow-2xs transition-all cursor-pointer"
           >
             Tutup
           </button>
